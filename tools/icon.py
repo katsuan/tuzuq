@@ -6,7 +6,7 @@
 Q はカレンダーの○：白い輪の中にチェック、右下へのびるしっぽは「つづいていく」矢印。
 
   icon.svg・icon-32.png・apple-touch-icon.png・icon-512.png・icon-maskable-512.png … アイコン
-  logo.svg … 横長のロゴ「TuzuQ」（Jua。Q はアイコンと同じ形）
+  logo.svg … 横長のロゴ「TuzuQ」（Jua。Q はアイコンと同じ形。z は書き順どおりの矢印＝上の横線 → 斜め → 下の横線の先に矢じり）
   ogp.png  … 共有したときの画像（1200×630）
 
 使い方: python3 tools/icon.py（となりのおくるん（q-oqrn）の tools/brandkit.py を使う）
@@ -14,7 +14,9 @@ Q はカレンダーの○：白い輪の中にチェック、右下へのびる
 from pathlib import Path
 
 import brandkit_path  # noqa: F401
-from brandkit import Brand, arrow_head, centered, polar
+import re
+
+from brandkit import Brand, arrow_head, centered, num, polar
 
 ROOT = Path(__file__).resolve().parent.parent
 BRAND = Brand(light=(110, 182, 255), dark=(47, 128, 216))
@@ -45,10 +47,41 @@ def decorate(d, s):
             d.ellipse(((x - r + 9) * s, (y - r + 9) * s, (x + r - 9) * s, (y + r - 9) * s), fill=(255, 255, 255, 60))
 
 
+def path_bounds(d):
+    """SVG のパス（字の形）の数字から、だいたいの外形（x0, y0, x1, y1）"""
+    nums = [float(v) for v in re.findall(r"-?\d+(?:\.\d+)?", d)]
+    xs, ys = nums[0::2], nums[1::2]
+    return min(xs), min(ys), max(xs), max(ys)
+
+
+def z_arrow_logo(svg):
+    """ロゴの z を、書き順どおりの矢印にする（上の横線を右へ → 斜めに左下へ → 下の横線を右へ、最後に矢じり）"""
+    paths = re.findall(r'<path d="([^"]+)" fill="[^"]+" stroke="[^"]+"/>', svg)
+    z = paths[2]  # 字の並びは T・u・z・u（Q は字のパスに入らない）
+    x0, y0, x1, y1 = path_bounds(z)
+    w, h = x1 - x0, y1 - y0
+    sw = h * 0.2  # 線の太さ（Jua の字の太さに近く）
+    m = sw / 2
+    head = sw * 1.25  # 矢じりの長さ
+    top, bottom = y0 + m, y1 - m
+    left, right = x0 + m, x1 - m
+    tip = x1 + head * 0.05  # 矢じりの先（次の字にふれないよう、字の右はしあたり）
+    line = (
+        f'<path d="M{num(left)} {num(top)} L{num(right)} {num(top)} L{num(left)} {num(bottom)} L{num(tip - head)} {num(bottom)}" '
+        f'fill="none" stroke="#ffffff" stroke-width="{num(sw)}" stroke-linecap="round" stroke-linejoin="round"/>'
+    )
+    arrow = (
+        f'<path d="M{num(tip)} {num(bottom)} L{num(tip - head * 1.25)} {num(bottom - head * 0.85)} '
+        f'L{num(tip - head * 1.25)} {num(bottom + head * 0.85)} Z" fill="#ffffff" stroke="#ffffff" stroke-width="{num(sw * 0.3)}" stroke-linejoin="round"/>'
+    )
+    svg = svg.replace(f'<path d="{z}"', '<path d="M0 0"', 1)  # 字の z は消して
+    return svg.replace("</svg>", line + arrow + "</svg>")
+
+
 def main():
     BRAND.write_icons(ROOT, SHAPES)
     logo, ratio = BRAND.logo_svg("TuzuQ", SHAPES, C, RING_OUTER, "TuzuQ（つづく）")
-    (ROOT / "logo.svg").write_text(logo, encoding="utf-8")
+    (ROOT / "logo.svg").write_text(z_arrow_logo(logo), encoding="utf-8")
     BRAND.write_ogp(
         ROOT / "ogp.png", SHAPES, "つづく", "TuzuQ",
         ["できた日に○をつけるだけ", "記録はこの端末の中だけ"], decorate,
