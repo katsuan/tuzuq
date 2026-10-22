@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja" data-ls-dark="auto">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>つづく｜毎日の○で、習慣をつづける</title>
+<meta name="description" content="つづく（TsuduQ）。できた日に○をつけるだけの習慣カレンダー。何日つづいたか・ひと月の○が見えます。記録はこの端末の中だけ。LINE にカードで送れます。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="つづく（TsuduQ）">
+<meta property="og:title" content="つづく｜毎日の○で、習慣をつづける">
+<meta property="og:description" content="できた日に○をつけるだけ。何日つづいたか・ひと月の○が見えます。記録はこの端末の中だけで、LINE にカードで送れます。">
+<meta property="og:url" content="https://katsuan.github.io/tsuduq/">
+<meta property="og:image" content="https://katsuan.github.io/tsuduq/ogp.png?v=1">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="つづく（TsuduQ）：毎日の○で、習慣をつづける">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#eef5fd" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16151a" media="(prefers-color-scheme: dark)">
+<!-- 確認がすむまで、検索に出さない（公開するときに外す） -->
+<meta name="robots" content="noindex, nofollow">
+<!-- アイコン・ロゴ・OGP は tools/icon.py で作る -->
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
+<!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、つづくの色に -->
+<link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
+<link rel="stylesheet" href="style.css?v=202610231">
+</head>
+<body>
+<main class="ls-page ls-stack">
+  <header class="ls-brand">
+    <h1 class="ls-brand-name"><img class="ls-brand-icon" src="icon.svg" alt="" width="30" height="30">つづく</h1>
+    <img class="ls-brand-logo" src="logo.svg" alt="TsuduQ" width="83" height="28">
+  </header>
+  <p class="ls-brand-copy">きょうの○が、あしたにつづく</p>
+  <p class="ls-hint lead">できた日に○をつけるだけ。記録はこの端末の中だけに残ります。</p>
+
+  <!-- きょうの○：習慣ごとに、きょうの○と、この1週間の○（押すとつけ外し） -->
+  <section class="ls-panel" aria-labelledby="todayTitle">
+    <div class="today-head">
+      <h2 id="todayTitle" class="ls-panel-title">✅ <span id="todayHeading">きょうの○</span></h2>
+      <span id="progress" class="progress"></span>
+    </div>
+    <div id="habitList" class="habit-list"></div>
+    <div id="sendArea" class="send-area" hidden>
+      <a id="sendBtn" class="ls-button is-block line" href="#">💬 LINEで送る<small>（おくるん）</small></a>
+    </div>
+  </section>
+
+  <div class="ls-folds">
+    <!-- 習慣をふやす・直す -->
+    <details class="ls-fold" id="editFold">
+      <summary><span class="ls-fold-icon" aria-hidden="true">➕</span><span id="editSummary">習慣をふやす・直す</span></summary>
+      <div class="ls-fold-body">
+        <p class="sub-title" id="formHeading">➕ 習慣をふやす</p>
+        <label class="ls-field">
+          <span class="ls-label">なにをつづける？</span>
+          <input id="name" class="ls-input" maxlength="24" placeholder="例：水を2L飲む" autocomplete="off" enterkeyhint="done">
+        </label>
+        <div id="ideas" class="ls-chips" aria-label="よくある習慣"></div>
+        <div class="ls-field">
+          <span class="ls-label">しるし</span>
+          <div id="emojis" class="emojis" role="radiogroup" aria-label="しるし"></div>
+        </div>
+        <label class="ls-field">
+          <span class="ls-label">ほかの Q ツールとつなぐ（自動で○）</span>
+          <select id="link" class="ls-input">
+            <option value="">つながない（自分で○をつける）</option>
+          </select>
+        </label>
+        <div class="form-actions">
+          <button id="saveBtn" class="ls-button is-primary is-block" type="button">＋ ふやす</button>
+          <button id="cancelEdit" class="ls-button is-block" type="button" hidden>やめる</button>
+        </div>
+        <div id="manageList" class="manage-list"></div>
+      </div>
+    </details>
+
+    <!-- カレンダー：習慣ごとのひと月の○ -->
+    <details class="ls-fold" id="calFold">
+      <summary><span class="ls-fold-icon" aria-hidden="true">📅</span>カレンダー・ふりかえり</summary>
+      <div class="ls-fold-body">
+        <div id="calHabits" class="ls-chips" aria-label="習慣をえらぶ"></div>
+        <div class="cal-nav">
+          <button id="prevMonth" class="ls-icon-button" type="button" aria-label="前の月">‹</button>
+          <b id="monthLabel"></b>
+          <button id="nextMonth" class="ls-icon-button" type="button" aria-label="次の月">›</button>
+        </div>
+        <div class="cal-week" aria-hidden="true"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>
+        <div id="calendar" class="calendar"></div>
+        <div id="calStats" class="cal-stats"></div>
+        <p class="ls-hint small">日を押すと○をつけ外しできます。🍚 などの自動の○は、もとのツールの記録で決まります。</p>
+      </div>
+    </details>
+
+    <!-- 記録の控え -->
+    <details class="ls-fold" id="settings">
+      <summary><span class="ls-fold-icon" aria-hidden="true">🔒</span>記録の控え</summary>
+      <div class="ls-fold-body">
+        <p class="ls-hint">記録はこの端末（ブラウザ）の中だけにあります。機種変更やブラウザのデータを消す前に、控えを書き出しておいてください。</p>
+        <div class="form-actions">
+          <button id="exportBtn" class="ls-button is-block" type="button">⬇️ 控えを書き出す</button>
+          <label class="ls-button is-block file-btn">⬆️ 控えを読みこむ<input id="importFile" type="file" accept="application/json,.json"></label>
+        </div>
+        <button id="resetBtn" class="link danger" type="button">記録をすべて消す</button>
+      </div>
+    </details>
+  </div>
+
+  <p id="status" class="status" role="status"></p>
+
+  <!-- 「📤 つづくを紹介する」（line-share/shared/tool-share.js。中身は line-share/data/hub-links.json。一覧に載せるまでは何も出ない） -->
+  <div data-tool-share></div>
+</main>
+
+<script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
+<script src="https://katsuan.github.io/line-share/shared/ui.js" defer></script>
+<script type="module" src="app.js?v=202610231"></script>
+<script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="tsuduq" defer></script>
+<script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>
+</body>
+</html>

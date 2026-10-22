@@ -1,0 +1,117 @@
+/* つづく（TsuduQ）。部品（見出しの行・カード・チップ・入力欄・ボタン・開閉・トースト）は Q キット
+ * （https://katsuan.github.io/line-share/shared/ui.css）。ここには、つづくの色と字、つづくにしかない見た目だけを置く */
+:root {
+  --ls-accent: #2f80d8;
+  --ls-accent-strong: #2369b5;
+  --ls-accent-soft: #e2efff;
+  --ls-accent-ink: #1b5fa8;
+  --ls-bg: #eef5fd;
+  --ls-surface-sub: #f5f9fe;
+  --ls-text: #1f2d3d;
+  --ls-subtext: #566578;
+  --ls-line: #d6e4f3;
+  --ls-line-strong: #bcd3ec;
+  --ls-shadow: 0 10px 28px rgba(30, 80, 140, 0.1);
+  --ls-font: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
+
+  --line-green: #06c755;
+  --fire: #f0742b;
+  --auto: #ec8a16; /* しょくじの黄色（自動の○） */
+}
+
+html { background: var(--ls-bg); }
+body {
+  background: radial-gradient(circle at top right, #cfe4ff, transparent 40%), var(--ls-bg);
+  -webkit-font-smoothing: antialiased;
+}
+.ls-page { padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
+.lead { margin-top: -8px; }
+.small { font-size: 12px; }
+
+.today-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.progress { color: var(--ls-subtext); font-size: 14px; font-weight: 800; white-space: nowrap; }
+.progress b { color: var(--ls-accent-ink); font-size: 22px; }
+.progress.is-all b { color: var(--fire); }
+
+/* 習慣 1つ：上の行（しるし・名前・続いた日数・きょうの○）と、下の行（この1週間の○） */
+.habit-list { display: grid; gap: 10px; }
+.habit { display: grid; gap: 8px; padding: 10px 10px 10px 12px; border: 1.5px solid var(--ls-line); border-radius: 16px; background: var(--ls-surface, #fff); transition: border-color 0.2s, background 0.2s; }
+.habit.is-done { border-color: var(--ls-line-strong); background: var(--ls-surface-sub); }
+.habit-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 8px; }
+.habit-emoji { font-size: 24px; line-height: 1; }
+.habit-name { display: grid; min-width: 0; }
+.habit-name b { overflow: hidden; font-size: 16px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.auto-tag { justify-self: start; margin-top: 2px; padding: 1px 7px; border-radius: 999px; background: #fff0d6; color: #b35f00; font-size: 11px; font-weight: 700; }
+.habit-streak { color: var(--fire); font-size: 14px; font-weight: 800; white-space: nowrap; }
+.habit-streak.is-zero { color: var(--ls-subtext); font-size: 12px; }
+
+/* きょうの○：大きな丸のボタン */
+.check { display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 2.5px dashed var(--ls-line-strong); border-radius: 50%; background: transparent; color: #fff; font-size: 26px; font-weight: 800; line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.check.is-on { border: 0; background: var(--ls-accent); box-shadow: 0 4px 12px rgba(47, 128, 216, 0.35); }
+.check:disabled.is-on { background: var(--auto); box-shadow: 0 4px 12px rgba(236, 138, 22, 0.3); cursor: default; }
+.is-pop { animation: pop 0.45s cubic-bezier(0.3, 1.6, 0.6, 1); }
+@keyframes pop { 0% { transform: scale(0.6); } 100% { transform: scale(1); } }
+
+/* この1週間：曜日と小さな○ */
+.dots { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.dot { display: grid; justify-items: center; gap: 2px; padding: 2px 0; border: 0; background: none; color: var(--ls-subtext); font-size: 11px; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.dot i { display: grid; place-items: center; width: 26px; height: 26px; border: 1.5px solid var(--ls-line-strong); border-radius: 50%; color: #fff; font-size: 14px; font-style: normal; font-weight: 800; }
+.dot.is-on i { border-color: var(--ls-accent); background: var(--ls-accent); }
+.dot.is-auto i { border-color: var(--auto); background: var(--auto); }
+.dot.is-today span { color: var(--ls-accent-ink); font-weight: 800; }
+.dot:disabled { cursor: default; }
+.start-ideas { justify-content: center; }
+
+.send-area { display: grid; gap: 6px; }
+.ls-button.line { gap: 4px; border-color: var(--line-green); background: var(--line-green); color: #fff; }
+.ls-button.line small { font-size: 12px; opacity: 0.9; }
+
+/* 習慣をふやす・直す */
+.emojis { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; }
+.ls-chip.emoji { min-height: 44px; padding: 0; font-size: 20px; justify-content: center; }
+select.ls-input { -webkit-appearance: none; appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ls-subtext) 50%), linear-gradient(135deg, var(--ls-subtext) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 32px; }
+.form-actions { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; }
+.manage-list { display: grid; gap: 6px; }
+.manage { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: center; gap: 4px; padding: 4px 4px 4px 10px; border: 1.5px solid var(--ls-line); border-radius: 12px; }
+.manage.is-editing { border-color: var(--ls-accent); background: var(--ls-accent-soft); }
+.manage .name { overflow: hidden; padding: 6px 0; border: 0; background: none; color: inherit; font-size: 15px; font-weight: 700; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.manage .name small { color: var(--ls-subtext); font-size: 11px; }
+.mini { width: 34px; height: 34px; border: 0; border-radius: 50%; background: none; color: var(--ls-subtext); font-size: 15px; cursor: pointer; }
+.mini:disabled { opacity: 0.3; cursor: default; }
+.mini.del { color: #a39a8f; }
+.edit-hint { margin: -2px 0 0; color: var(--ls-subtext); font-size: 12px; text-align: right; }
+.sub-title { margin: 6px 0 0; padding-top: 10px; border-top: 1px dashed var(--ls-line); font-size: 14px; font-weight: 800; }
+.sub-title:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+
+/* カレンダー */
+.cal-nav { display: grid; grid-template-columns: auto 1fr auto; align-items: center; text-align: center; font-size: 16px; }
+.cal-week, .calendar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-align: center; }
+.cal-week span { color: var(--ls-subtext); font-size: 11px; font-weight: 700; }
+.cal-week span:first-child { color: #d9534f; }
+.cal-week span:last-child { color: var(--ls-accent-ink); }
+.cell { aspect-ratio: 1; display: grid; place-items: center; min-width: 0; padding: 0; border: 1.5px solid transparent; border-radius: 50%; background: none; color: var(--ls-text); font-size: 14px; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.cell.is-blank { pointer-events: none; }
+.cell.is-on { background: var(--ls-accent); color: #fff; }
+.cell.is-auto { background: var(--auto); color: #fff; }
+.cell.is-today { border-color: var(--ls-accent); }
+.cell:disabled:not(.is-auto) { color: var(--ls-line-strong); cursor: default; }
+.cal-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.cal-stats > div { display: grid; justify-items: center; gap: 1px; padding: 8px 4px; border-radius: 12px; background: var(--ls-surface-sub); }
+.cal-stats .ls-empty { grid-column: 1 / -1; }
+.cal-stats span, .cal-stats em { color: var(--ls-subtext); font-size: 11px; font-style: normal; font-weight: 700; }
+.cal-stats b { color: var(--ls-accent-ink); font-size: 24px; font-weight: 800; }
+.cal-stats b small { font-size: 12px; }
+
+.file-btn { position: relative; overflow: hidden; }
+.file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.link { justify-self: start; padding: 4px 0; border: 0; background: none; color: var(--ls-subtext); font-size: 13px; text-decoration: underline; cursor: pointer; }
+.link.danger { color: var(--ls-danger, #d9534f); }
+.status { min-height: 1.2em; margin: 0; color: var(--ls-accent-ink); font-size: 14px; font-weight: 700; }
+.status:empty { display: none; }
+
+@media (prefers-color-scheme: dark) {
+  :root[data-ls-dark="auto"] { --ls-accent-ink: #8cc0ff; }
+  :root[data-ls-dark="auto"] html, :root[data-ls-dark="auto"] body { background: radial-gradient(circle at top right, rgba(47, 128, 216, 0.18), transparent 40%), var(--ls-bg); }
+  :root[data-ls-dark="auto"] .auto-tag { background: rgba(236, 138, 22, 0.2); color: #ffc070; }
+  :root[data-ls-dark="auto"] .check { color: #fff; }
+}
