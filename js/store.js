@@ -6,6 +6,10 @@
 
 const KEY = "tuzuq:v1";
 export const MAX_HABITS = 12;
+export const MAX_DAYS_PER_HABIT = 3700; // 10年ぶんくらい
+export const MAX_IMPORT_BYTES = 1024 * 1024; // 控えのファイルは 1MB まで
+// id は画面のボタンにも入れるので、英数字だけ（ちがう形なら新しく作る）
+const ID = /^[a-z0-9]{4,24}$/;
 export const LINKS = {
   shoquji: { label: "🍚 しょくじを記録した日", key: "shoquji:v1" }
 };
@@ -16,7 +20,7 @@ function blank() {
 
 function cleanHabit(h) {
   return {
-    id: String(h.id || newId()),
+    id: ID.test(String(h.id || "")) ? String(h.id) : newId(),
     name: String(h.name || "").trim().slice(0, 24),
     emoji: String(h.emoji || "✅").slice(0, 8),
     link: LINKS[h.link] ? h.link : null,
@@ -28,12 +32,19 @@ function cleanHabit(h) {
 function clean(raw) {
   const s = blank();
   if (!raw || typeof raw !== "object") return s;
-  s.habits = (Array.isArray(raw.habits) ? raw.habits : []).filter((h) => h && String(h.name || "").trim()).map(cleanHabit).slice(0, MAX_HABITS);
   const done = raw.done && typeof raw.done === "object" ? raw.done : {};
-  s.habits.forEach((h) => {
-    const days = Array.isArray(done[h.id]) ? done[h.id] : [];
-    s.done[h.id] = [...new Set(days.filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)))].sort();
-  });
+  const seen = new Set();
+  (Array.isArray(raw.habits) ? raw.habits : [])
+    .filter((h) => h && typeof h === "object" && String(h.name || "").trim())
+    .slice(0, MAX_HABITS)
+    .forEach((h) => {
+      const habit = cleanHabit(h);
+      if (seen.has(habit.id)) habit.id = newId(); // 同じ id が重なったら、あとのほうを新しく
+      seen.add(habit.id);
+      const days = Array.isArray(done[h.id]) && habit.id === String(h.id) ? done[h.id] : [];
+      s.habits.push(habit);
+      s.done[habit.id] = [...new Set(days.filter((d) => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d)))].sort().slice(-MAX_DAYS_PER_HABIT);
+    });
   return s;
 }
 
@@ -115,7 +126,9 @@ export function linkedDays(link) {
   if (!def) return new Set();
   try {
     const raw = JSON.parse(localStorage.getItem(def.key) || "null");
-    if (link === "shoquji") return new Set((raw?.logs || []).map((l) => l.date).filter(Boolean));
+    if (link === "shoquji" && Array.isArray(raw?.logs)) {
+      return new Set(raw.logs.map((l) => l && l.date).filter((d) => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d)));
+    }
   } catch {
     // 読めなければ、自動の○はなし
   }
@@ -128,6 +141,7 @@ export function exportJson(state) {
 }
 
 export function importJson(state, text) {
+  if (String(text).length > MAX_IMPORT_BYTES) throw new Error("too large");
   const incoming = clean(JSON.parse(text));
   let added = 0;
   incoming.habits.forEach((h) => {
@@ -138,7 +152,7 @@ export function importJson(state, text) {
       state.done[h.id] = [];
       added++;
     }
-    state.done[h.id] = [...new Set([...(state.done[h.id] || []), ...incoming.done[h.id]])].sort();
+    state.done[h.id] = [...new Set([...(state.done[h.id] || []), ...incoming.done[h.id]])].sort().slice(-MAX_DAYS_PER_HABIT);
   });
   return added;
 }

@@ -85,7 +85,7 @@ def main():
     BRAND.write_ogp(
         ROOT / "ogp.png", SHAPES, "つづく", "TuzuQ",
         ["できた日に○をつけるだけ", "記録はこの端末の中だけ"], decorate,
-        copy="きょうの○が、あしたにつづく",
+        copy="きょうのできたが、あしたにつづく",
     )
     print(f"アイコン・logo.svg（高さ 28px なら幅 {28 * ratio:.0f}px）・ogp.png を書き出しました")
 

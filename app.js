@@ -1,6 +1,6 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
-import { LINKS, MAX_HABITS, addHabit, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610231";
-import { addDays, best, label, lastDays, monthGrid, streak, weekday, ymd } from "./js/stats.js?v=202610231";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, addHabit, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610222353";
+import { addDays, best, label, lastDays, monthGrid, streak, weekday, ymd } from "./js/stats.js?v=202610222353";
 
 const $ = (id) => document.getElementById(id);
 const PAGE_URL = "https://katsuan.github.io/tuzuq/";
@@ -88,7 +88,7 @@ function renderToday() {
       </div>`;
     })
     .join("");
-  $("progress").innerHTML = `<b>${doneToday}</b> / ${state.habits.length}`;
+  $("progress").innerHTML = `<b>${doneToday}</b> / ${state.habits.length}`; // qcheck-ok: W1 数だけ
   $("progress").classList.toggle("is-all", doneToday === state.habits.length);
   ui.justDone = null;
   $("sendArea").hidden = false;
@@ -348,6 +348,7 @@ $("importFile").addEventListener("change", async (e) => {
   const file = e.target.files[0];
   e.target.value = "";
   if (!file) return;
+  if (file.size > MAX_IMPORT_BYTES) return say("ファイルが大きすぎます（つづくで書き出した控えか確かめてください）");
   try {
     const added = importJson(state, await file.text());
     persist();
@@ -359,9 +360,9 @@ $("importFile").addEventListener("change", async (e) => {
 });
 
 $("resetBtn").addEventListener("click", async () => {
-  const ok = window.LineShareUI?.ask
-    ? await LineShareUI.ask({ title: "記録をすべて消しますか？", text: "この端末のつづくの習慣と○を、すべて消します。もとに戻せません。", ok: "すべて消す", danger: true })
-    : confirm("記録をすべて消しますか？");
+  // 確かめの窓（Q キット）がまだ読みこめていなければ、消さない（ブラウザの小窓は使わない）
+  if (!window.LineShareUI?.ask) return say("少し待ってから、もう一度押してください");
+  const ok = await LineShareUI.ask({ title: "記録をすべて消しますか？", text: "この端末のつづくの習慣と○を、すべて消します。もとに戻せません。", ok: "すべて消す", danger: true });
   if (!ok) return;
   state = reset();
   ui.editing = null;
