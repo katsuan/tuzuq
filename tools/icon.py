@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""つづく（TsuduQ）のアイコン・ロゴ・OGP を作る。
+"""つづく（TuzuQ）のアイコン・ロゴ・OGP を作る。
 
-名前は「つづく」。英字は TsuduQ（「つ・づ・く」の「く」を Q にする。おくるん＝OQRN・しょくじ＝ShoQuji と同じ作り方）。
+名前は「つづく」。英字は TuzuQ（「つ・づ・く」を tu・zu・Q と書き、「く」を Q にする。おくるん＝OQRN・しょくじ＝ShoQuji と同じ作り方）。
 アイコンはおくるんと同じ角の丸い四角に、青のグラデーション。
 Q はカレンダーの○：白い輪の中にチェック、右下へのびるしっぽは「つづいていく」矢印。
 
   icon.svg・icon-32.png・apple-touch-icon.png・icon-512.png・icon-maskable-512.png … アイコン
-  logo.svg … 横長のロゴ「TsuduQ」（Jua。Q はアイコンと同じ形）
+  logo.svg … 横長のロゴ「TuzuQ」（Jua。Q はアイコンと同じ形）
   ogp.png  … 共有したときの画像（1200×630）
 
 使い方: python3 tools/icon.py（となりのおくるん（q-oqrn）の tools/brandkit.py を使う）
@@ -47,10 +47,10 @@ def decorate(d, s):
 
 def main():
     BRAND.write_icons(ROOT, SHAPES)
-    logo, ratio = BRAND.logo_svg("TsuduQ", SHAPES, C, RING_OUTER, "TsuduQ（つづく）")
+    logo, ratio = BRAND.logo_svg("TuzuQ", SHAPES, C, RING_OUTER, "TuzuQ（つづく）")
     (ROOT / "logo.svg").write_text(logo, encoding="utf-8")
     BRAND.write_ogp(
-        ROOT / "ogp.png", SHAPES, "つづく", "TsuduQ",
+        ROOT / "ogp.png", SHAPES, "つづく", "TuzuQ",
         ["できた日に○をつけるだけ", "記録はこの端末の中だけ"], decorate,
         copy="きょうの○が、あしたにつづく",
     )

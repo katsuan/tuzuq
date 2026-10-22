@@ -1,9 +1,9 @@
-// つづく（TsuduQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
+// つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 import { LINKS, MAX_HABITS, addHabit, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610231";
 import { addDays, best, label, lastDays, monthGrid, streak, weekday, ymd } from "./js/stats.js?v=202610231";
 
 const $ = (id) => document.getElementById(id);
-const PAGE_URL = "https://katsuan.github.io/tsuduq/";
+const PAGE_URL = "https://katsuan.github.io/tuzuq/";
 const CARD_COLOR = "#2F80D8"; // ロゴの青
 const EMOJIS = ["✅", "💧", "🚶", "🏃", "📖", "🧘", "🦷", "💊", "📓", "🛏️", "🥗", "🎹", "📚", "🌱", "🧹", "💪", "🍚"];
 const IDEAS = [
@@ -138,7 +138,7 @@ function cardUrl(today) {
     showAction: "true",
     actionLabel: "✅ つづくで○をつける",
     actionUrl: PAGE_URL,
-    from: "tsuduq"
+    from: "tuzuq"
   });
   return window.OQRN ? window.OQRN.cardUrl(params) : "#";
 }
@@ -327,7 +327,7 @@ $("nextMonth").addEventListener("click", () => shiftMonth(1));
 
 // ---- 控え ----
 $("exportBtn").addEventListener("click", async () => {
-  const file = new File([exportJson(state)], `tsuduq-${ymd()}.json`, { type: "application/json" });
+  const file = new File([exportJson(state)], `tuzuq-${ymd()}.json`, { type: "application/json" });
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: "つづくの記録の控え" });
@@ -372,7 +372,7 @@ $("resetBtn").addEventListener("click", async () => {
 
 // ほかのタブ（しょくじなど）で記録が変わったら描きなおす
 window.addEventListener("storage", (e) => {
-  if (e.key === "tsuduq:v1") state = load();
+  if (e.key === "tuzuq:v1") state = load();
   render();
 });
 // 日付をまたいで開きっぱなしでも、戻ってきたら今日に

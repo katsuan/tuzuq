@@ -1,8 +1,8 @@
-# ✅ つづく 〜TsuduQ〜
+# ✅ つづく 〜TuzuQ〜
 
-できた日に○をつけるだけの習慣カレンダー。何日つづいたか・ひと月の○が見える。名前は「つづく」。英字は TsuduQ（「つ・づ・く」の「く」を Q にする。おくるん＝OQRN・しょくじ＝ShoQuji と同じ作り方）。キャッチコピーは「きょうの○が、あしたにつづく」。GitHub Pages でそのまま動く静的サイトで、サーバーは使わない。
+できた日に○をつけるだけの習慣カレンダー。何日つづいたか・ひと月の○が見える。名前は「つづく」。英字は TuzuQ（「つ・づ・く」を tu・zu・Q と書き、「く」を Q にする。おくるん＝OQRN・しょくじ＝ShoQuji と同じ作り方）。キャッチコピーは「きょうの○が、あしたにつづく」。GitHub Pages でそのまま動く静的サイトで、サーバーは使わない。
 
-公開URL（予定）: https://katsuan.github.io/tsuduq/ （確認がすむまで noindex。ConneQt の一覧・ポートフォリオにはまだ載せない）
+公開URL: https://katsuan.github.io/tuzuq/ （2026-10-23 公開。noindex のまま。Q ツール（ConneQt の一覧）・ポートフォリオには載せない。英字ははじめ TsuduQ（tsuduq）だったが、同じ日に TuzuQ（tuzuq）へ変えた）
 
 ## できること
 
@@ -12,12 +12,12 @@
 - ➕ 習慣をふやす・直す：名前・しるし（絵文字）・ほかの Q ツールとつなぐか。12こまで。↑↓で並べかえ、✕ ですぐ消せる（下に出る知らせの「元に戻す」で戻せる）
 - 🍚 ほかの Q ツールとつなぐ：同じサイト（katsuan.github.io）なので、しょくじの記録（localStorage の `shoquji:v1`）を読んで、記録した日に自動で○（黄色）。自動の○は、つづくでは外せない
 - 📅 カレンダー・ふりかえり：習慣ごとのひと月の○（押すとつけ外し）、この月の日数と割合・いま続いている日数・いちばん長く続いた日数
-- 💬 LINE で送る：おくるんのお知らせカード（`OQRN.cardUrl`）に、今日の○の一覧と続いた日数を渡す。色はロゴの青（#2F80D8）、ボタンは「✅ つづくで○をつける」。流入口は `from=tsuduq`
+- 💬 LINE で送る：おくるんのお知らせカード（`OQRN.cardUrl`）に、今日の○の一覧と続いた日数を渡す。色はロゴの青（#2F80D8）、ボタンは「✅ つづくで○をつける」。流入口は `from=tuzuq`
 - 🔒 記録の控え：書き出し（スマホは共有シート、パソコンはダウンロード）・読みこみ（同じ習慣は○を足す、ほかは加える）、すべて消す
 
 ## 記録の置き場所
 
-この端末（ブラウザ）の localStorage の `tsuduq:v1` だけ。サーバーには送らない。
+この端末（ブラウザ）の localStorage の `tuzuq:v1` だけ。サーバーには送らない（前の名前の `tsuduq:v1` が残っていれば、それを読む）。
 
 - `habits`：`[{ id, name, emoji, link, at }]`（`link` は `"shoquji"` か null）
 - `done`：`{ 習慣の id: ["YYYY-MM-DD", ...] }`（自分でつけた○の日。自動の○はここに入れず、そのつど読む）
@@ -45,6 +45,6 @@
 
 ## 公開するときにすること
 
-1. GitHub に `katsuan/tsuduq` を作って push し、Pages を開く
+1. GitHub に `katsuan/tuzuq` を作って push し、Pages を開く
 2. 確かめがすんだら `index.html` の noindex を外す
-3. おくるん（line-share）の `data/hub-links.json` に `key: "tsuduq"` を足す（グループは「毎日・あそび」）。`backup/app.js` の一覧に `["tsuduq:", "つづく", "tsuduq"]` を足す
+3. おくるん（line-share）の `data/hub-links.json` に `key: "tuzuq"` を足す（グループは「毎日・あそび」）。`backup/app.js` の一覧に `["tuzuq:", "つづく", "tuzuq"]` を足す

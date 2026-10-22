@@ -1,10 +1,10 @@
-// つづく：記録の保存（この端末の localStorage の "tsuduq:v1" だけ。サーバーには送らない）
+// つづく：記録の保存（この端末の localStorage の "tuzuq:v1" だけ。サーバーには送らない）
 // 習慣 1件 = { id, name, emoji, link, at }
 //   link：ほかの Q ツールの記録で自動で○をつける（"shoquji" … しょくじを記録した日）。なければ null
 // done = { 習慣の id: ["YYYY-MM-DD", ...] }（○をつけた日）
 // 消した習慣は、○の記録ごと控え（trash）に1つだけ残して「元に戻す」で戻せるようにする
 
-const KEY = "tsuduq:v1";
+const KEY = "tuzuq:v1";
 export const MAX_HABITS = 12;
 export const LINKS = {
   shoquji: { label: "🍚 しょくじを記録した日", key: "shoquji:v1" }
@@ -43,7 +43,8 @@ export function newId() {
 
 export function load() {
   try {
-    return clean(JSON.parse(localStorage.getItem(KEY) || "null"));
+    // 前の名前（tsuduq:v1）で残した記録があれば、そのまま読む（次に保存するとき新しい名前で残る）
+    return clean(JSON.parse(localStorage.getItem(KEY) || localStorage.getItem("tsuduq:v1") || "null"));
   } catch {
     return blank();
   }
@@ -123,7 +124,7 @@ export function linkedDays(link) {
 
 // 控え（書き出し・読みこみ）。読みこみは同じ習慣の○を足し、ほかの習慣は加える
 export function exportJson(state) {
-  return JSON.stringify({ app: "tsuduq", exportedAt: new Date().toISOString(), ...state }, null, 1);
+  return JSON.stringify({ app: "tuzuq", exportedAt: new Date().toISOString(), ...state }, null, 1);
 }
 
 export function importJson(state, text) {
