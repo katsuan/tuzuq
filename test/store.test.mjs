@@ -9,11 +9,12 @@ globalThis.localStorage = {
   setItem: (k, v) => mem.set(k, String(v)),
   removeItem: (k) => mem.delete(k)
 };
+const { monthGrid, weekHeader } = await import("../js/stats.js");
 const { load, importJson, exportJson, linkedDays, MAX_HABITS, MAX_DAYS_PER_HABIT, MAX_IMPORT_BYTES } = await import("../js/store.js");
 
-const XSS = '" onclick=alert(1) x="';
+const XSS = '" onclick=alert(1) x="'; // qcheck-ok: W8 テストの見本の文字
 const ID = /^[a-z0-9]{4,24}$/;
-const blank = () => ({ v: 1, habits: [], done: {} });
+const blank = () => ({ v: 1, habits: [], done: {}, weekStart: 1 });
 
 test("ボタンに入る id は英数字だけ（控えの id に記号が入っていても作りなおす）", () => {
   const s = blank();
@@ -64,4 +65,27 @@ test("しょくじの記録から読む日付も、形を確かめる", () => {
   assert.deepEqual([...linkedDays("shoquji")], ["2026-10-22"]);
   mem.set("shoquji:v1", JSON.stringify({ logs: "x" }));
   assert.equal(linkedDays("shoquji").size, 0);
+});
+
+test("カレンダーは月曜はじまりが既定。日曜はじまりにも切りかえられる", () => {
+  // 2026年10月1日は木曜
+  const mon = monthGrid(2026, 10);
+  assert.equal(mon.indexOf("2026-10-01"), 3); // 月 火 水 [木]
+  assert.equal(mon.indexOf("2026-10-05"), 7); // 次の行の頭が月曜
+  const sun = monthGrid(2026, 10, 0);
+  assert.equal(sun.indexOf("2026-10-01"), 4); // 日 月 火 水 [木]
+  assert.equal(mon.length % 7, 0);
+  assert.deepEqual(weekHeader(1).map((w) => w.label).join(""), "月火水木金土日");
+  assert.deepEqual(weekHeader(0).map((w) => w.label).join(""), "日月火水木金土");
+  // 月曜はじまりの月でも、1日が月曜なら空きなし（2026年6月1日は月曜）
+  assert.equal(monthGrid(2026, 6)[0], "2026-06-01");
+});
+
+test("週のはじまりの設定は残り、変な値は月曜に", () => {
+  mem.set("tuzuq:v1", JSON.stringify({ habits: [], done: {}, weekStart: 0 }));
+  assert.equal(load().weekStart, 0);
+  mem.set("tuzuq:v1", JSON.stringify({ habits: [], done: {}, weekStart: "x" }));
+  assert.equal(load().weekStart, 1);
+  mem.set("tuzuq:v1", JSON.stringify({ habits: [], done: {} }));
+  assert.equal(load().weekStart, 1);
 });

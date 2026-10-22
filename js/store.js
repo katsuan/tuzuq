@@ -14,8 +14,9 @@ export const LINKS = {
   shoquji: { label: "🍚 しょくじを記録した日", key: "shoquji:v1" }
 };
 
+// weekStart：カレンダーの週のはじまり（1＝月曜・既定、0＝日曜）
 function blank() {
-  return { v: 1, habits: [], done: {} };
+  return { v: 1, habits: [], done: {}, weekStart: 1 };
 }
 
 function cleanHabit(h) {
@@ -32,6 +33,7 @@ function cleanHabit(h) {
 function clean(raw) {
   const s = blank();
   if (!raw || typeof raw !== "object") return s;
+  s.weekStart = raw.weekStart === 0 ? 0 : 1;
   const done = raw.done && typeof raw.done === "object" ? raw.done : {};
   const seen = new Set();
   (Array.isArray(raw.habits) ? raw.habits : [])
@@ -157,8 +159,10 @@ export function importJson(state, text) {
   return added;
 }
 
-export function reset() {
+// 記録はすべて消すが、週のはじまりの設定は残す
+export function reset(weekStart = 1) {
   const s = blank();
+  s.weekStart = weekStart === 0 ? 0 : 1;
   save(s);
   return s;
 }

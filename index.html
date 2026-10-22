@@ -29,7 +29,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、つづくの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610222353">
+<link rel="stylesheet" href="style.css?v=202610222356">
 </head>
 <body>
 <main class="ls-page ls-stack">
@@ -91,10 +91,17 @@
           <b id="monthLabel"></b>
           <button id="nextMonth" class="ls-icon-button" type="button" aria-label="次の月">›</button>
         </div>
-        <div class="cal-week" aria-hidden="true"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>
+        <div id="calWeek" class="cal-week" aria-hidden="true"></div>
         <div id="calendar" class="calendar"></div>
         <div id="calStats" class="cal-stats"></div>
         <p class="ls-hint small">日を押すと○をつけ外しできます。🍚 などの自動の○は、もとのツールの記録で決まります。</p>
+        <div class="week-start">
+          <span class="ls-hint small">週のはじまり</span>
+          <div id="weekStart" class="ls-chips" role="radiogroup" aria-label="週のはじまり">
+            <button class="ls-chip is-small" type="button" role="radio" data-week-start="1">月曜</button>
+            <button class="ls-chip is-small" type="button" role="radio" data-week-start="0">日曜</button>
+          </div>
+        </div>
       </div>
     </details>
 
@@ -120,7 +127,7 @@
 
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/ui.js" defer></script>
-<script type="module" src="app.js?v=202610222353"></script>
+<script type="module" src="app.js?v=202610222356"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="tuzuq" defer></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>
 </body>

@@ -11,6 +11,14 @@ export function addDays(date, n) {
   return ymd(new Date(y, m - 1, d + n));
 }
 
+// カレンダーの曜日の見出し（週のはじまりから7つ）。dow：0＝日 … 6＝土
+export function weekHeader(weekStart = 1) {
+  return Array.from({ length: 7 }, (_, i) => {
+    const dow = (weekStart + i) % 7;
+    return { label: WEEK[dow], dow };
+  });
+}
+
 export function weekday(date) {
   const [y, m, d] = date.split("-").map(Number);
   return WEEK[new Date(y, m - 1, d).getDay()];
@@ -52,11 +60,11 @@ export function lastDays(today, n) {
   return Array.from({ length: n }, (_, i) => addDays(today, i - n + 1));
 }
 
-// ひと月のカレンダー（日曜はじまり）。前後の空きは null
-export function monthGrid(year, month) {
+// ひと月のカレンダー。weekStart：1＝月曜はじまり（既定）、0＝日曜はじまり。前後の空きは null
+export function monthGrid(year, month, weekStart = 1) {
   const first = new Date(year, month - 1, 1);
   const count = new Date(year, month, 0).getDate();
-  const cells = Array(first.getDay()).fill(null);
+  const cells = Array((first.getDay() - weekStart + 7) % 7).fill(null);
   for (let d = 1; d <= count; d++) cells.push(ymd(new Date(year, month - 1, d)));
   while (cells.length % 7) cells.push(null);
   return cells;

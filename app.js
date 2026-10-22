@@ -1,6 +1,6 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, addHabit, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610222353";
-import { addDays, best, label, lastDays, monthGrid, streak, weekday, ymd } from "./js/stats.js?v=202610222353";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, addHabit, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610222356";
+import { addDays, best, label, lastDays, monthGrid, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610222356";
 
 const $ = (id) => document.getElementById(id);
 const PAGE_URL = "https://katsuan.github.io/tuzuq/";
@@ -286,7 +286,11 @@ function renderCalendar() {
   const today = ymd();
   $("nextMonth").disabled = ui.month >= today.slice(0, 7);
   const d = daysOf(h);
-  const cells = monthGrid(y, m);
+  $("calWeek").innerHTML = weekHeader(state.weekStart) // qcheck-ok: W1 決まった曜日の字だけ
+    .map((w) => `<span class="${w.dow === 0 ? "is-sun" : w.dow === 6 ? "is-sat" : ""}">${w.label}</span>`)
+    .join("");
+  document.querySelectorAll("[data-week-start]").forEach((b) => b.setAttribute("aria-checked", String(Number(b.dataset.weekStart) === state.weekStart)));
+  const cells = monthGrid(y, m, state.weekStart);
   $("calendar").innerHTML = cells
     .map((date) => {
       if (!date) return '<span class="cell is-blank"></span>';
@@ -316,6 +320,13 @@ $("calendar").addEventListener("click", (e) => {
   toggle(state, ui.cal, b.dataset.calDay);
   persist();
   render();
+});
+$("weekStart").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-week-start]");
+  if (!b) return;
+  state.weekStart = Number(b.dataset.weekStart) === 0 ? 0 : 1;
+  persist();
+  renderCalendar();
 });
 function shiftMonth(n) {
   const [y, m] = ui.month.split("-").map(Number);
@@ -364,7 +375,7 @@ $("resetBtn").addEventListener("click", async () => {
   if (!window.LineShareUI?.ask) return say("少し待ってから、もう一度押してください");
   const ok = await LineShareUI.ask({ title: "記録をすべて消しますか？", text: "この端末のつづくの習慣と○を、すべて消します。もとに戻せません。", ok: "すべて消す", danger: true });
   if (!ok) return;
-  state = reset();
+  state = reset(state.weekStart);
   ui.editing = null;
   clearForm();
   render();

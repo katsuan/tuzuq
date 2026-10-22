@@ -87,8 +87,9 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .cal-nav { display: grid; grid-template-columns: auto 1fr auto; align-items: center; text-align: center; font-size: 16px; }
 .cal-week, .calendar { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-align: center; }
 .cal-week span { color: var(--ls-subtext); font-size: 11px; font-weight: 700; }
-.cal-week span:first-child { color: #d9534f; }
-.cal-week span:last-child { color: var(--ls-accent-ink); }
+.cal-week .is-sun { color: #d9534f; }
+.cal-week .is-sat { color: var(--ls-accent-ink); }
+.week-start { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .cell { aspect-ratio: 1; display: grid; place-items: center; min-width: 0; padding: 0; border: 1.5px solid transparent; border-radius: 50%; background: none; color: var(--ls-text); font-size: 14px; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .cell.is-blank { pointer-events: none; }
 .cell.is-on { background: var(--ls-accent); color: #fff; }
