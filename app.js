@@ -1,6 +1,6 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, addHabit, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610230025";
-import { addDays, best, label, lastDays, monthGrid, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610230025";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, addHabit, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610230103";
+import { addDays, best, label, lastDays, monthGrid, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610230103";
 
 const $ = (id) => document.getElementById(id);
 const PAGE_URL = "https://katsuan.github.io/tuzuq/";
@@ -14,7 +14,8 @@ const IDEAS = [
   ["🦷", "フロス"],
   ["📓", "日記を書く"],
   ["🛏️", "0時までに寝る"],
-  ["🍚", "しょくじを記録", "shoquji"]
+  ["🍚", "しょくじを記録", "shoquji"],
+  ["🏋️", "筋トレ（キロっく）", "kiloq"]
 ];
 
 let state = load();
@@ -45,7 +46,7 @@ function say(text, undo) {
 // 習慣ごとの○の日（自分でつけた日＋つないだツールの記録の日）
 function daysOf(h) {
   const own = new Set(state.done[h.id] || []);
-  const auto = h.link ? linkedDays(h.link) : new Set();
+  const auto = h.link ? linkedDays(h.link, state) : new Set();
   return { own, auto, all: new Set([...own, ...auto]) };
 }
 
@@ -385,12 +386,15 @@ $("resetBtn").addEventListener("click", async () => {
 // ほかのタブ（しょくじなど）で記録が変わったら描きなおす
 window.addEventListener("storage", (e) => {
   if (e.key === "tuzuq:v1") state = load();
+  // キロっく・しょくじの記録が変わったときも、下の render で読みなおして覚える
   render();
 });
 // 日付をまたいで開きっぱなしでも、戻ってきたら今日に
 document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && render());
 
 function render() {
+  // つないだツールの記録から読んだ日を覚えておく（もとのツールが古い記録を消しても○が残る）
+  if (rememberLinked(state)) persist();
   renderToday();
   renderForm();
   renderCalendar();

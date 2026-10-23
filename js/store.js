@@ -11,12 +11,17 @@ export const MAX_IMPORT_BYTES = 1024 * 1024; // 控えのファイルは 1MB ま
 // id は画面のボタンにも入れるので、英数字だけ（ちがう形なら新しく作る）
 const ID = /^[a-z0-9]{4,24}$/;
 export const LINKS = {
-  shoquji: { label: "🍚 しょくじを記録した日", key: "shoquji:v1" }
+  shoquji: { label: "🍚 しょくじを記録した日", key: "shoquji:v1" },
+  // キロっくは LINE の中で使う。この端末の同じブラウザ（LINE の中）で開いたときだけ読める
+  kiloq: { label: "🏋️ キロっくで記録した日", key: "liff-workout-history" }
 };
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const isDate = (d) => typeof d === "string" && DATE_RE.test(d);
 
 // weekStart：カレンダーの週のはじまり（1＝月曜・既定、0＝日曜）
+// auto：つないだツールの記録から読んだ日を覚えておく（{ shoquji: [日付...] }）。もとのツールが古い記録を消しても○が残るように
 function blank() {
-  return { v: 1, habits: [], done: {}, weekStart: 1 };
+  return { v: 1, habits: [], done: {}, weekStart: 1, auto: {} };
 }
 
 function cleanHabit(h) {
@@ -34,6 +39,10 @@ function clean(raw) {
   const s = blank();
   if (!raw || typeof raw !== "object") return s;
   s.weekStart = raw.weekStart === 0 ? 0 : 1;
+  const auto = raw.auto && typeof raw.auto === "object" ? raw.auto : {};
+  Object.keys(LINKS).forEach((link) => {
+    if (Array.isArray(auto[link])) s.auto[link] = [...new Set(auto[link].filter(isDate))].sort().slice(-MAX_DAYS_PER_HABIT);
+  });
   const done = raw.done && typeof raw.done === "object" ? raw.done : {};
   const seen = new Set();
   (Array.isArray(raw.habits) ? raw.habits : [])
@@ -123,18 +132,41 @@ export function toggle(state, id, date) {
 }
 
 // ほかの Q ツールの記録から、○になる日（同じサイト katsuan.github.io なので、同じ localStorage を読める）
-export function linkedDays(link) {
+// いまもとのツールに残っている記録の日
+function liveLinkedDays(link) {
   const def = LINKS[link];
-  if (!def) return new Set();
+  if (!def) return [];
   try {
     const raw = JSON.parse(localStorage.getItem(def.key) || "null");
-    if (link === "shoquji" && Array.isArray(raw?.logs)) {
-      return new Set(raw.logs.map((l) => l && l.date).filter((d) => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d)));
-    }
+    // しょくじ：{ logs: [{ date }] }
+    if (link === "shoquji" && Array.isArray(raw?.logs)) return raw.logs.map((l) => l && l.date).filter(isDate);
+    // キロっく：[{ date, ... }]（新しい 10 回分だけ残る）
+    if (link === "kiloq" && Array.isArray(raw)) return raw.map((w) => w && w.date).filter(isDate);
   } catch {
     // 読めなければ、自動の○はなし
   }
-  return new Set();
+  return [];
+}
+
+// 覚えておいた日と、いま残っている日を合わせる
+export function linkedDays(link, state) {
+  if (!LINKS[link]) return new Set();
+  return new Set([...((state && state.auto && state.auto[link]) || []), ...liveLinkedDays(link)]);
+}
+
+// つないでいる習慣のツールから読んだ日を、つづくに覚えておく。ふえたら true（保存する）
+export function rememberLinked(state) {
+  let changed = false;
+  if (!state.auto) state.auto = {};
+  new Set(state.habits.map((h) => h.link).filter((l) => LINKS[l])).forEach((link) => {
+    const have = new Set(state.auto[link] || []);
+    const add = liveLinkedDays(link).filter((d) => !have.has(d));
+    if (add.length) {
+      state.auto[link] = [...have, ...add].sort().slice(-MAX_DAYS_PER_HABIT);
+      changed = true;
+    }
+  });
+  return changed;
 }
 
 // 控え（書き出し・読みこみ）。読みこみは同じ習慣の○を足し、ほかの習慣は加える
@@ -146,6 +178,10 @@ export function importJson(state, text) {
   if (String(text).length > MAX_IMPORT_BYTES) throw new Error("too large");
   const incoming = clean(JSON.parse(text));
   let added = 0;
+  Object.keys(incoming.auto).forEach((link) => {
+    state.auto = state.auto || {};
+    state.auto[link] = [...new Set([...(state.auto[link] || []), ...incoming.auto[link]])].sort().slice(-MAX_DAYS_PER_HABIT);
+  });
   incoming.habits.forEach((h) => {
     const mine = state.habits.find((x) => x.id === h.id);
     if (!mine) {
@@ -160,7 +196,7 @@ export function importJson(state, text) {
 }
 
 // 記録はすべて消すが、週のはじまりの設定は残す
-export function reset(weekStart = 1) {
+export function reset(weekStart = 1) { // 覚えておいたつなぎの日も消す
   const s = blank();
   s.weekStart = weekStart === 0 ? 0 : 1;
   save(s);

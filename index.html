@@ -29,7 +29,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、つづくの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610230025">
+<link rel="stylesheet" href="style.css?v=202610230103">
 </head>
 <body>
 <main class="ls-page ls-stack">
@@ -94,7 +94,7 @@
         <div id="calWeek" class="cal-week" aria-hidden="true"></div>
         <div id="calendar" class="calendar"></div>
         <div id="calStats" class="cal-stats"></div>
-        <p class="ls-hint small">日を押すと○をつけ外しできます。🍚 などの自動の○は、もとのツールの記録で決まります。</p>
+        <p class="ls-hint small">日を押すと○をつけ外しできます。🍚・🏋️ の自動の○は、しょくじ・キロっくの記録で決まります（同じブラウザで開いたときだけ読めます。キロっくは LINE の中）。一度読んだ日は、もとの記録が消えても残ります。</p>
         <div class="week-start">
           <span class="ls-hint small">週のはじまり</span>
           <div id="weekStart" class="ls-chips" role="radiogroup" aria-label="週のはじまり">
@@ -127,7 +127,7 @@
 
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/ui.js" defer></script>
-<script type="module" src="app.js?v=202610230025"></script>
+<script type="module" src="app.js?v=202610230103"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="tuzuq" defer></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>
 </body>
