@@ -117,3 +117,69 @@ test("つないでいない習慣のツールは覚えない・壊れた覚え�
   mem.set("liff-workout-history", JSON.stringify([{ date: "2026-10-23" }]));
   assert.equal(rememberLinked(s), false);
 });
+
+test("ない日付（2月30日・13月など）は捨てる。うるう日は残す", async () => {
+  const { isDate } = await import("../js/stats.js");
+  assert.equal(isDate("2028-02-29"), true);
+  assert.equal(isDate("2027-02-29"), false);
+  assert.equal(isDate("2026-02-30"), false);
+  assert.equal(isDate("2026-13-01"), false);
+  assert.equal(isDate("2026-00-10"), false);
+  mem.set("tuzuq:v1", JSON.stringify({ habits: [{ id: "date0001", name: "a" }], done: { date0001: ["2026-02-30", "2028-02-29", "2026-10-32"] } }));
+  assert.deepEqual(load().done.date0001, ["2028-02-29"]);
+  mem.set("shoquji:v1", JSON.stringify({ logs: [{ date: "2026-02-30" }, { date: "2026-03-01" }] }));
+  assert.deepEqual([...linkedDays("shoquji")], ["2026-03-01"]);
+});
+
+test("続いた日数は、月・年・うるう日をまたいでも数える（今日まだなら昨日まで）", async () => {
+  const { streak, best } = await import("../js/stats.js");
+  assert.equal(streak(new Set(["2027-12-30", "2027-12-31", "2028-01-01"]), "2028-01-02"), 3);
+  assert.equal(streak(new Set(["2027-12-30", "2027-12-31", "2028-01-01"]), "2028-01-03"), 0);
+  const leap = new Set(["2028-02-28", "2028-02-29", "2028-03-01"]);
+  assert.equal(streak(leap, "2028-03-01"), 3);
+  assert.equal(best(leap), 3);
+  assert.equal(best(new Set(["2027-02-28", "2027-03-01", "2027-03-03"])), 2);
+  assert.equal(best(new Set()), 0);
+});
+
+test("うるう年の2月のカレンダー", () => {
+  const feb28 = monthGrid(2028, 2); // 2028年2月1日は火曜
+  assert.equal(feb28.indexOf("2028-02-01"), 1);
+  assert.ok(feb28.includes("2028-02-29"));
+  assert.equal(feb28.filter(Boolean).length, 29);
+  const feb27 = monthGrid(2027, 2); // 2027年2月1日は月曜・28日で4行ちょうど
+  assert.equal(feb27.length, 28);
+  assert.equal(monthGrid(2027, 2, 0).length, 35);
+});
+
+test("この月の割合は、習慣をはじめた日から数える", async () => {
+  const { monthStats } = await import("../js/stats.js");
+  const cells = monthGrid(2026, 10);
+  const days = new Set(["2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23"]);
+  // 10/20 にはじめて、毎日できた → 100%
+  assert.deepEqual(monthStats(cells, days, "2026-10-23", "2026-10-20"), { count: 4, rate: 100 });
+  // 前の月からの習慣なら、1日から
+  assert.deepEqual(monthStats(cells, days, "2026-10-23", "2026-09-01"), { count: 4, rate: 17 });
+  // 先の月・はじめる前の月は 0%
+  assert.deepEqual(monthStats(monthGrid(2026, 9), new Set(), "2026-10-23", "2026-10-20"), { count: 0, rate: 0 });
+});
+
+test("前の名前（tsuduq:v1）の記録は、新しい名前で保存したら消える", async () => {
+  const { save } = await import("../js/store.js");
+  mem.delete("tuzuq:v1");
+  mem.set("tsuduq:v1", JSON.stringify({ habits: [{ id: "old00001", name: "前の" }], done: {} }));
+  const s = load();
+  assert.equal(s.habits[0].name, "前の");
+  save(s);
+  assert.equal(mem.has("tsuduq:v1"), false);
+  assert.equal(load().habits[0].name, "前の");
+});
+
+test("長い名前を切っても、絵文字が半分にならない", () => {
+  mem.set("tuzuq:v1", JSON.stringify({ habits: [{ id: "emoj0001", name: "あ".repeat(23) + "💧💧", emoji: "💧💧💧💧💧" }], done: {} }));
+  const h = load().habits[0];
+  assert.equal(h.name, "あ".repeat(23));
+  assert.equal(h.emoji, "💧💧💧💧");
+  mem.set("tuzuq:v1", JSON.stringify({ habits: [{ id: "emoj0002", name: "a", emoji: "abcdefg💧" }], done: {} }));
+  assert.equal(load().habits[0].emoji, "abcdefg");
+});

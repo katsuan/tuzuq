@@ -1,6 +1,14 @@
 // つづく：計算（画面に関係しない計算だけ）
 const WEEK = ["日", "月", "火", "水", "木", "金", "土"];
 
+// "YYYY-MM-DD" の形で、ほんとうにある日か（2月30日・13月などは false）
+export function isDate(text) {
+  if (typeof text !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
+  const [y, m, d] = text.split("-").map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d));
+  return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d;
+}
+
 export function ymd(d = new Date()) {
   const pad = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -68,4 +76,12 @@ export function monthGrid(year, month, weekStart = 1) {
   for (let d = 1; d <= count; d++) cells.push(ymd(new Date(year, month - 1, d)));
   while (cells.length % 7) cells.push(null);
   return cells;
+}
+
+// ひと月の○の日数と割合（%）。割合は、習慣をはじめた日（since）から今日までの日で割る
+export function monthStats(cells, days, today, since) {
+  const dates = cells.filter(Boolean);
+  const count = dates.filter((d) => days.has(d)).length;
+  const passed = dates.filter((d) => d <= today && d >= since).length;
+  return { count, rate: passed ? Math.min(100, Math.round((count / passed) * 100)) : 0 };
 }

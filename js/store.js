@@ -4,7 +4,10 @@
 // done = { 習慣の id: ["YYYY-MM-DD", ...] }（○をつけた日）
 // 消した習慣は、○の記録ごと控え（trash）に1つだけ残して「元に戻す」で戻せるようにする
 
+import { isDate } from "./stats.js?v=202610230136";
+
 const KEY = "tuzuq:v1";
+const OLD_KEY = "tsuduq:v1"; // 前の名前
 export const MAX_HABITS = 12;
 export const MAX_DAYS_PER_HABIT = 3700; // 10年ぶんくらい
 export const MAX_IMPORT_BYTES = 1024 * 1024; // 控えのファイルは 1MB まで
@@ -15,8 +18,13 @@ export const LINKS = {
   // キロっくは LINE の中で使う。この端末の同じブラウザ（LINE の中）で開いたときだけ読める
   kiloq: { label: "🏋️ キロっくで記録した日", key: "liff-workout-history" }
 };
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const isDate = (d) => typeof d === "string" && DATE_RE.test(d);
+// 文字を n 字（UTF-16）までに切る。絵文字が半分に切れて残らないように
+export function cut(text, n) {
+  const s = String(text ?? "").trim().slice(0, n);
+  return /[\uD800-\uDBFF]$/.test(s) ? s.slice(0, -1) : s;
+}
+// 日付の並びを、重なりなし・古い順・上限つきに
+const dayList = (list) => [...new Set(list.filter(isDate))].sort().slice(-MAX_DAYS_PER_HABIT);
 
 // weekStart：カレンダーの週のはじまり（1＝月曜・既定、0＝日曜）
 // auto：つないだツールの記録から読んだ日を覚えておく（{ shoquji: [日付...] }）。もとのツールが古い記録を消しても○が残るように
@@ -27,8 +35,8 @@ function blank() {
 function cleanHabit(h) {
   return {
     id: ID.test(String(h.id || "")) ? String(h.id) : newId(),
-    name: String(h.name || "").trim().slice(0, 24),
-    emoji: String(h.emoji || "✅").slice(0, 8),
+    name: cut(h.name, 24),
+    emoji: cut(h.emoji, 8) || "✅",
     link: LINKS[h.link] ? h.link : null,
     at: Number(h.at) || Date.now()
   };
@@ -41,7 +49,7 @@ function clean(raw) {
   s.weekStart = raw.weekStart === 0 ? 0 : 1;
   const auto = raw.auto && typeof raw.auto === "object" ? raw.auto : {};
   Object.keys(LINKS).forEach((link) => {
-    if (Array.isArray(auto[link])) s.auto[link] = [...new Set(auto[link].filter(isDate))].sort().slice(-MAX_DAYS_PER_HABIT);
+    if (Array.isArray(auto[link])) s.auto[link] = dayList(auto[link]);
   });
   const done = raw.done && typeof raw.done === "object" ? raw.done : {};
   const seen = new Set();
@@ -54,7 +62,7 @@ function clean(raw) {
       seen.add(habit.id);
       const days = Array.isArray(done[h.id]) && habit.id === String(h.id) ? done[h.id] : [];
       s.habits.push(habit);
-      s.done[habit.id] = [...new Set(days.filter((d) => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d)))].sort().slice(-MAX_DAYS_PER_HABIT);
+      s.done[habit.id] = dayList(days);
     });
   return s;
 }
@@ -66,7 +74,7 @@ export function newId() {
 export function load() {
   try {
     // 前の名前（tsuduq:v1）で残した記録があれば、そのまま読む（次に保存するとき新しい名前で残る）
-    return clean(JSON.parse(localStorage.getItem(KEY) || localStorage.getItem("tsuduq:v1") || "null"));
+    return clean(JSON.parse(localStorage.getItem(KEY) || localStorage.getItem(OLD_KEY) || "null"));
   } catch {
     return blank();
   }
@@ -75,6 +83,7 @@ export function load() {
 export function save(state) {
   try {
     localStorage.setItem(KEY, JSON.stringify(state));
+    localStorage.removeItem(OLD_KEY); // 新しい名前で残せたら、前の名前のものは消す（「すべて消す」で残らないように）
     return true;
   } catch {
     return false; // 残せない端末（プライベートブラウズなど）でも、開いているあいだは使える
@@ -162,7 +171,7 @@ export function rememberLinked(state) {
     const have = new Set(state.auto[link] || []);
     const add = liveLinkedDays(link).filter((d) => !have.has(d));
     if (add.length) {
-      state.auto[link] = [...have, ...add].sort().slice(-MAX_DAYS_PER_HABIT);
+      state.auto[link] = dayList([...have, ...add]);
       changed = true;
     }
   });
@@ -180,7 +189,7 @@ export function importJson(state, text) {
   let added = 0;
   Object.keys(incoming.auto).forEach((link) => {
     state.auto = state.auto || {};
-    state.auto[link] = [...new Set([...(state.auto[link] || []), ...incoming.auto[link]])].sort().slice(-MAX_DAYS_PER_HABIT);
+    state.auto[link] = dayList([...(state.auto[link] || []), ...incoming.auto[link]]);
   });
   incoming.habits.forEach((h) => {
     const mine = state.habits.find((x) => x.id === h.id);
@@ -190,13 +199,14 @@ export function importJson(state, text) {
       state.done[h.id] = [];
       added++;
     }
-    state.done[h.id] = [...new Set([...(state.done[h.id] || []), ...incoming.done[h.id]])].sort().slice(-MAX_DAYS_PER_HABIT);
+    state.done[h.id] = dayList([...(state.done[h.id] || []), ...incoming.done[h.id]]);
   });
   return added;
 }
 
 // 記録はすべて消すが、週のはじまりの設定は残す
-export function reset(weekStart = 1) { // 覚えておいたつなぎの日も消す
+// （覚えておいたつなぎの日も消す）
+export function reset(weekStart = 1) {
   const s = blank();
   s.weekStart = weekStart === 0 ? 0 : 1;
   save(s);
