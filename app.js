@@ -1,6 +1,6 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, addHabit, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610222356";
-import { addDays, best, label, lastDays, monthGrid, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610222356";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, addHabit, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610230025";
+import { addDays, best, label, lastDays, monthGrid, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610230025";
 
 const $ = (id) => document.getElementById(id);
 const PAGE_URL = "https://katsuan.github.io/tuzuq/";
