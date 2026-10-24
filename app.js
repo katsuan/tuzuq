@@ -243,9 +243,13 @@ function renderForm() {
   $("lineTextField").hidden = !state.lineBot && !lineLog;
   $("lineLogNote").hidden = !lineLog;
   $("gasField").hidden = !inLine;
-  // 自分で入れたしるしは、先頭に選んだ形で出す
-  const marks = EMOJIS.includes(ui.emoji) ? EMOJIS : [ui.emoji, ...EMOJIS];
-  $("emojis").innerHTML = marks.map((e) => `<button class="ls-chip emoji" type="button" role="radio" aria-checked="${e === ui.emoji}" data-emoji="${esc(e)}">${esc(e)}</button>`).join("");
+  // [しるし][名前] のしるし。押すと選べる絵文字とカスタムが開く。カスタムで選んでいるときは、カスタムの欄が選んだ形
+  $("emojiNow").textContent = ui.emoji;
+  $("emojiBtn").setAttribute("aria-label", `しるしを選ぶ（いま：${ui.emoji}）`);
+  $("emojis").innerHTML = EMOJIS.map((e) => `<button class="ls-chip emoji" type="button" role="radio" aria-checked="${e === ui.emoji}" data-emoji="${e}">${e}</button>`).join("");
+  const custom = !EMOJIS.includes(ui.emoji);
+  $("emojiCustom").classList.toggle("is-on", custom);
+  if (custom && document.activeElement !== $("emojiCustom")) $("emojiCustom").value = ui.emoji;
   const used = new Set(state.habits.map((h) => h.name));
   $("ideas").innerHTML = ui.editing
     ? ""
@@ -280,10 +284,18 @@ function renderForm() {
   });
 })();
 
+// しるしを押すと開く（もう一度押すとたたむ）。選んだらたたむ（カスタムは打っているあいだ開いたまま）
+function openEmojiPicker(open) {
+  $("emojiPicker").hidden = !open;
+  $("emojiBtn").setAttribute("aria-expanded", String(open));
+}
+$("emojiBtn").addEventListener("click", () => openEmojiPicker($("emojiPicker").hidden));
 $("emojis").addEventListener("click", (e) => {
   const b = e.target.closest("[data-emoji]");
   if (!b) return;
   ui.emoji = b.dataset.emoji;
+  $("emojiCustom").value = "";
+  openEmojiPicker(false);
   renderForm();
 });
 
@@ -294,19 +306,28 @@ $("ideas").addEventListener("click", (e) => {
   $("name").value = name;
   $("link").value = link || "";
   ui.emoji = emoji;
+  $("emojiCustom").value = "";
   renderForm();
 });
 
 $("name").addEventListener("input", () => ($("nameError").hidden = true));
 
-// ほかのしるし：入れた文字の1つめ（絵文字1つ）を、しるしにする
+// カスタム：入れた文字の1つめ（絵文字1つ）を、しるしにする。押しただけでも、前に入れたものを選ぶ
 $("emojiCustom").addEventListener("input", () => {
   const mark = oneMark($("emojiCustom").value);
+  if ($("emojiCustom").value && $("emojiCustom").value !== mark) $("emojiCustom").value = mark;
   if (!mark) return;
   ui.emoji = mark;
   renderForm();
 });
-$("emojiCustom").addEventListener("change", () => ($("emojiCustom").value = ""));
+$("emojiCustom").addEventListener("focus", () => {
+  const mark = oneMark($("emojiCustom").value);
+  if (mark && mark !== ui.emoji) {
+    ui.emoji = mark;
+    renderForm();
+  }
+});
+$("emojiCustom").addEventListener("keydown", (e) => e.key === "Enter" && openEmojiPicker(false));
 
 function clearForm() {
   $("nameError").hidden = true;
@@ -314,6 +335,7 @@ function clearForm() {
   $("link").value = "";
   $("lineText").value = "";
   $("emojiCustom").value = "";
+  openEmojiPicker(false);
   ui.emoji = EMOJIS[0];
 }
 
@@ -362,6 +384,7 @@ $("manageList").addEventListener("click", (e) => {
     const h = state.habits.find((x) => x.id === edit.dataset.edit);
     ui.editing = h.id;
     ui.emoji = h.emoji;
+    $("emojiCustom").value = "";
     $("name").value = h.name;
     $("link").value = h.link || "";
     $("lineText").value = h.lineText || "";

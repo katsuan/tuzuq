@@ -57,17 +57,20 @@
       <summary><span class="ls-fold-icon" aria-hidden="true">➕</span><span id="editSummary">習慣をふやす・直す</span></summary>
       <div class="ls-fold-body">
         <p class="sub-title" id="formHeading">➕ 習慣をふやす</p>
-        <label class="ls-field">
-          <span class="ls-label">なにをつづける？</span>
-          <input id="name" class="ls-input" maxlength="24" placeholder="例：水を2L飲む" autocomplete="off" enterkeyhint="done">
-        </label>
+        <!-- [しるし][名前] を1行に。しるしを押すと、選べる絵文字とカスタムが開く（RoQga のエフェクトのアイコンと同じ形） -->
+        <div class="ls-field">
+          <span class="ls-label" id="nameLabel">なにをつづける？</span>
+          <div class="name-line">
+            <button id="emojiBtn" class="ls-chip emoji-btn" type="button" aria-expanded="false" aria-controls="emojiPicker"><span id="emojiNow">✅</span></button>
+            <input id="name" class="ls-input" maxlength="24" placeholder="例：水を2L飲む" autocomplete="off" enterkeyhint="done" aria-labelledby="nameLabel">
+          </div>
+          <div id="emojiPicker" class="emoji-picker" hidden>
+            <div id="emojis" class="emojis" role="radiogroup" aria-label="しるし"></div>
+            <input id="emojiCustom" class="ls-input emoji-custom" maxlength="16" placeholder="✏️ カスタム（好きな絵文字を1つ）" autocomplete="off" enterkeyhint="done" aria-label="カスタムのしるし（好きな絵文字を1つ）">
+          </div>
+        </div>
         <p id="nameError" class="ls-hint is-error" role="alert" hidden>つづけたいことを入れてね</p>
         <div id="ideas" class="ls-chips" aria-label="よくある習慣"></div>
-        <div class="ls-field">
-          <span class="ls-label">しるし</span>
-          <div id="emojis" class="emojis" role="radiogroup" aria-label="しるし"></div>
-          <input id="emojiCustom" class="ls-input emoji-custom" maxlength="16" placeholder="ほかのしるし（絵文字を1つ入れる）" autocomplete="off" enterkeyhint="done" aria-label="ほかのしるし">
-        </div>
         <label class="ls-field">
           <span class="ls-label">ほかの Q ツールとつなぐ（自動で○）</span>
           <select id="link" class="ls-input">
