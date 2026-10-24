@@ -1,11 +1,11 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, moveHabitTo, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242130";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242130";
-import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242130";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242130";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242130";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242130";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, moveHabitTo, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242140";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242140";
+import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242140";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242140";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242140";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242140";
 
 const $ = (id) => document.getElementById(id);
 // カードの「✅ つづくでチェックする」で開く先は、LINE の中のつづく（OPEN_URL。js/line-config.js）
@@ -161,7 +161,12 @@ function dotClass(h, d, date, today) {
 }
 
 // ---- きょうの○ ----
-function habitHtml(h, today, week) {
+// まだ一度も○をつけていない人にだけ、1つ目の習慣の丸に「👆 押してね」の指を出す（1回押したら二度と出ない）
+function neverChecked() {
+  return !Object.values(state.done || {}).some((d) => d && d.length) && !Object.values(state.bot || {}).some((d) => d && d.length);
+}
+
+function habitHtml(h, today, week, tapHint = false) {
   const d = daysOf(h);
   const now = dotClass(h, d, today, today);
   const n = streak(d.all, today);
@@ -176,7 +181,7 @@ function habitHtml(h, today, week) {
           <span class="habit-emoji" aria-hidden="true">${esc(h.emoji)}</span>
           <span class="habit-name"><b>${esc(h.name)}</b></span>
           <span class="habit-streak${n ? "" : " is-zero"}">${n ? `🔥${n}日` : "これから"}</span>
-          <button class="check${now.on ? " is-on" : ""}${ui.justDone === `${h.id}:${today}` ? " is-pop" : ""}" type="button" data-toggle="${h.id}" data-date="${today}" ${now.auto ? "disabled" : ""} aria-pressed="${now.on}" aria-label="${esc(h.name)} きょう${now.on ? "できた" : "まだ"}">${now.on ? "✓" : ""}</button>
+          <button class="check${now.on ? " is-on" : ""}${ui.justDone === `${h.id}:${today}` ? " is-pop" : ""}" type="button" data-toggle="${h.id}" data-date="${today}" ${now.auto ? "disabled" : ""} aria-pressed="${now.on}" aria-label="${esc(h.name)} きょう${now.on ? "できた" : "まだ"}">${now.on ? "✓" : ""}${tapHint && !now.on ? '<span class="tap-hint" aria-hidden="true">👆</span>' : ""}</button>
           ${h.link || (lineLog && h.lineText) ? `<span class="habit-tags">${h.link ? `<a class="auto-tag is-link" href="${esc(LINKS[h.link].url)}" aria-label="${esc(LINKS[h.link].name)}（${esc(LINKS[h.link].what)}）を開く。記録した日は自動でチェック">${esc(LINKS[h.link].name)}連動 ›</a>` : ""}${lineLog && h.lineText ? '<small class="auto-tag bot-tag" title="チェックすると記録ボットにも記録します">ボット連動</small>' : ""}</span>` : ""}
         </div>
         <div class="dots" aria-label="この1週間">${dots}</div>
@@ -198,7 +203,7 @@ function renderToday(today) {
     return;
   }
   const week = lastDays(today, 7);
-  $("habitList").innerHTML = state.habits.map((h) => habitHtml(h, today, week)).join("");
+  $("habitList").innerHTML = state.habits.map((h, i) => habitHtml(h, today, week, i === 0 && neverChecked())).join("");
   const doneToday = state.habits.filter((h) => daysOf(h).all.has(today)).length;
   $("progress").innerHTML = `<b>${doneToday}</b> / ${state.habits.length}`; // qcheck-ok: W1 数だけ
   $("progress").classList.toggle("is-all", doneToday === state.habits.length);

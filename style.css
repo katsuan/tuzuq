@@ -51,6 +51,12 @@ body {
 
 /* きょうの○：大きな丸のボタン */
 .check { display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 2.5px dashed var(--ls-line-strong); border-radius: 50%; background: transparent; color: #fff; font-size: 26px; font-weight: 800; line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.check { position: relative; }
+.tap-hint { position: absolute; right: -6px; bottom: -14px; font-size: 26px; pointer-events: none; animation: tap-hint 1.6s ease-in-out infinite; }
+@keyframes tap-hint { 0%, 100% { transform: translate(6px, 8px); opacity: 0.85; } 45% { transform: translate(0, 0) scale(0.92); opacity: 1; } 55% { transform: translate(0, 0) scale(0.92); } }
+.check:has(.tap-hint) { animation: tap-ring 1.6s ease-in-out infinite; }
+@keyframes tap-ring { 0%, 40%, 100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 0 6px var(--ls-accent-soft); } }
+@media (prefers-reduced-motion: reduce) { .tap-hint, .check:has(.tap-hint) { animation: none; } }
 .check.is-on { border: 0; background: var(--ls-accent); box-shadow: 0 4px 12px rgba(47, 128, 216, 0.35); }
 .check:disabled.is-on { background: var(--auto); box-shadow: 0 4px 12px rgba(236, 138, 22, 0.3); cursor: default; }
 .is-pop { animation: pop 0.45s cubic-bezier(0.3, 1.6, 0.6, 1); }
