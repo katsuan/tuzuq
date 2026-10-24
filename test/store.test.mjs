@@ -267,3 +267,14 @@ test("前の日ほど長押し（きょうは0）。記録ボットに入れら�
   assert.equal(withinBotDays("2026-10-16", t), false);
   assert.equal(withinBotDays("2026-10-25", t), false);
 });
+
+test("前のよくある習慣の名前（しょくじ・キロっく入り）は、だれでも読める名前に。自分で付けた名前は変えない", () => {
+  mem.set("tuzuq:v1", JSON.stringify({ habits: [
+    { id: "old11111", name: "しょくじを記録", link: "shoquji" },
+    { id: "old22222", name: "筋トレ（キロっく）", link: "kiloq" },
+    { id: "own33333", name: "しょくじを記録", link: null },
+    { id: "own44444", name: "キロっくで筋トレ", link: "kiloq" }
+  ], done: {} }));
+  const names = load().habits.map((h) => h.name);
+  assert.deepEqual(names, ["食事を記録", "筋トレ", "しょくじを記録", "キロっくで筋トレ"]);
+});

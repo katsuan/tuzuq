@@ -5,7 +5,7 @@
 // bot = { 習慣の id: ["YYYY-MM-DD", ...] }（LINE の中で開いたときに、記録ボットから読んだ「記録した日」。日付だけ）
 // 消した習慣は、○の記録ごと控え（trash）に1つだけ残して「元に戻す」で戻せるようにする
 
-import { isDate } from "./stats.js?v=202610242035";
+import { isDate } from "./stats.js?v=202610242038";
 
 const KEY = "tuzuq:v1";
 const OLD_KEY = "tsuduq:v1"; // 前の名前
@@ -60,10 +60,15 @@ export function lineRecordUrl(bot, text) {
   return id && t ? `https://line.me/R/oaMessage/${encodeURIComponent(id)}/?${encodeURIComponent(t)}` : "";
 }
 
+// 前のよくある習慣の名前（ツールの名前入り）を、だれでも読める名前に（カードを受け取る人は、しょくじ・キロっくを知らない）
+// つないだ習慣で、名前が前の名前とまったく同じときだけ（自分で付けた名前は変えない）
+const OLD_IDEA_NAMES = { shoquji: { "しょくじを記録": "食事を記録" }, kiloq: { "筋トレ（キロっく）": "筋トレ" } };
+const friendlyName = (name, link) => (OLD_IDEA_NAMES[link] && OLD_IDEA_NAMES[link][name]) || name;
+
 function cleanHabit(h) {
   return {
     id: ID.test(String(h.id || "")) ? String(h.id) : newId(),
-    name: cut(h.name, 24),
+    name: cut(friendlyName(String(h.name ?? "").trim(), h.link), 24),
     emoji: oneMark(h.emoji) || "✅",
     link: LINKS[h.link] ? h.link : null,
     lineText: cut(h.lineText, 60), // LINE でも記録（自分用）：ボットに送る文（例：# workout）
