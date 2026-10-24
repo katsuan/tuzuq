@@ -1,11 +1,11 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610250010";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610250010";
-import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610250010";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610250010";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610250010";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610250010";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610250020";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610250020";
+import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610250020";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610250020";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610250020";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610250020";
 
 const $ = (id) => document.getElementById(id);
 // カードの「✅ つづくでチェックする」で開く先は、LINE の中のつづく（OPEN_URL。js/line-config.js）
@@ -205,7 +205,7 @@ function renderToday(today) {
   if (!state.habits.length) {
     $("progress").textContent = "";
     // LINE の中で開いて習慣がないとき：ブラウザで使っていた記録は、ここには出ない（別のブラウザ）
-    const moved = inLineApp() ? '<br><small>ブラウザで使っていた記録は、ここには出ません（LINE の中は別のブラウザ）。ブラウザで「🔒 記録の控え」を書き出して、ここで読みこむとうつせます</small>' : "";
+    const moved = inLineApp() ? '<br><small>ブラウザ版で使っていた記録は、ここには出ません。ブラウザ版で「🔒 記録の控え」を書き出して、ここで読みこむとうつせます</small>' : "";
     // qcheck-ok: W1 moved は決まった文字だけ（IDEAS も esc）
     $("habitList").innerHTML = `<div class="ls-empty"><span class="ls-empty-icon" aria-hidden="true">🌱</span>まずは、つづけたいことを1つ。<br>押すとふえます（自分で決めるなら下の「➕ 習慣をふやす」）${moved}</div>
       <div class="ls-chips start-ideas">${IDEAS.slice(0, 6).map(([e, n], i) => `<button class="ls-chip is-small" type="button" data-quick="${i}">${e} ${esc(n)}</button>`).join("")}</div>`;
@@ -835,7 +835,7 @@ const BANNER_KEY = "tuzuq:lineBannerOff"; // この端末で閉じたか（設�
   // 「LINEで開く」は、おくるんの共通の案内に（読みこめなければ、ふつうのリンク）
   if (!inLineBrowser) {
     const shown = window.LineShareLiff?.outsideHelp?.($("lineOutside"), { appUrl: () => OPEN_URL, canLogin: false });
-    if (!shown) $("lineOutside").innerHTML = `<a class="ls-button line is-block" href="${esc(OPEN_URL)}">💬 LINEで開く</a>`;
+    if (!shown) $("lineOutside").innerHTML = `<a class="ls-button line is-block" href="${esc(OPEN_URL)}">💬 LINE 版で開く</a>`;
   }
   const remember = (value) => {
     try {
@@ -849,7 +849,7 @@ const BANNER_KEY = "tuzuq:lineBannerOff"; // この端末で閉じたか（設�
     b.addEventListener("click", () => {
       show(false);
       remember(true);
-      say("LINE の案内を閉じました（「⚙️ LINE とつなぐ」からまた見られます）");
+      say("使い方の案内を閉じました（「⚙️ 記録ボットとつなぐ」からまた見られます）");
     })
   );
   document.querySelectorAll("[data-show-line-guide]").forEach((b) =>
@@ -868,8 +868,8 @@ window.addEventListener("load", () =>
     "tuzuq",
     [
       "できた習慣は、右の丸を押してチェック。下の7つの丸で、前の日もつけ外しできます",
-      "記録はこのブラウザの中だけに残ります。ほかの端末・LINE の中へは「🔒 記録の控え」でうつせます",
-      "GitHub や LINE は、つながなくても使えます（LINE で開くと、カードで送れて、記録ボットにも残せます）"
+      "記録はこのブラウザの中だけに残ります。ほかの端末へは「🔒 記録の控え」でうつせます",
+      "記録ボットや GitHub は、つながなくても使えます（つなぐと、チェックが自分のシートにも残ります）"
     ],
     document.querySelector("main > section.ls-panel")
   )
@@ -886,7 +886,7 @@ function connectLineLog() {
     // つながらないときは、前につながっていたときだけ描きなおす（開いたときの「その習慣を光らせる」を消さないように）
     if (!client) return had && render();
     lineLog = client;
-    $("whereNote").innerHTML = "📱 LINE で開いたつづくの記録は、Safari などのブラウザで開いたときとは<b>別</b>です。<br>「ボット連動」の札がある習慣は、チェックすると記録ボットにも届きます。"; // qcheck-ok: W1 決まった文字だけ
+    $("whereNote").innerHTML = "📱 この版の記録は、ブラウザ版とは<b>別</b>です。<br>「ボット連動」の札がある習慣は、チェックすると記録ボットにも届きます。"; // qcheck-ok: W1 決まった文字だけ
     $("whereNote").hidden = false;
     render();
     readBotDays(true);
@@ -903,7 +903,7 @@ $("gasUrl").addEventListener("change", () => {
   if (raw && !url) return;
   state.gasUrl = url;
   persist();
-  say(url ? "💬 つなぎ先を決めました（LINE の中で開くと使えます）" : "つなぎ先を消しました");
+  say(url ? "💬 つなぎ先を決めました（LINE 版で使えます）" : "つなぎ先を消しました");
   connectLineLog();
 });
 
