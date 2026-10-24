@@ -336,3 +336,13 @@ test("kiloqNote：その日のトレーニングを短い文に（同じセッ�
   assert.equal(store.kiloqNote("x", "2026-10-24"), "");
   assert.equal(store.kiloqNote([{ date: "2026-10-24", exercises: "x" }], "2026-10-24"), "");
 });
+
+test("kiloqNote：長くなって600字で切っても、絵文字が半分にならない", async () => {
+  const store = await import("../js/store.js");
+  for (let pad = 0; pad < 40; pad++) {
+    const exercises = Array.from({ length: 30 }, (_, i) => ({ name: "💪".repeat(11) + i, sets: [{ weight: 10, reps: 5 }] }));
+    const note = store.kiloqNote([{ date: "2026-10-24", title: "あ".repeat(pad % 20) + "い".repeat(Math.floor(pad / 20)), exercises }], "2026-10-24");
+    assert.ok(note.length <= 600);
+    assert.equal(/[\uD800-\uDBFF]$/.test(note), false, `pad=${pad}`);
+  }
+});

@@ -5,8 +5,8 @@
 // bot = { 習慣の id: ["YYYY-MM-DD", ...] }（LINE の中で開いたときに、記録ボットから読んだ「記録した日」。日付だけ）
 // 消した習慣は、○の記録ごと控え（trash）に1つだけ残して「元に戻す」で戻せるようにする
 
-import { isDate } from "./stats.js?v=202610250136";
-import { cleanGasUrl } from "./linelog.js?v=202610250136";
+import { isDate } from "./stats.js?v=202610250141";
+import { cleanGasUrl } from "./linelog.js?v=202610250141";
 
 const KEY = "tuzuq:v1";
 const OLD_KEY = "tsuduq:v1"; // 前の名前
@@ -273,7 +273,7 @@ export function kiloqNote(list, date) {
     });
   if (!lines.length) return "";
   if (volume) lines.push(`総量 ${Math.round(volume).toLocaleString("ja-JP")}kg`);
-  return lines.slice(0, 20).join("\n").slice(0, 600);
+  return cut(lines.slice(0, 20).join("\n"), 600); // 絵文字を半分にしない
 }
 // つないだツールの、その日の中身（いまはキロっくだけ）
 export function linkedNote(link, date) {
