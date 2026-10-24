@@ -186,3 +186,8 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .dot.is-holding::after, .cell.is-holding::after { content: ""; position: absolute; inset: 0; margin: auto; width: 34px; height: 34px; border-radius: 50%; background: color-mix(in srgb, var(--ls-accent) 35%, transparent); transform: scale(0.2); animation: hold-fill var(--hold, 800ms) linear forwards; pointer-events: none; }
 @keyframes hold-fill { to { transform: scale(1.15); } }
 @media (prefers-reduced-motion: reduce) { .dot.is-holding::after, .cell.is-holding::after { animation: none; transform: scale(1); } }
+
+/* 日本語の折り返し：文節の切れ目で（Chrome・Android の LINE）。行末に1〜2字だけ残らないように */
+p, li, figcaption, small, .ls-hint, .ls-empty, .ls-tip li { word-break: auto-phrase; text-wrap: pretty; line-break: strict; }
+/* 切れると読みにくいひとかたまり（色の見本など）は、まとめて次の行へ */
+.nobr { display: inline-block; }
