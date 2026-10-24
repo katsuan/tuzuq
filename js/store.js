@@ -5,7 +5,7 @@
 // bot = { 習慣の id: ["YYYY-MM-DD", ...] }（LINE の中で開いたときに、記録ボットから読んだ「記録した日」。日付だけ）
 // 消した習慣は、○の記録ごと控え（trash）に1つだけ残して「元に戻す」で戻せるようにする
 
-import { isDate } from "./stats.js?v=202610242049";
+import { isDate } from "./stats.js?v=202610242115";
 
 const KEY = "tuzuq:v1";
 const OLD_KEY = "tsuduq:v1"; // 前の名前
@@ -167,6 +167,14 @@ export function moveHabit(state, id, dir) {
   const j = i + dir;
   if (i < 0 || j < 0 || j >= state.habits.length) return;
   [state.habits[i], state.habits[j]] = [state.habits[j], state.habits[i]];
+}
+
+// 引っぱって並べ替え：id の習慣を to 番目へ（はみ出たら端へ）
+export function moveHabitTo(state, id, to) {
+  const i = state.habits.findIndex((x) => x.id === id);
+  if (i < 0) return;
+  const [h] = state.habits.splice(i, 1);
+  state.habits.splice(Math.max(0, Math.min(to, state.habits.length)), 0, h);
 }
 
 // ○をつける・外す。つけたら true

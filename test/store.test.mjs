@@ -278,3 +278,16 @@ test("前のよくある習慣の名前（しょくじ・キロっく入り）�
   const names = load().habits.map((h) => h.name);
   assert.deepEqual(names, ["食事を記録", "筋トレ", "しょくじを記録", "キロっくで筋トレ"]);
 });
+
+test("moveHabitTo：引っぱった先へ並べ替える（はみ出たら端）", async () => {
+  const store = await import("../js/store.js");
+  const s = { habits: [{ id: "a" }, { id: "b" }, { id: "c" }], done: {} };
+  store.moveHabitTo(s, "a", 2);
+  assert.deepEqual(s.habits.map((h) => h.id), ["b", "c", "a"]);
+  store.moveHabitTo(s, "a", 0);
+  assert.deepEqual(s.habits.map((h) => h.id), ["a", "b", "c"]);
+  store.moveHabitTo(s, "c", 99);
+  assert.deepEqual(s.habits.map((h) => h.id), ["a", "b", "c"]);
+  store.moveHabitTo(s, "zz", 0);
+  assert.deepEqual(s.habits.map((h) => h.id), ["a", "b", "c"]);
+});

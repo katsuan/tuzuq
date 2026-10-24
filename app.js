@@ -1,11 +1,11 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242049";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242049";
-import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242049";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242049";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242049";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242049";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, moveHabitTo, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242115";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242115";
+import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242115";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242115";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242115";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242115";
 
 const $ = (id) => document.getElementById(id);
 // カードの「✅ つづくでチェックする」で開く先は、LINE の中のつづく（OPEN_URL。js/line-config.js）
@@ -280,7 +280,8 @@ function renderForm() {
     ? `<p class="sub-title">📋 いまの習慣（${state.habits.length} / ${MAX_HABITS}）</p>` +
       state.habits
         .map(
-          (h, i) => `<div class="manage${h.id === ui.editing ? " is-editing" : ""}">
+          (h, i) => `<div class="manage${h.id === ui.editing ? " is-editing" : ""}" data-row="${h.id}">
+          <span class="grip" data-grip="${h.id}" title="引っぱって並べ替え" aria-hidden="true">⠿</span>
           <button class="name" type="button" data-edit="${h.id}" aria-label="${esc(h.name)} を直す">${esc(h.emoji)} ${esc(h.name)}${h.link ? `<small class="manage-sub">${esc(LINKS[h.link].label.split(" ")[0])} ${esc(LINKS[h.link].name)}と連動</small>` : ""}${h.lineText ? `<small class="manage-sub">💬 ${esc(h.lineText)}</small>` : ""}</button>
           <button class="mini" type="button" data-move="${h.id}" data-dir="-1" ${i === 0 ? "disabled" : ""} aria-label="上へ">↑</button>
           <button class="mini" type="button" data-move="${h.id}" data-dir="1" ${i === state.habits.length - 1 ? "disabled" : ""} aria-label="下へ">↓</button>
@@ -288,7 +289,7 @@ function renderForm() {
         </div>`
         )
         .join("") +
-      '<p class="edit-hint">名前を押すと直せます</p>'
+      '<p class="edit-hint">名前を押すと直せます。⠿ を引っぱると並べ替え</p>'
     : "";
 }
 
@@ -383,6 +384,52 @@ $("cancelEdit").addEventListener("click", () => {
   clearForm();
   render();
 });
+
+// ⠿ を引っぱって並べ替え（指でもマウスでも。HTML の D&D は iPhone の指で動かないので pointer で）
+(function dragSort() {
+  const list = $("manageList");
+  let drag = null;
+  list.addEventListener("pointerdown", (e) => {
+    const grip = e.target.closest("[data-grip]");
+    if (!grip || (e.pointerType === "mouse" && e.button !== 0)) return;
+    e.preventDefault();
+    const row = grip.closest("[data-row]");
+    drag = { id: grip.dataset.grip, row, from: [...list.querySelectorAll("[data-row]")].indexOf(row) };
+    row.classList.add("is-dragging");
+    try {
+      grip.setPointerCapture(e.pointerId);
+    } catch {
+      // つかめなくても、一覧の上での動きで並べ替えられる
+    }
+  });
+  list.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    const rows = [...list.querySelectorAll("[data-row]")].filter((r) => r !== drag.row);
+    const next = rows.find((r) => {
+      const b = r.getBoundingClientRect();
+      return e.clientY < b.top + b.height / 2;
+    });
+    if (next) {
+      if (drag.row.nextElementSibling !== next) next.before(drag.row);
+    } else if (rows.length && rows[rows.length - 1].nextElementSibling !== drag.row) {
+      rows[rows.length - 1].after(drag.row);
+    }
+  });
+  const end = () => {
+    if (!drag) return;
+    const to = [...list.querySelectorAll("[data-row]")].indexOf(drag.row);
+    const { id, from } = drag;
+    drag.row.classList.remove("is-dragging");
+    drag = null;
+    if (to !== from) {
+      moveHabitTo(state, id, to);
+      persist();
+    }
+    render();
+  };
+  list.addEventListener("pointerup", end);
+  list.addEventListener("pointercancel", end);
+})();
 
 $("manageList").addEventListener("click", (e) => {
   const edit = e.target.closest("[data-edit]");
