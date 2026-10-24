@@ -5,15 +5,17 @@
 // bot = { 習慣の id: ["YYYY-MM-DD", ...] }（LINE の中で開いたときに、記録ボットから読んだ「記録した日」。日付だけ）
 // 消した習慣は、○の記録ごと控え（trash）に1つだけ残して「元に戻す」で戻せるようにする
 
-import { isDate } from "./stats.js?v=202610242345";
+import { isDate } from "./stats.js?v=202610242350";
+import { cleanGasUrl } from "./linelog.js?v=202610242350";
 
 const KEY = "tuzuq:v1";
 const OLD_KEY = "tsuduq:v1"; // 前の名前
 export const MAX_HABITS = 12;
 export const MAX_DAYS_PER_HABIT = 3700; // 10年ぶんくらい
 export const MAX_IMPORT_BYTES = 1024 * 1024; // 控えのファイルは 1MB まで
-// id は画面のボタンにも入れるので、英数字だけ（ちがう形なら新しく作る）
+// id は画面のボタンやリンク（?h=）にも入れるので、英数字だけ（ちがう形なら新しく作る）
 const ID = /^[a-z0-9]{4,24}$/;
+export const isHabitId = (v) => ID.test(String(v ?? ""));
 export const LINKS = {
   // url：自動の○のしるし（ピル）を押すと開く、そのツール（決まった自分のツールだけ。W5）
   shoquji: { name: "しょくじ", what: "食事の記録", label: "🍚 しょくじ（食事の記録）で記録した日", key: "shoquji:v1", url: "https://katsuan.github.io/shoquji/" },
@@ -45,19 +47,10 @@ const dayList = (list) => [...new Set(list.filter(isDate))].sort().slice(-MAX_DA
 // remindAt：カレンダーでお知らせする時刻（"HH:MM"。js/remind.js）
 export const REMIND_DEFAULT = "21:00";
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
-// lineBot：LINE でも記録（自分用）で送る先のボットの LINE の ID（@ から）。空ならこの機能は出さない
-const BOT_ID = /^@[a-z0-9._-]{2,40}$/i;
-// gasUrl：LINE の中で開いたときに、○を記録する自分の GAS（記録ボット）の URL。秘密ではない（js/linelog.js と同じ形）
-const GAS_URL = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{10,120}\/exec$/;
+// gasUrl：LINE の中で開いたときに、○を記録する自分の GAS（記録ボット）の URL。秘密ではない（形は js/linelog.js の cleanGasUrl）
+// （前にあった lineBot（ボットの LINE の ID）は使わなくなったので、読んだら捨てる）
 function blank() {
-  return { v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: REMIND_DEFAULT, lineBot: "", gasUrl: "", bot: {}, view: { sort: "mine", filter: "all" } };
-}
-export const cleanBotId = (v) => (BOT_ID.test(String(v ?? "").trim()) ? String(v).trim() : "");
-// ボットのトークを、送る文を入れた状態で開くリンク（送るのは本人。書きこみ用の鍵は持たない）
-export function lineRecordUrl(bot, text) {
-  const id = cleanBotId(bot);
-  const t = cut(text, 60);
-  return id && t ? `https://line.me/R/oaMessage/${encodeURIComponent(id)}/?${encodeURIComponent(t)}` : "";
+  return { v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: REMIND_DEFAULT, gasUrl: "", bot: {}, view: { sort: "mine", filter: "all" } };
 }
 
 // 前のよくある習慣の名前（ツールの名前入り）を、だれでも読める名前に（カードを受け取る人は、しょくじ・キロっくを知らない）
@@ -67,11 +60,11 @@ const friendlyName = (name, link) => (OLD_IDEA_NAMES[link] && OLD_IDEA_NAMES[lin
 
 function cleanHabit(h) {
   return {
-    id: ID.test(String(h.id || "")) ? String(h.id) : newId(),
+    id: isHabitId(h.id) ? String(h.id) : newId(),
     name: cut(friendlyName(String(h.name ?? "").trim(), h.link), 24),
     emoji: oneMark(h.emoji) || "✅",
     link: LINKS[h.link] ? h.link : null,
-    lineText: cut(h.lineText, 60), // LINE でも記録（自分用）：ボットに送る文（例：# workout）
+    lineText: cut(h.lineText, 60), // 記録ボットに送る文（例：# workout）
     at: Number(h.at) || Date.now()
   };
 }
@@ -83,8 +76,7 @@ function clean(raw) {
   s.weekStart = raw.weekStart === 0 ? 0 : 1;
   s.view = cleanView(raw.view);
   s.remindAt = TIME.test(raw.remindAt) ? raw.remindAt : REMIND_DEFAULT;
-  s.lineBot = cleanBotId(raw.lineBot);
-  s.gasUrl = GAS_URL.test(String(raw.gasUrl || "")) ? String(raw.gasUrl) : "";
+  s.gasUrl = cleanGasUrl(raw.gasUrl);
   const auto = raw.auto && typeof raw.auto === "object" ? raw.auto : {};
   Object.keys(LINKS).forEach((link) => {
     if (Array.isArray(auto[link])) s.auto[link] = dayList(auto[link]);

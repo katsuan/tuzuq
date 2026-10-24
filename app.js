@@ -1,11 +1,11 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242345";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242345";
-import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242345";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242345";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242345";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242345";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242350";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242350";
+import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242350";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242350";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242350";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242350";
 
 const $ = (id) => document.getElementById(id);
 // カードの「✅ つづくでチェックする」で開く先は、LINE の中のつづく（OPEN_URL。js/line-config.js）
@@ -195,6 +195,7 @@ function habitHtml(h, today, week, tapHint = false) {
 function renderToday(today) {
   $("todayHeading").textContent = `きょうの○ ${label(today)}`;
   $("progress").classList.remove("is-all");
+  $("todayTools").hidden = state.habits.length < 2; // しぼりこみ・並べ方は2つから（0こにしたときも消す）
   if (!state.habits.length) {
     $("progress").textContent = "";
     // LINE の中で開いて習慣がないとき：ブラウザで使っていた記録は、ここには出ない（別のブラウザ）
@@ -216,7 +217,6 @@ function renderToday(today) {
   const shown = ui.order.list.map((id) => state.habits.find((h) => h.id === id)).filter(Boolean);
   const v = state.view || {};
   const todoCount = state.habits.filter((h) => !isDone(h)).length;
-  $("todayTools").hidden = state.habits.length < 2;
   const toolsHtml = `<div class="ls-chips today-filter" role="group" aria-label="しぼりこみ">${[
     ["all", `すべて ${state.habits.length}`],
     ["todo", `まだ ${todoCount}`],
@@ -411,8 +411,6 @@ function clearForm() {
   ui.emoji = EMOJIS[0];
 }
 
-
-
 $("saveBtn").addEventListener("click", () => {
   const name = $("name").value.trim();
   $("nameError").hidden = !!name;
@@ -592,13 +590,6 @@ function renderCalendarAll(cells, today) {
     <div><span>いま</span><b>${fullStreak(sets, today)}<small>日</small></b><em>全部つづき</em></div>`;
 }
 
-$("calendar").addEventListener("click", (e) => {
-  const b = e.target.closest("[data-cal-all]");
-  if (!b || b.disabled) return;
-  const date = b.dataset.calAll;
-  const list = state.habits.map((h) => `${daysOf(h).all.has(date) ? "✅" : "⬜"} ${h.emoji}${h.name}`).join("　");
-  say(`${label(date)}　${list}`);
-});
 
 $("calHabits").addEventListener("click", (e) => {
   const b = e.target.closest("[data-cal]");
@@ -607,6 +598,15 @@ $("calHabits").addEventListener("click", (e) => {
   renderCalendar(ymd());
 });
 $("calendar").addEventListener("click", (e) => {
+  // 「🗓 すべて」の日：その日のようすを知らせる
+  const all = e.target.closest("[data-cal-all]");
+  if (all) {
+    if (all.disabled) return;
+    const date = all.dataset.calAll;
+    const list = state.habits.map((h) => `${daysOf(h).all.has(date) ? "✅" : "⬜"} ${h.emoji}${h.name}`).join("　");
+    return say(`${label(date)}　${list}`);
+  }
+  // 習慣ごとの日：つけ外し
   const b = e.target.closest("[data-cal-day]");
   if (!b || b.disabled || b.dataset.calDay > ymd()) return;
   if (holdMs(b.dataset.calDay, ymd()) && e.detail !== 0) return; // 前の日は長押し
@@ -810,11 +810,10 @@ function render() {
 
 render();
 
-// LINE の中（LIFF）で開いたときだけ、記録ボットとつなぐ（ブラウザでは何もしない）
 // ---- LINE で使う：ブラウザで開いたときの案内の帯と、4コマ（最初だけ。閉じたら出さない） ----
 const BANNER_KEY = "tuzuq:lineBannerOff"; // この端末で閉じたか（設定なので端末に残してよい）
 (function lineGuide() {
-  const inLine = inLineApp();
+  const inLineBrowser = inLineApp(); // LINE のアプリの中（LIFF でなくても）
   let off = false;
   try {
     off = localStorage.getItem(BANNER_KEY) === "1";
@@ -822,11 +821,11 @@ const BANNER_KEY = "tuzuq:lineBannerOff"; // この端末で閉じたか（設�
     off = false;
   }
   const show = (open) => {
-    $("lineGuidePanel").hidden = inLine || !open;
+    $("lineGuidePanel").hidden = inLineBrowser || !open;
   };
   show(!off);
   // 「LINEで開く」は、おくるんの共通の案内に（読みこめなければ、ふつうのリンク）
-  if (!inLine) {
+  if (!inLineBrowser) {
     const shown = window.LineShareLiff?.outsideHelp?.($("lineOutside"), { appUrl: () => OPEN_URL, canLogin: false });
     if (!shown) $("lineOutside").innerHTML = `<a class="ls-button line is-block" href="${esc(OPEN_URL)}">💬 LINEで開く</a>`;
   }
@@ -868,6 +867,7 @@ window.addEventListener("load", () =>
   )
 );
 
+// ---- 記録ボットとつなぐ（LINE の中の LIFF で開いたときだけ。ブラウザでは何もしない） ----
 // つなぎ先を入れなおしたときも、ここからやりなおす
 function connectLineLog() {
   const had = !!lineLog;
@@ -915,7 +915,7 @@ $("gasUrl").addEventListener("change", () => {
   url.searchParams.delete("h");
   if (!inLineApp()) url.searchParams.delete("liff.state");
   history.replaceState(null, "", url);
-  const h = /^[a-z0-9]{4,24}$/.test(id || "") && state.habits.find((x) => x.id === id);
+  const h = isHabitId(id) && state.habits.find((x) => x.id === id);
   if (!h) return say("この端末には、その習慣がありません（ほかの端末で作った習慣かもしれません）");
   const card = document.querySelector(`.habit[data-habit="${h.id}"]`);
   if (!card) return;
