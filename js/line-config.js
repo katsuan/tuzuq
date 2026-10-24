@@ -4,5 +4,5 @@
 // 空のあいだは、LINE の中で開いても今までどおり（端末の中だけ）。
 //   liffId：つづくの LIFF の ID（Q のプロバイダーの LINE ログインのチャネル。scope は openid と profile）
 export const LINE_LOG = {
-  liffId: ""
+  liffId: "2012187502-o87l8Esu"
 };

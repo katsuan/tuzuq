@@ -66,6 +66,7 @@ test("ブラウザで開いたとき・設定が空のときは、LIFF を読ま
   assert.equal(await startLineLog(GAS, { liffId: "2000000001-abcd" }), null, "LINE のアプリでなければ null");
   // 公開しているつづくには、だれかの GAS の URL を置かない（使う人がそれぞれ入れる）
   assert.deepEqual(Object.keys(LINE_LOG), ["liffId"]);
+  assert.match(LINE_LOG.liffId, /^\d{10}-[A-Za-z0-9]+$/);
 });
 
 test("ボットから読んだ日：日付だけ、習慣ごとに置きかえる。ボットに入った日は外せない○にうつす", () => {
