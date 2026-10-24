@@ -2,7 +2,7 @@
 //   Google カレンダー：習慣ごとに、毎日くり返す予定を作る画面を開く（Google の「タスク」はリンクから作れないので、予定で）
 //   まとめて（.ics）：iPhone は開くと「すべてを追加」。時刻ちょうどのお知らせつき
 // どちらも予定の中に、つづくを開くリンクを入れる。止めるときはカレンダーの予定を消す
-import { OPEN_URL } from "./line-config.js?v=202610242115";
+import { OPEN_URL } from "./line-config.js?v=202610242130";
 // 予定から開くのは LINE の中（LIFF）。記録ボットとつないでいれば、そのまま○が記録ボットにも入る
 export const PAGE_URL = OPEN_URL;
 const MINUTES = 15; // 予定の長さ

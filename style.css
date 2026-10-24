@@ -199,7 +199,9 @@ p, li, figcaption, small, .ls-hint, .ls-empty, .ls-tip li { word-break: auto-phr
 /* 習慣の札（🍚 自動 ›・💬 ボット）：短く1行（押せる広さは ::after で広げているので、はみ出しを切らない） */
 .auto-tag { white-space: nowrap; }
 /* 札（🍚 自動 ›・💬 ボット）は1行に並べる */
-.habit-tags { display: flex; flex-wrap: nowrap; gap: 4px; align-items: center; min-width: 0; }
-.habit-tags .auto-tag { margin-top: 2px; }
+.habit-tags { display: flex; flex-wrap: wrap; grid-column: 2 / 4; gap: 4px; align-items: center; min-width: 0; }
+.habit-top:has(.habit-tags) { row-gap: 3px; }
+.habit-top:has(.habit-tags) .habit-emoji, .habit-top:has(.habit-tags) .check { grid-row: span 2; }
+.habit-tags .auto-tag { margin-top: 0; }
 /* いまの習慣：つないだツール・送る文は、名前の下の短い1行に */
 .manage .name .manage-sub { display: block; margin-top: 2px; overflow: hidden; color: var(--ls-subtext); font-size: 12px; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
