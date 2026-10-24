@@ -1,11 +1,11 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242350";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242350";
-import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242350";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242350";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242350";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242350";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610241408";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610241408";
+import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610241408";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610241408";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610241408";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610241408";
 
 const $ = (id) => document.getElementById(id);
 // カードの「✅ つづくでチェックする」で開く先は、LINE の中のつづく（OPEN_URL。js/line-config.js）
@@ -24,7 +24,13 @@ const IDEAS = [
   ["🏋️", "筋トレ", "kiloq"]
 ];
 
-let state = load();
+// 週のはじまりは Q ツール共通の設定（line-share/shared/week-start.js）を先に見る。まだないときは、つづくに残した値
+// （共通の部品が読めないときも、つづくの値で動く）
+const withSharedWeek = (s) => {
+  if (window.QWeekStart) s.weekStart = window.QWeekStart.get(s.weekStart);
+  return s;
+};
+let state = withSharedWeek(load());
 const ui = {
   emoji: EMOJIS[0],
   editing: null, // 直している習慣の id
@@ -689,6 +695,7 @@ $("weekStart").addEventListener("click", (e) => {
   const b = e.target.closest("[data-week-start]");
   if (!b) return;
   state.weekStart = Number(b.dataset.weekStart) === 0 ? 0 : 1;
+  window.QWeekStart?.set(state.weekStart); // ほかの Q ツールも同じ週のはじまりで開く
   persist();
   renderCalendar(ymd());
 });
@@ -779,7 +786,8 @@ $("resetBtn").addEventListener("click", async () => {
 
 // ほかのタブ（しょくじなど）で記録が変わったら描きなおす
 window.addEventListener("storage", (e) => {
-  if (e.key === "tuzuq:v1" || e.key === null) state = load(); // null：ほかのタブで全部消した
+  // null：ほかのタブで全部消した。qlove:weekStart：ほかのツールで週のはじまりを変えた
+  if (e.key === "tuzuq:v1" || e.key === null || e.key === "qlove:weekStart") state = withSharedWeek(load());
   // キロっく・しょくじの記録が変わったときも、下の render で読みなおして覚える
   render();
 });
