@@ -76,7 +76,7 @@ body {
 .emoji-btn[aria-expanded="true"] { border-color: var(--ls-accent); }
 .emoji-picker { margin-top: 8px; padding: 8px; border: 1.5px solid var(--ls-line); border-radius: 14px; }
 .emoji-picker[hidden] { display: none; }
-.emojis { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; }
+.emojis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
 .ls-chip.emoji { min-height: 44px; padding: 0; font-size: 20px; justify-content: center; }
 .emoji-custom { margin-top: 8px; text-align: center; font-size: 16px; /* 16px 未満だと iPhone で画面が寄る */ }
 .emoji-custom::placeholder { font-size: 13px; }

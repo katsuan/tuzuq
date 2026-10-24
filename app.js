@@ -10,7 +10,8 @@ import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthSt
 const $ = (id) => document.getElementById(id);
 // カードの「✅ つづくで○をつける」で開く先（LINE の中で開く。js/line-config.js）
 const CARD_COLOR = "#2F80D8"; // ロゴの青
-const EMOJIS = ["✅", "💧", "🚶", "🏃", "📖", "🧘", "🦷", "💊", "📓", "🛏️", "🥗", "🎹", "📚", "🌱", "🧹", "💪", "🍚"];
+// しるしの候補：6列×3段の18個（どの端末でも6列にそろえる。style.css の .emojis）
+const EMOJIS = ["✅", "💧", "🚶", "🏃", "📖", "🧘", "🦷", "💊", "📓", "🛏️", "☀️", "🥗", "🎹", "📚", "🌱", "🧹", "💪", "🍚"];
 const IDEAS = [
   ["💧", "水を2L飲む"],
   ["🚶", "8000歩あるく"],
