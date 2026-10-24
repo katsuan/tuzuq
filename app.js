@@ -1,11 +1,11 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242046";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242046";
-import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242046";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242046";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242046";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242046";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242049";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242049";
+import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242049";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242049";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242049";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242049";
 
 const $ = (id) => document.getElementById(id);
 // カードの「✅ つづくでチェックする」で開く先は、LINE の中のつづく（OPEN_URL。js/line-config.js）
@@ -281,7 +281,7 @@ function renderForm() {
       state.habits
         .map(
           (h, i) => `<div class="manage${h.id === ui.editing ? " is-editing" : ""}">
-          <button class="name" type="button" data-edit="${h.id}" aria-label="${esc(h.name)} を直す">${esc(h.emoji)} ${esc(h.name)}${h.link ? ` <small>${esc(LINKS[h.link].label)}</small>` : ""}</button>
+          <button class="name" type="button" data-edit="${h.id}" aria-label="${esc(h.name)} を直す">${esc(h.emoji)} ${esc(h.name)}${h.link ? `<small class="manage-sub">${esc(LINKS[h.link].label.split(" ")[0])} ${esc(LINKS[h.link].name)}と連動</small>` : ""}${h.lineText ? `<small class="manage-sub">💬 ${esc(h.lineText)}</small>` : ""}</button>
           <button class="mini" type="button" data-move="${h.id}" data-dir="-1" ${i === 0 ? "disabled" : ""} aria-label="上へ">↑</button>
           <button class="mini" type="button" data-move="${h.id}" data-dir="1" ${i === state.habits.length - 1 ? "disabled" : ""} aria-label="下へ">↓</button>
           <button class="mini del" type="button" data-del="${h.id}" aria-label="${esc(h.name)} を消す">✕</button>

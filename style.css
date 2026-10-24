@@ -188,7 +188,8 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 @media (prefers-reduced-motion: reduce) { .dot.is-holding::after, .cell.is-holding::after { animation: none; transform: scale(1); } }
 
 /* 日本語の折り返し：文節の切れ目で（Chrome・Android の LINE）。行末に1〜2字だけ残らないように */
-p, li, figcaption, small, .ls-hint, .ls-empty, .ls-tip li { word-break: auto-phrase; text-wrap: pretty; line-break: strict; }
+/* text-wrap は折り返しの有無まで変えてしまう（nowrap の札が折り返す）ので、見た目だけの text-wrap-style にする */
+p, li, figcaption, small, .ls-hint, .ls-empty, .ls-tip li { word-break: auto-phrase; text-wrap-style: pretty; line-break: strict; }
 /* 切れると読みにくいひとかたまり（色の見本など）は、まとめて次の行へ */
 .nobr { display: inline-block; }
 
@@ -197,3 +198,5 @@ p, li, figcaption, small, .ls-hint, .ls-empty, .ls-tip li { word-break: auto-phr
 /* 札（🍚 自動 ›・💬 ボット）は1行に並べる */
 .habit-tags { display: flex; flex-wrap: nowrap; gap: 4px; align-items: center; min-width: 0; }
 .habit-tags .auto-tag { margin-top: 2px; }
+/* いまの習慣：つないだツール・送る文は、名前の下の短い1行に */
+.manage .name .manage-sub { display: block; margin-top: 2px; overflow: hidden; color: var(--ls-subtext); font-size: 12px; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
