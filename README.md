@@ -61,3 +61,7 @@
 1. GitHub に `katsuan/tuzuq` を作って push し、Pages を開く
 2. 確かめがすんだら `index.html` の noindex を外す
 3. おくるん（line-share）の `data/hub-links.json` に `key: "tuzuq"` を足す（グループは「毎日・あそび」）。`backup/app.js` の一覧に `["tuzuq:", "つづく", "tuzuq"]` を足す
+
+## 直したら（読みこみの印）
+
+`app.js`・`style.css`・`js/*.js` を変えたら、`index.html`・`app.js`・`js/*.js` の `?v=…` を、すべて同じ新しい値（例：`202610242029`）にする。変え忘れると、ブラウザが古い部品と新しい部品をまぜて読み、画面がまるごと出なくなる（`test/version.test.mjs` が落ちて気づける）。

@@ -1,11 +1,11 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242000";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242000";
-import { holdMs, withinBotDays } from "./js/hold.js?v=202610242000";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242000";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242000";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242000";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242029";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242029";
+import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242029";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242029";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242029";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242029";
 
 const $ = (id) => document.getElementById(id);
 // カードの「✅ つづくでチェックする」で開く先（受け取った人が開くので、ふつうのページ。おくるんのカードは登録していない LIFF のリンクをボタンにしない）
@@ -526,8 +526,9 @@ function applyToggle(h, date) {
     clearTimeout(hold.timer);
     hold.el.classList.remove("is-holding");
     if (!fired) {
-      const ms = holdMs(dateOf(hold.el), ymd());
-      say(`前の日は、長押しでつけ外しします（${(ms / 1000).toFixed(1)}秒）`);
+      const date = dateOf(hold.el);
+      const ms = holdMs(date, ymd());
+      say(`${daysAgo(date, ymd())}日前は、長押しでつけ外しします（${(ms / 1000).toFixed(1)}秒）`);
     }
     hold = null;
   };
