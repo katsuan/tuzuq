@@ -28,7 +28,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、つづくの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610240735">
+<link rel="stylesheet" href="style.css?v=202610240819">
 </head>
 <body>
 <main class="ls-page ls-stack">
@@ -72,6 +72,10 @@
           <select id="link" class="ls-input">
             <option value="">つながない（自分で○をつける）</option>
           </select>
+        </label>
+        <label class="ls-field" id="lineTextField" hidden>
+          <span class="ls-label">LINE でも記録（自分用）：送る文</span>
+          <input id="lineText" class="ls-input" maxlength="60" placeholder="例：# workout" autocomplete="off">
         </label>
         <div class="form-actions">
           <button id="saveBtn" class="ls-button is-primary is-block" type="button">＋ ふやす</button>
@@ -120,6 +124,19 @@
       </div>
     </details>
 
+    <!-- LINE でも記録（自分用）：○をつけたら、記録ボットのトークを送る文入りで開く -->
+    <details class="ls-fold" id="lineFold">
+      <summary><span class="ls-fold-icon" aria-hidden="true">💬</span>LINE でも記録（自分用）</summary>
+      <div class="ls-fold-body">
+        <p class="ls-hint">自分の記録ボットにも送りたいときに。ボットの LINE の ID を入れると、習慣ごとに「送る文」を決められます。今日の○をつけると「💬 LINE でも記録」が出て、押すとボットのトークが送る文入りで開きます（送るのは自分）。</p>
+        <label class="ls-field">
+          <span class="ls-label">ボットの LINE の ID</span>
+          <input id="lineBot" class="ls-input" maxlength="41" placeholder="例：@123abcde" autocomplete="off" autocapitalize="off" spellcheck="false">
+        </label>
+        <p id="lineBotError" class="ls-hint is-error" role="alert" hidden>@ から始まる ID を入れてね（例：@123abcde）</p>
+      </div>
+    </details>
+
     <!-- 記録の控え -->
     <details class="ls-fold" id="settings">
       <summary><span class="ls-fold-icon" aria-hidden="true">🔒</span>記録の控え</summary>
@@ -142,7 +159,7 @@
 
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/ui.js" defer></script>
-<script type="module" src="app.js?v=202610240735"></script>
+<script type="module" src="app.js?v=202610240819"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="tuzuq" defer></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>
 </body>

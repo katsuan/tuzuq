@@ -1,7 +1,7 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, addHabit, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610240735";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610240735";
-import { best, label, lastDays, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610240735";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, cleanBotId, lineRecordUrl, addHabit, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610240819";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610240819";
+import { best, label, lastDays, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610240819";
 
 const $ = (id) => document.getElementById(id);
 const PAGE_URL = "https://katsuan.github.io/tuzuq/";
@@ -126,7 +126,14 @@ $("habitList").addEventListener("click", (e) => {
   render();
   if (on && date === ymd()) {
     const n = streak(daysOf(h).all, date);
-    say(n >= 2 ? `🔥 「${h.name}」${n}日つづいています` : `○ 「${h.name}」できました`);
+    const text = n >= 2 ? `🔥 「${h.name}」${n}日つづいています` : `○ 「${h.name}」できました`;
+    // LINE でも記録（自分用）：送る文を決めた習慣なら、ボットのトークを開くボタンを出す
+    const url = lineRecordUrl(state.lineBot, h.lineText);
+    if (url && window.LineShareUI?.toast) {
+      window.LineShareUI.toast(text, { actionLabel: "💬 LINE でも記録", onAction: () => (location.href = url), ms: 8000 });
+    } else {
+      say(text);
+    }
   }
 });
 
@@ -157,6 +164,7 @@ function cardUrl(today) {
 
 // ---- 習慣をふやす・直す ----
 function renderForm() {
+  $("lineTextField").hidden = !state.lineBot;
   $("emojis").innerHTML = EMOJIS.map((e) => `<button class="ls-chip emoji" type="button" role="radio" aria-checked="${e === ui.emoji}" data-emoji="${e}">${e}</button>`).join("");
   const used = new Set(state.habits.map((h) => h.name));
   $("ideas").innerHTML = ui.editing
@@ -215,14 +223,28 @@ function clearForm() {
   $("nameError").hidden = true;
   $("name").value = "";
   $("link").value = "";
+  $("lineText").value = "";
   ui.emoji = EMOJIS[0];
 }
+
+// LINE でも記録（自分用）：ボットの ID を入れた人にだけ、習慣ごとの「送る文」を出す
+$("lineBot").value = state.lineBot;
+$("lineBot").addEventListener("change", () => {
+  const raw = $("lineBot").value.trim();
+  const id = cleanBotId(raw);
+  $("lineBotError").hidden = !raw || !!id;
+  if (raw && !id) return;
+  state.lineBot = id;
+  persist();
+  render();
+  say(id ? "💬 習慣を直すと「送る文」を決められます" : "LINE でも記録をやめました");
+});
 
 $("saveBtn").addEventListener("click", () => {
   const name = $("name").value.trim();
   $("nameError").hidden = !!name;
   if (!name) return $("name").focus();
-  const entry = { name, emoji: ui.emoji, link: $("link").value || null };
+  const entry = { name, emoji: ui.emoji, link: $("link").value || null, lineText: $("lineText").value.trim() };
   if (ui.editing) {
     updateHabit(state, ui.editing, entry);
     ui.editing = null;
@@ -251,6 +273,7 @@ $("manageList").addEventListener("click", (e) => {
     ui.emoji = h.emoji;
     $("name").value = h.name;
     $("link").value = h.link || "";
+    $("lineText").value = h.lineText || "";
     render();
     $("formHeading").scrollIntoView({ behavior: "smooth", block: "start" });
     return;

@@ -14,7 +14,7 @@ const { load, importJson, exportJson, linkedDays, MAX_HABITS, MAX_DAYS_PER_HABIT
 
 const XSS = '" onclick=alert(1) x="'; // qcheck-ok: W8 テストの見本の文字
 const ID = /^[a-z0-9]{4,24}$/;
-const blank = () => ({ v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: "21:00" });
+const blank = () => ({ v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: "21:00", lineBot: "" });
 
 test("ボタンに入る id は英数字だけ（控えの id に記号が入っていても作りなおす）", () => {
   const s = blank();
@@ -191,4 +191,18 @@ test("お知らせの時刻は 21:00 が既定。形のちがう値は 21:00 に
   assert.equal(load().remindAt, "21:00");
   mem.delete("tuzuq:v1");
   assert.equal(load().remindAt, "21:00");
+});
+
+test("LINE でも記録（自分用）：ボットの ID は @ から。送る文入りでボットのトークを開くリンクを作る", async () => {
+  const { lineRecordUrl, cleanBotId } = await import("../js/store.js");
+  assert.equal(cleanBotId("@123abcde"), "@123abcde");
+  assert.equal(cleanBotId("123abcde"), "");
+  assert.equal(cleanBotId('@x" onclick=1'), "");
+  assert.equal(lineRecordUrl("@123abcde", "# workout"), "https://line.me/R/oaMessage/%40123abcde/?%23%20workout");
+  assert.equal(lineRecordUrl("", "# workout"), "");
+  assert.equal(lineRecordUrl("@123abcde", ""), "");
+  mem.set("tuzuq:v1", JSON.stringify({ habits: [{ id: "lift0001", name: "筋トレ", lineText: "# workout" + "x".repeat(100) }], done: {}, lineBot: "@123abcde" }));
+  const s = load();
+  assert.equal(s.lineBot, "@123abcde");
+  assert.equal(s.habits[0].lineText.length, 60);
 });
