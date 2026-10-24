@@ -42,6 +42,10 @@ body {
 .habit-name { display: grid; min-width: 0; }
 .habit-name b { overflow: hidden; font-size: 16px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
 .auto-tag { justify-self: start; margin-top: 2px; padding: 1px 7px; border-radius: 999px; background: #fff0d6; color: #b35f00; font-size: 11px; font-weight: 700; }
+/* 押すとつないだツールが開くピル。見た目は小さいまま、押せる広さは上下に広げる（C3） */
+.auto-tag.is-link { position: relative; text-decoration: none; cursor: pointer; }
+.auto-tag.is-link::after { content: ""; position: absolute; inset: -12px -6px; }
+.auto-tag.is-link:active { filter: brightness(0.95); }
 .habit-streak { color: var(--fire); font-size: 14px; font-weight: 800; white-space: nowrap; }
 .habit-streak.is-zero { color: var(--ls-subtext); font-size: 12px; }
 

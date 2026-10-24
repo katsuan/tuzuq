@@ -140,7 +140,7 @@ function habitHtml(h, today, week) {
   return `<div class="habit${now.on ? " is-done" : ""}" data-habit="${h.id}">
         <div class="habit-top">
           <span class="habit-emoji" aria-hidden="true">${esc(h.emoji)}</span>
-          <span class="habit-name"><b>${esc(h.name)}</b>${h.link ? `<small class="auto-tag">${esc(LINKS[h.link].label.split(" ")[0])} 記録した日に自動で○</small>` : ""}${lineLog && h.lineText ? '<small class="auto-tag bot-tag">💬 ○で記録ボットにも</small>' : ""}</span>
+          <span class="habit-name"><b>${esc(h.name)}</b>${h.link ? `<a class="auto-tag is-link" href="${esc(LINKS[h.link].url)}" aria-label="${esc(LINKS[h.link].name)}を開く（記録した日に自動で○）">${esc(LINKS[h.link].label.split(" ")[0])} 記録した日に自動で○ ›</a>` : ""}${lineLog && h.lineText ? '<small class="auto-tag bot-tag">💬 ○で記録ボットにも</small>' : ""}</span>
           <span class="habit-streak${n ? "" : " is-zero"}">${n ? `🔥${n}日` : "これから"}</span>
           <button class="check${now.on ? " is-on" : ""}${ui.justDone === `${h.id}:${today}` ? " is-pop" : ""}" type="button" data-toggle="${h.id}" data-date="${today}" ${now.auto ? "disabled" : ""} aria-pressed="${now.on}" aria-label="${esc(h.name)} きょう${now.on ? "できた" : "まだ"}">${now.on ? "✓" : ""}</button>
         </div>

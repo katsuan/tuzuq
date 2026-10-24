@@ -206,3 +206,11 @@ test("LINE でも記録（自分用）：ボットの ID は @ から。送る�
   assert.equal(s.lineBot, "@123abcde");
   assert.equal(s.habits[0].lineText.length, 60);
 });
+
+test("自動の○のピルから開くのは、決まった自分のツールだけ（https・katsuan.github.io か LINE）", async () => {
+  const { LINKS } = await import("../js/store.js");
+  Object.values(LINKS).forEach((def) => {
+    assert.match(def.url, /^https:\/\/(katsuan\.github\.io\/[a-z-]+\/|liff\.line\.me\/\d{10}-[A-Za-z0-9]+)$/);
+    assert.ok(def.name);
+  });
+});
