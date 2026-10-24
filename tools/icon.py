@@ -121,7 +121,7 @@ def main():
     logo, ratio = BRAND.logo_svg("TZQ", SHAPES, C, RING_OUTER, "TZQ（つづく）")
     (ROOT / "logo.svg").write_text(z_arrow_logo(logo, 1), encoding="utf-8")  # 字の並びは T・Z
     BRAND.write_ogp(
-        ROOT / "ogp.png", SHAPES, "つづく", "TuzuQ",
+        ROOT / "ogp.png", SHAPES, "つづく", "TuZuQ",
         ["できた日に丸を押すだけ", "登録なしで、すぐ使える"], decorate,
         copy="きょうのできたが、あしたにつづく",
     )
