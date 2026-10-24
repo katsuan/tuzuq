@@ -1,6 +1,6 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, cleanBotId, oneMark, lineRecordUrl, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242000";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242000";
 import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242000";
 import { holdMs, withinBotDays } from "./js/hold.js?v=202610242000";
 import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242000";
@@ -228,7 +228,8 @@ function cardUrl(today) {
 
 // ---- 習慣をふやす・直す ----
 function renderForm() {
-  $("lineTextField").hidden = !state.lineBot && !lineLog;
+  // 送る文は、LINE の中で記録ボット（自分の GAS）とつながっているときだけ（入れた文は、つながっていないときも残す）
+  $("lineTextField").hidden = !lineLog;
   $("lineLogNote").hidden = !lineLog;
   $("gasField").hidden = !inLine;
   // [しるし][名前] のしるし。押すと選べる絵文字とカスタムが開く。カスタムで選んでいるときは、カスタムの欄が選んだ形
@@ -327,18 +328,7 @@ function clearForm() {
   ui.emoji = EMOJIS[0];
 }
 
-// LINE でも記録（自分用）：ボットの ID を入れた人にだけ、習慣ごとの「送る文」を出す
-$("lineBot").value = state.lineBot;
-$("lineBot").addEventListener("change", () => {
-  const raw = $("lineBot").value.trim();
-  const id = cleanBotId(raw);
-  $("lineBotError").hidden = !raw || !!id;
-  if (raw && !id) return;
-  state.lineBot = id;
-  persist();
-  render();
-  say(id ? "💬 習慣を直すと「送る文」を決められます" : "LINE でも記録をやめました");
-});
+
 
 $("saveBtn").addEventListener("click", () => {
   const name = $("name").value.trim();
@@ -520,13 +510,7 @@ function applyToggle(h, date) {
     });
     return;
   }
-  // LINE でも記録（自分用）：きょうの分で、送る文を決めた習慣なら、ボットのトークを開くボタンを出す
-  const url = date === today ? lineRecordUrl(state.lineBot, h.lineText) : "";
-  if (url && window.LineShareUI?.toast) {
-    window.LineShareUI.toast(text, { actionLabel: "💬 LINE でも記録", onAction: () => (location.href = url), ms: 8000 });
-  } else if (date === today) {
-    say(text);
-  }
+  if (date === today) say(text);
 }
 
 // ---- 前の日の長押し（一覧の7つの丸・カレンダーの日） ----
