@@ -16,7 +16,6 @@ from pathlib import Path
 
 import brandkit_path  # noqa: F401
 import math
-import re
 
 from brandkit import Brand, centered, num, polar
 
@@ -66,38 +65,6 @@ def decorate(d, s):
         d.ellipse(((x - r) * s, (y - r) * s, (x + r) * s, (y + r) * s), outline=(255, 255, 255, a), width=6 * s)
         if i < 5:
             d.ellipse(((x - r + 9) * s, (y - r + 9) * s, (x + r - 9) * s, (y + r - 9) * s), fill=(255, 255, 255, 60))
-
-
-def path_bounds(d):
-    """SVG のパス（字の形）の数字から、だいたいの外形（x0, y0, x1, y1）"""
-    nums = [float(v) for v in re.findall(r"-?\d+(?:\.\d+)?", d)]
-    xs, ys = nums[0::2], nums[1::2]
-    return min(xs), min(ys), max(xs), max(ys)
-
-
-def z_arrow_logo(svg, index):
-    """ロゴの Z を、書き順どおりの矢印にする（上の横線を右へ → 斜めに左下へ → 下の横線を右へ、最後に矢じり）
-    index：字のパスの中で Z が何番目か（Q は字のパスに入らない）"""
-    paths = re.findall(r'<path d="([^"]+)" fill="[^"]+" stroke="[^"]+"/>', svg)
-    z = paths[index]
-    x0, y0, x1, y1 = path_bounds(z)
-    w, h = x1 - x0, y1 - y0
-    sw = h * 0.2  # 線の太さ（Jua の字の太さに近く）
-    m = sw / 2
-    head = sw * 1.25  # 矢じりの長さ
-    top, bottom = y0 + m, y1 - m
-    left, right = x0 + m, x1 - m
-    tip = x1 + head * 0.05  # 矢じりの先（次の字にふれないよう、字の右はしあたり）
-    line = (
-        f'<path d="M{num(left)} {num(top)} L{num(right)} {num(top)} L{num(left)} {num(bottom)} L{num(tip - head)} {num(bottom)}" '
-        f'fill="none" stroke="#ffffff" stroke-width="{num(sw)}" stroke-linecap="round" stroke-linejoin="round"/>'
-    )
-    arrow = (
-        f'<path d="M{num(tip)} {num(bottom)} L{num(tip - head * 1.25)} {num(bottom - head * 0.85)} '
-        f'L{num(tip - head * 1.25)} {num(bottom + head * 0.85)} Z" fill="#ffffff" stroke="#ffffff" stroke-width="{num(sw * 0.3)}" stroke-linejoin="round"/>'
-    )
-    svg = svg.replace(f'<path d="{z}"', '<path d="M0 0"', 1)  # 字の z は消して
-    return svg.replace("</svg>", line + arrow + "</svg>")
 
 
 def main():
