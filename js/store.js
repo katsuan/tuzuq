@@ -25,6 +25,18 @@ export function cut(text, n) {
   const s = String(text ?? "").trim().slice(0, n);
   return /[\uD800-\uDBFF]$/.test(s) ? s.slice(0, -1) : s;
 }
+// しるし：見た目の1文字だけ（家族の絵文字のような、つながった絵文字も1つ）。空なら ""
+export function oneMark(text) {
+  const s = String(text ?? "").trim();
+  if (!s) return "";
+  let first = s;
+  try {
+    first = new Intl.Segmenter("ja", { granularity: "grapheme" }).segment(s)[Symbol.iterator]().next().value?.segment || "";
+  } catch {
+    first = Array.from(s)[0] || "";
+  }
+  return first.length <= 16 ? first : "";
+}
 // 日付の並びを、重なりなし・古い順・上限つきに
 const dayList = (list) => [...new Set(list.filter(isDate))].sort().slice(-MAX_DAYS_PER_HABIT);
 
@@ -52,7 +64,7 @@ function cleanHabit(h) {
   return {
     id: ID.test(String(h.id || "")) ? String(h.id) : newId(),
     name: cut(h.name, 24),
-    emoji: cut(h.emoji, 8) || "✅",
+    emoji: oneMark(h.emoji) || "✅",
     link: LINKS[h.link] ? h.link : null,
     lineText: cut(h.lineText, 60), // LINE でも記録（自分用）：ボットに送る文（例：# workout）
     at: Number(h.at) || Date.now()

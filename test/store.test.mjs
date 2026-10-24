@@ -179,9 +179,9 @@ test("長い名前を切っても、絵文字が半分にならない", () => {
   mem.set("tuzuq:v1", JSON.stringify({ habits: [{ id: "emoj0001", name: "あ".repeat(23) + "💧💧", emoji: "💧💧💧💧💧" }], done: {} }));
   const h = load().habits[0];
   assert.equal(h.name, "あ".repeat(23));
-  assert.equal(h.emoji, "💧💧💧💧");
+  assert.equal(h.emoji, "💧", "しるしは見た目の1文字");
   mem.set("tuzuq:v1", JSON.stringify({ habits: [{ id: "emoj0002", name: "a", emoji: "abcdefg💧" }], done: {} }));
-  assert.equal(load().habits[0].emoji, "abcdefg");
+  assert.equal(load().habits[0].emoji, "a");
 });
 
 test("お知らせの時刻は 21:00 が既定。形のちがう値は 21:00 に", () => {
@@ -213,4 +213,18 @@ test("自動の○のピルから開くのは、決まった自分のツール�
     assert.match(def.url, /^https:\/\/(katsuan\.github\.io\/[a-z-]+\/|liff\.line\.me\/\d{10}-[A-Za-z0-9]+)$/);
     assert.ok(def.name);
   });
+});
+
+test("しるしは、見た目の1文字だけ（つながった絵文字も1つ。空・長すぎるものは ✅）", async () => {
+  const { oneMark, addHabit } = await import("../js/store.js");
+  assert.equal(oneMark("🧘"), "🧘");
+  assert.equal(oneMark("👨‍👩‍👧‍👦"), "👨‍👩‍👧‍👦");
+  assert.equal(oneMark("🇯🇵日本"), "🇯🇵");
+  assert.equal(oneMark("🏃🏽‍♀️"), "🏃🏽‍♀️");
+  assert.equal(oneMark("読書"), "読");
+  assert.equal(oneMark("  "), "");
+  assert.equal(oneMark('<img src=x onerror=alert(1)>'), "<"); // qcheck-ok: W8 テストの見本の文字（画面では esc する）
+  const s = blank();
+  assert.equal(addHabit(s, { name: "a", emoji: "" }).emoji, "✅");
+  assert.equal(addHabit(s, { name: "b", emoji: "🐈‍⬛ねこ" }).emoji, "🐈‍⬛");
 });

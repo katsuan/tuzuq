@@ -1,6 +1,6 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, cleanBotId, lineRecordUrl, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242000";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, cleanBotId, oneMark, lineRecordUrl, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242000";
 import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242000";
 import { LINE_LOG } from "./js/line-config.js?v=202610242000";
 import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242000";
@@ -243,7 +243,9 @@ function renderForm() {
   $("lineTextField").hidden = !state.lineBot && !lineLog;
   $("lineLogNote").hidden = !lineLog;
   $("gasField").hidden = !inLine;
-  $("emojis").innerHTML = EMOJIS.map((e) => `<button class="ls-chip emoji" type="button" role="radio" aria-checked="${e === ui.emoji}" data-emoji="${e}">${e}</button>`).join("");
+  // 自分で入れたしるしは、先頭に選んだ形で出す
+  const marks = EMOJIS.includes(ui.emoji) ? EMOJIS : [ui.emoji, ...EMOJIS];
+  $("emojis").innerHTML = marks.map((e) => `<button class="ls-chip emoji" type="button" role="radio" aria-checked="${e === ui.emoji}" data-emoji="${esc(e)}">${esc(e)}</button>`).join("");
   const used = new Set(state.habits.map((h) => h.name));
   $("ideas").innerHTML = ui.editing
     ? ""
@@ -297,11 +299,21 @@ $("ideas").addEventListener("click", (e) => {
 
 $("name").addEventListener("input", () => ($("nameError").hidden = true));
 
+// ほかのしるし：入れた文字の1つめ（絵文字1つ）を、しるしにする
+$("emojiCustom").addEventListener("input", () => {
+  const mark = oneMark($("emojiCustom").value);
+  if (!mark) return;
+  ui.emoji = mark;
+  renderForm();
+});
+$("emojiCustom").addEventListener("change", () => ($("emojiCustom").value = ""));
+
 function clearForm() {
   $("nameError").hidden = true;
   $("name").value = "";
   $("link").value = "";
   $("lineText").value = "";
+  $("emojiCustom").value = "";
   ui.emoji = EMOJIS[0];
 }
 
