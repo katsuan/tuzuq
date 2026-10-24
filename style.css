@@ -149,7 +149,7 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .line-banner { position: relative; display: grid; gap: 8px; padding: 12px 40px 12px 14px; border-radius: 16px; background: #e8f9ee; color: #14532d; }
 .line-banner[hidden] { display: none; }
 .line-banner-text { margin: 0; font-size: 14px; font-weight: 700; line-height: 1.5; }
-.line-banner-actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+#lineOutside:empty { display: none; }
 .line-banner-close { position: absolute; top: 4px; right: 4px; width: 44px; height: 44px; border: 0; background: none; color: #14532d; font-size: 16px; cursor: pointer; }
 
 /* ---- LINE で使う：4コマ（LINE の画面に似せた絵。暗い表示でも明るいまま） ---- */

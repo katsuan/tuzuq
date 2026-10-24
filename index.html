@@ -42,10 +42,11 @@
   <!-- ブラウザで開いたときだけ：LINE で使うと何ができるか（閉じたら、この端末では出さない） -->
   <div id="lineBanner" class="line-banner" hidden>
     <p class="line-banner-text">📱 LINE で開くと、○が記録ボットにも残せて、カードで送れます</p>
-    <div class="line-banner-actions">
-      <a class="ls-button line" href="https://liff.line.me/2012187502-o87l8Esu">💬 LINE で開く</a>
-      <button class="ls-button" type="button" data-open-line-guide>👀 使い方を見る</button>
-    </div>
+    <!-- 「LINEで開く」は、おくるん（Q キット）の共通の案内（LineShareLiff.outsideHelp） -->
+    <div id="lineOutside"></div>
+    <button class="ls-button is-block" type="button" data-open-line-guide>👀 使い方を見る（4コマ）</button>
+    <button class="line-banner-close" type="button" aria-label="この案内を閉じる">✕</button>
+  </div>
     <button class="line-banner-close" type="button" aria-label="この案内を閉じる">✕</button>
   </div>
 
@@ -189,7 +190,7 @@
             <figcaption><b>4. 決めた時間にまとめが届く</b>自分の記録ボットがある人は、決めた時間（はじめは20時）に、きょうと今週のまとめが届きます（「# 通知」で時間を変えられます）</figcaption>
           </figure>
         </div>
-        <a id="openInLine" class="ls-button line is-block" href="https://liff.line.me/2012187502-o87l8Esu">💬 LINE で開く</a>
+        <a id="openInLine" class="ls-button line is-block" href="https://liff.line.me/2012187502-o87l8Esu">💬 LINEで開く</a>
         <p id="openInLineNote" class="ls-hint small">パソコンで見ているときは、スマホの LINE で同じリンク（https://liff.line.me/2012187502-o87l8Esu）を開いてね。</p>
         <p id="lineLogNote" class="ls-hint" hidden>💬 いまは LINE の中で開いています。送る文のある習慣は、今日の○を押すだけで記録ボットに入ります（トークに切りかえなくてよい）。ボットで記録した日にも○が出ます（黄色。つづくでは外せません）。習慣を直すと「送る文」を決められます。</p>
 
@@ -236,6 +237,7 @@
 
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/ui.js" defer></script>
+<script src="https://katsuan.github.io/line-share/shared/liff.js" defer></script>
 <script type="module" src="app.js?v=202610242000"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="tuzuq" defer></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>

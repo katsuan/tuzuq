@@ -644,6 +644,11 @@ const BANNER_KEY = "tuzuq:lineBannerOff"; // この端末で閉じたか（設�
     off = false;
   }
   $("lineBanner").hidden = inLine || off;
+  // 「LINEで開く」は、おくるんの共通の案内に（読みこめなければ、ふつうのリンク）
+  if (!inLine && !off) {
+    const shown = window.LineShareLiff?.outsideHelp?.($("lineOutside"), { appUrl: () => OPEN_URL, canLogin: false });
+    if (!shown) $("lineOutside").innerHTML = `<a class="ls-button line is-block" href="${esc(OPEN_URL)}">💬 LINEで開く</a>`;
+  }
   $("openInLine").hidden = inLine;
   $("openInLineNote").hidden = inLine;
   document.querySelector(".line-banner-close").addEventListener("click", () => {
