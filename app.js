@@ -1,15 +1,14 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242029";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242029";
-import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242029";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242029";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242029";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242029";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242035";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242035";
+import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242035";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242035";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242035";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242035";
 
 const $ = (id) => document.getElementById(id);
-// カードの「✅ つづくでチェックする」で開く先（受け取った人が開くので、ふつうのページ。おくるんのカードは登録していない LIFF のリンクをボタンにしない）
-const PAGE_URL = "https://katsuan.github.io/tuzuq/";
+// カードの「✅ つづくでチェックする」で開く先は、LINE の中のつづく（OPEN_URL。js/line-config.js）
 const CARD_COLOR = "#2F80D8"; // ロゴの青
 // しるしの候補：6列×3段の18個（どの端末でも6列にそろえる。style.css の .emojis）
 const EMOJIS = ["✅", "💧", "🚶", "🏃", "📖", "🧘", "🦷", "💊", "📓", "🛏️", "☀️", "🥗", "🎹", "📚", "🌱", "🧹", "💪", "🍚"];
@@ -222,7 +221,7 @@ function cardUrl(today) {
     customColor: CARD_COLOR,
     showAction: "true",
     actionLabel: "✅ つづくでチェックする",
-    actionUrl: PAGE_URL, // 受け取るのは家族・友だち。LINE の中（LIFF）ではなく、だれでも開けるふつうのページ
+    actionUrl: OPEN_URL, // LINE の中のつづく（おくるんの config.js の trustedLiffIds に登録ずみ。チャネルを公開すると、だれでも開ける）
     from: "tuzuq"
   });
   return window.OQRN ? window.OQRN.cardUrl(params) : "#";
