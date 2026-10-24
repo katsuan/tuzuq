@@ -5,7 +5,7 @@
 // bot = { 習慣の id: ["YYYY-MM-DD", ...] }（LINE の中で開いたときに、記録ボットから読んだ「記録した日」。日付だけ）
 // 消した習慣は、○の記録ごと控え（trash）に1つだけ残して「元に戻す」で戻せるようにする
 
-import { isDate } from "./stats.js?v=202610241328";
+import { isDate } from "./stats.js?v=202610242345";
 
 const KEY = "tuzuq:v1";
 const OLD_KEY = "tsuduq:v1"; // 前の名前
@@ -218,14 +218,28 @@ function liveLinkedDays(link) {
   if (!def) return [];
   try {
     const raw = JSON.parse(localStorage.getItem(def.key) || "null");
-    // しょくじ：{ logs: [{ date }] }
-    if (link === "shoquji" && Array.isArray(raw?.logs)) return raw.logs.map((l) => l && l.date).filter(isDate);
+    // しょくじ：{ logs: [{ date }] }。LINE の中で食事記録ボットとつないでいるときは、ボットで入れた記録の日も
+    //   shoquji:days（{ v: 1, days: [日付…] }。しょくじが書く、端末の記録＋ボットの記録の日）に入っている
+    if (link === "shoquji") {
+      const own = Array.isArray(raw?.logs) ? raw.logs.map((l) => l && l.date) : [];
+      return [...own, ...shoqujiDays()].filter(isDate);
+    }
     // キロっく：[{ date, ... }]（新しい 10 回分だけ残る）
     if (link === "kiloq" && Array.isArray(raw)) return raw.map((w) => w && w.date).filter(isDate);
   } catch {
     // 読めなければ、自動の○はなし
   }
   return [];
+}
+
+// しょくじが書く「記録がある日の一覧」（ボットで入れた記録の日も入る）。読めなければ []
+function shoqujiDays() {
+  try {
+    const raw = JSON.parse(localStorage.getItem("shoquji:days") || "null");
+    return Array.isArray(raw?.days) ? raw.days.slice(-1000) : [];
+  } catch {
+    return [];
+  }
 }
 
 // 覚えておいた日と、いま残っている日を合わせる

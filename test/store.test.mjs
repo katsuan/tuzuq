@@ -67,6 +67,18 @@ test("しょくじの記録から読む日付も、形を確かめる", () => {
   assert.equal(linkedDays("shoquji").size, 0);
 });
 
+test("しょくじが書く記録がある日の一覧（shoquji:days。食事記録ボットで入れた記録の日も入る）も読む。形がちがう日は捨てる", () => {
+  mem.delete("shoquji:v1");
+  mem.set("shoquji:days", JSON.stringify({ v: 1, days: ["2026-10-20", "2026-10-21", "<b>", 5, "2026-02-30"] }));
+  assert.deepEqual([...linkedDays("shoquji")].sort(), ["2026-10-20", "2026-10-21"]);
+  mem.set("shoquji:v1", JSON.stringify({ logs: [{ date: "2026-10-22" }] }));
+  assert.deepEqual([...linkedDays("shoquji")].sort(), ["2026-10-20", "2026-10-21", "2026-10-22"]);
+  mem.set("shoquji:days", "こわれた");
+  assert.deepEqual([...linkedDays("shoquji")], ["2026-10-22"]);
+  mem.delete("shoquji:days");
+  mem.delete("shoquji:v1");
+});
+
 test("カレンダーは月曜はじまりが既定。日曜はじまりにも切りかえられる", () => {
   // 2026年10月1日は木曜
   const mon = monthGrid(2026, 10);

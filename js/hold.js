@@ -1,6 +1,6 @@
 // つづく：前の日のつけ外しは長押し（誤って押さないように）。前の日ほど長く
 //   きょう 0（ふつうに押す）・きのう 0.5秒・2〜3日前 0.8秒・4〜7日前 1.2秒・それより前 1.5秒
-import { addDays } from "./stats.js?v=202610241328";
+import { addDays } from "./stats.js?v=202610242345";
 
 // 何日前か（きょうは 0。未来・形がちがうときも 0）
 export function daysAgo(date, today) {
