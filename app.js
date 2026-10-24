@@ -1,11 +1,11 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242042";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242042";
-import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242042";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242042";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242042";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242042";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242043";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242043";
+import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242043";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242043";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242043";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242043";
 
 const $ = (id) => document.getElementById(id);
 // カードの「✅ つづくでチェックする」で開く先は、LINE の中のつづく（OPEN_URL。js/line-config.js）
@@ -772,6 +772,8 @@ function connectLineLog() {
   const had = !!lineLog;
   lineLog = null;
   return startLineLog(state.gasUrl).then((client) => {
+    // 記録ボットにつないでいる人が、LINE のアプリ内のブラウザ（LIFF ではない）で開いたときは、開きなおしを出す
+    $("reopenInLiff").hidden = !!client || !state.gasUrl || !inLineApp();
     // つながらないときは、前につながっていたときだけ描きなおす（開いたときの「その習慣を光らせる」を消さないように）
     if (!client) return had && render();
     lineLog = client;

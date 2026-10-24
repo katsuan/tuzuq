@@ -28,7 +28,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、つづくの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610242042">
+<link rel="stylesheet" href="style.css?v=202610242043">
 </head>
 <body>
 <main class="ls-page ls-stack">
@@ -50,6 +50,8 @@
     <p id="dotLegend" class="dot-legend" hidden><span class="nobr"><span class="lg-own">●</span> 自分でチェックした日</span><span id="legendAuto">　<span class="nobr"><span class="lg-auto">●</span> 記録ボット・ほかのツールで記録した日</span><span class="nobr">（外せない）</span></span></p>
     <!-- LINE の中で開いたときだけ：記録の置き場所（ブラウザとは別）。一覧のじゃまをしないよう下に -->
     <p class="where-note" id="whereNote" hidden></p>
+    <!-- 記録ボットにつないでいる人が、LINE の中の LIFF ではない形（アプリ内のブラウザ）で開いたとき -->
+    <p class="where-note" id="reopenInLiff" hidden>💬 いまは LINE のふつうのブラウザです。LINE の中のつづくで開くと、記録ボットにも入ります。<a href="https://liff.line.me/2012187502-o87l8Esu">つづくで開きなおす ›</a></p>
     <div id="sendArea" class="send-area" hidden>
       <a id="sendBtn" class="ls-button is-block line" href="#">💬 LINEで送る<small>（おくるん）</small></a>
     </div>
@@ -235,7 +237,7 @@
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/ui.js" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/liff.js" defer></script>
-<script type="module" src="app.js?v=202610242042"></script>
+<script type="module" src="app.js?v=202610242043"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="tuzuq" defer></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>
 </body>
