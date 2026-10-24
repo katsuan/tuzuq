@@ -87,9 +87,9 @@ export function makeClient(gasUrl, getIdToken, fetchImpl = (...a) => fetch(...a)
 // 失敗したときに出す、やさしい言葉（E2：仕組みの言葉は出さない）
 export function lineLogMessage(error) {
   if (error === "auth") return "記録ボットに入れられませんでした。LINE で、つづくを開きなおしてね";
-  if (error === "day") return "記録ボットに入れられるのは、きょうの○だけです（この○は、この端末に残っています）";
-  if (error === "off") return "記録ボットは、まだ準備中です（○はこの端末に残っています）";
+  if (error === "day") return "記録ボットに入れられるのは、きょうのチェックだけです（このチェックは、この端末に残っています）";
+  if (error === "off") return "記録ボットは、まだ準備中です（チェックはこの端末に残っています）";
   if (error === "claim") return "つなぎ先の GAS に、持ち主の登録を受けつけました。10分以内に、GAS エディタで adoptTuzuqOwner を実行してね";
   if (error === "notyou") return "つなぎ先の GAS の持ち主ではありません。つなぎ先の URL を確かめてね";
-  return "記録ボットに入れられませんでした。○はこの端末に残っています";
+  return "記録ボットに入れられませんでした。チェックはこの端末に残っています";
 }

@@ -109,9 +109,9 @@ async function readBotDays(force = false) {
   lastRead = Date.now();
   const res = await lineLog.days(habits.map((h) => h.lineText));
   if (!res.ok) {
-    if (res.error === "auth") say("記録ボットの○を読めませんでした。LINE で、つづくを開きなおしてね");
+    if (res.error === "auth") say("記録ボットのチェックを読めませんでした。LINE で、つづくを開きなおしてね");
     else if (res.error === "claim" || res.error === "notyou") say(lineLogMessage(res.error));
-    else if (res.error !== "off") say("記録ボットの○を読めませんでした（電波のよい所で開きなおしてね）");
+    else if (res.error !== "off") say("記録ボットのチェックを読めませんでした（電波のよい所で開きなおしてね）");
     return;
   }
   if (applyBotDays(state, habits, res.days)) {
@@ -183,7 +183,7 @@ $("habitList").addEventListener("click", (e) => {
     addHabit(state, { name, emoji, link });
     persist();
     render();
-    say(`🌱 「${name}」をふやしました。できたら右の○を押します`);
+    say(`🌱 「${name}」をふやしました。できたら右の丸を押してね`);
     return;
   }
   const b = e.target.closest("[data-toggle]");
@@ -199,7 +199,7 @@ $("habitList").addEventListener("click", (e) => {
   render();
   if (on && date === ymd()) {
     const n = streak(daysOf(h).all, date);
-    const text = n >= 2 ? `🔥 「${h.name}」${n}日つづいています` : `○ 「${h.name}」できました`;
+    const text = n >= 2 ? `🔥 「${h.name}」${n}日つづいています` : `✅ 「${h.name}」できました`;
     // LINE の中：送る文のある習慣は、少し待ってから記録ボットに入れる（そのあいだは「元に戻す」で取りやめ）
     if (lineLog && h.lineText) {
       queueSend(h, date);
@@ -239,7 +239,7 @@ function cardUrl(today) {
     theme: "custom",
     customColor: CARD_COLOR,
     showAction: "true",
-    actionLabel: "✅ つづくで○をつける",
+    actionLabel: "✅ つづくでチェックする",
     actionUrl: OPEN_URL,
     from: "tuzuq"
   });
@@ -435,7 +435,7 @@ function renderCalendar(today) {
   if (!state.habits.length) {
     $("calHabits").innerHTML = "";
     $("calendar").innerHTML = "";
-    $("calStats").innerHTML = '<div class="ls-empty">習慣をふやすと、ここにひと月の○が出ます</div>';
+    $("calStats").innerHTML = '<div class="ls-empty">習慣をふやすと、ここにひと月のチェックが出ます</div>';
     $("monthLabel").textContent = "";
     return;
   }
@@ -597,7 +597,7 @@ $("importFile").addEventListener("change", async (e) => {
 $("resetBtn").addEventListener("click", async () => {
   // 確かめの窓（Q キット）がまだ読みこめていなければ、消さない（ブラウザの小窓は使わない）
   if (!window.LineShareUI?.ask) return say("少し待ってから、もう一度押してください");
-  const ok = await LineShareUI.ask({ title: "記録をすべて消しますか？", text: "この端末のつづくの習慣と○を、すべて消します。もとに戻せません。", ok: "すべて消す", danger: true });
+  const ok = await LineShareUI.ask({ title: "記録をすべて消しますか？", text: "この端末のつづくの習慣とチェックを、すべて消します。もとに戻せません。", ok: "すべて消す", danger: true });
   if (!ok) return;
   state = reset(state.weekStart);
   ui.editing = null;
@@ -640,7 +640,7 @@ function render() {
 render();
 
 // LINE の中（LIFF）で開いたときだけ、記録ボットとつなぐ（ブラウザでは何もしない）
-// ---- LINE で使う：ブラウザで開いたときの案内の帯と、4コマ ----
+// ---- LINE で使う：ブラウザで開いたときの案内の帯と、4コマ（最初だけ。閉じたら出さない） ----
 const BANNER_KEY = "tuzuq:lineBannerOff"; // この端末で閉じたか（設定なので端末に残してよい）
 (function lineGuide() {
   const inLine = inLineApp();
@@ -650,28 +650,52 @@ const BANNER_KEY = "tuzuq:lineBannerOff"; // この端末で閉じたか（設�
   } catch {
     off = false;
   }
-  $("lineBanner").hidden = inLine || off;
+  const show = (open) => {
+    $("lineGuidePanel").hidden = inLine || !open;
+  };
+  show(!off);
   // 「LINEで開く」は、おくるんの共通の案内に（読みこめなければ、ふつうのリンク）
-  if (!inLine && !off) {
+  if (!inLine) {
     const shown = window.LineShareLiff?.outsideHelp?.($("lineOutside"), { appUrl: () => OPEN_URL, canLogin: false });
     if (!shown) $("lineOutside").innerHTML = `<a class="ls-button line is-block" href="${esc(OPEN_URL)}">💬 LINEで開く</a>`;
   }
-  // LINE の中では、4コマ（LINE で開く・使い方）は出さない
-  $("lineGuidePanel").hidden = inLine;
-  document.querySelector(".line-banner-close").addEventListener("click", () => {
-    $("lineBanner").hidden = true;
+  const remember = (value) => {
     try {
-      localStorage.setItem(BANNER_KEY, "1");
+      if (value) localStorage.setItem(BANNER_KEY, "1");
+      else localStorage.removeItem(BANNER_KEY);
     } catch {
-      // 残せなくても、いまは閉じる
+      // 残せなくても、いまは閉じる・開く
     }
-  });
-  document.querySelectorAll("[data-open-line-guide]").forEach((b) =>
+  };
+  document.querySelectorAll("[data-close-line-guide]").forEach((b) =>
     b.addEventListener("click", () => {
+      show(false);
+      remember(true);
+      say("LINE の案内を閉じました（「⚙️ LINE とつなぐ」からまた見られます）");
+    })
+  );
+  document.querySelectorAll("[data-show-line-guide]").forEach((b) =>
+    b.addEventListener("click", () => {
+      remember(false);
+      show(true);
+      $("lineGuidePanel").hidden = false; // LINE の中でも見られるように
       $("lineGuidePanel").scrollIntoView({ behavior: "smooth", block: "start" });
     })
   );
 })();
+
+// 最初だけの使い方（Q キットの「💡 使い方」。「わかった」で消え、その端末では二度と出さない）
+window.addEventListener("load", () =>
+  window.LineShareUI?.firstTip?.(
+    "tuzuq",
+    [
+      "できた習慣は、右の丸を押してチェック。下の7つの丸で、前の日もつけ外しできます",
+      "記録はこのブラウザの中だけに残ります。ほかの端末・LINE の中へは「🔒 記録の控え」でうつせます",
+      "GitHub や LINE は、つながなくても使えます（LINE で開くと、カードで送れて、記録ボットにも残せます）"
+    ],
+    document.querySelector("main > section.ls-panel")
+  )
+);
 
 // つなぎ先を入れなおしたときも、ここからやりなおす
 function connectLineLog() {
@@ -681,8 +705,8 @@ function connectLineLog() {
     // つながらないときは、前につながっていたときだけ描きなおす（開いたときの「その習慣を光らせる」を消さないように）
     if (!client) return had && render();
     lineLog = client;
-    $("lead").textContent = "できた日に○をつけるだけ。送る文のある習慣は、記録ボットにも残ります。";
-    $("whereNote").innerHTML = "📱 習慣の一覧と○は<b>この LINE の中だけ</b>に残ります（ブラウザ・ほかの端末とは別々）。送る文のある習慣の○は、記録ボット（自分の GAS）にも残り、開くたびに読みなおします。"; // qcheck-ok: W1 決まった文字だけ
+    $("whereNote").innerHTML = "📱 いまは LINE の中。習慣とチェックは<b>この LINE の中だけ</b>に残ります（ブラウザとは別）。送る文のある習慣は、記録ボットにも入ります。"; // qcheck-ok: W1 決まった文字だけ
+    $("whereNote").hidden = false;
     render();
     readBotDays(true);
   });
@@ -730,5 +754,5 @@ $("gasUrl").addEventListener("change", () => {
     ui.focus = null;
     document.querySelector(`.habit[data-habit="${h.id}"]`)?.classList.remove("is-focus");
   }, 2600);
-  if (!daysOf(h).all.has(ymd())) say(`「${h.name}」できたら、右の○を押してね`);
+  if (!daysOf(h).all.has(ymd())) say(`「${h.name}」できたら、右の丸を押してね`);
 })();

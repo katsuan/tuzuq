@@ -145,13 +145,6 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 @keyframes habit-focus { 50% { box-shadow: 0 0 0 8px var(--ls-accent-soft); } }
 @media (prefers-reduced-motion: reduce) { .habit.is-focus { animation: none; } }
 
-/* ---- LINE で使う：ブラウザで開いたときの案内の帯 ---- */
-.line-banner { position: relative; display: grid; gap: 8px; padding: 12px 40px 12px 14px; border-radius: 16px; background: #e8f9ee; color: #14532d; }
-.line-banner[hidden] { display: none; }
-.line-banner-text { margin: 0; font-size: 14px; font-weight: 700; line-height: 1.5; }
-#lineOutside:empty { display: none; }
-.line-banner-close { position: absolute; top: 4px; right: 4px; width: 44px; height: 44px; border: 0; background: none; color: #14532d; font-size: 16px; cursor: pointer; }
-
 /* ---- LINE で使う：4コマ（LINE の画面に似せた絵。暗い表示でも明るいまま） ---- */
 .line-guide { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 72%); gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 2px 10px; -webkit-overflow-scrolling: touch; }
 .lg-panel { margin: 0; scroll-snap-align: start; display: grid; gap: 8px; align-content: start; }
@@ -176,7 +169,7 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .lg-card-btn { padding: 7px; border-top: 1px solid #e3e8f1; color: #2f80d8; font-weight: 700; text-align: center; }
 
 /* 記録の置き場所の注意（ブラウザごと・端末ごとに別々） */
-.where-note { margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--ls-surface-sub); color: var(--ls-subtext); font-size: 13px; line-height: 1.55; }
+.where-note { margin: 8px 0 0; padding: 8px 12px; border-radius: 12px; background: var(--ls-surface-sub); color: var(--ls-subtext); font-size: 13px; line-height: 1.55; }
 .where-note b { color: var(--ls-text); }
 
 /* ○の色の見本 */
@@ -184,3 +177,5 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .dot-legend[hidden] { display: none; }
 .dot-legend .lg-own { color: var(--ls-accent); }
 .dot-legend .lg-auto { color: var(--auto); }
+.line-guide-close { min-height: 44px; padding: 0 6px; border: 0; background: none; color: var(--ls-subtext); font-size: 13px; font-weight: 700; cursor: pointer; }
+.where-note[hidden] { display: none; }
