@@ -31,6 +31,9 @@ test("ボットに送るのは ID トークンと、記録する文・日付だ�
   assert.deepEqual(seen[0].body, { app: "tuzuq", v: 1, idToken: TOKEN, op: "record", text: "# workout", date: "2026-10-24" });
   await c.days(["# workout", "# coding"]);
   assert.deepEqual(seen[1].body, { app: "tuzuq", v: 1, idToken: TOKEN, op: "days", texts: ["# workout", "# coding"] });
+  // つないだツールの中身（キロっく）があるときだけ note も送る
+  await c.record("# workout", "2026-10-24", false, "ベンチプレス 60kg×10");
+  assert.deepEqual(seen[2].body, { app: "tuzuq", v: 1, idToken: TOKEN, op: "record", text: "# workout", date: "2026-10-24", note: "ベンチプレス 60kg×10" });
 });
 
 test("ID トークンがないときは送らない。通信できないときは net", async () => {

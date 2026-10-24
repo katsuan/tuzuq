@@ -5,8 +5,8 @@
 // bot = { 習慣の id: ["YYYY-MM-DD", ...] }（LINE の中で開いたときに、記録ボットから読んだ「記録した日」。日付だけ）
 // 消した習慣は、○の記録ごと控え（trash）に1つだけ残して「元に戻す」で戻せるようにする
 
-import { isDate } from "./stats.js?v=202610242310";
-import { cleanGasUrl } from "./linelog.js?v=202610242310";
+import { isDate } from "./stats.js?v=202610250010";
+import { cleanGasUrl } from "./linelog.js?v=202610250010";
 
 const KEY = "tuzuq:v1";
 const OLD_KEY = "tsuduq:v1"; // 前の名前
@@ -231,6 +231,57 @@ function shoqujiDays() {
     return Array.isArray(raw?.days) ? raw.days.slice(-1000) : [];
   } catch {
     return [];
+  }
+}
+
+// キロっくの、その日のトレーニングの中身を短い文に（記録ボット → GitHub の本文の2行目から）。なければ ""
+//   例：メニュー：胸
+//       ベンチプレス 60kg×10×2・55kg×8
+//       総量 1,640kg
+const num = (v) => {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? Math.round(n * 10) / 10 : 0;
+};
+export function kiloqNote(list, date) {
+  if (!Array.isArray(list) || !isDate(date)) return "";
+  const lines = [];
+  let volume = 0;
+  list
+    .filter((w) => w && typeof w === "object" && w.date === date && Array.isArray(w.exercises))
+    .forEach((w) => {
+      const title = cut(String(w.title ?? "").replace(/\s+/g, " "), 20);
+      if (title) lines.push(`メニュー：${title}`);
+      w.exercises.forEach((e) => {
+        if (!e || typeof e !== "object" || !Array.isArray(e.sets)) return;
+        const name = cut(String(e.name ?? "").replace(/\s+/g, " "), 24);
+        if (!name) return;
+        // 同じ重さ・回数が続くセットは「×セット数」にまとめる
+        const sets = [];
+        e.sets.forEach((x) => {
+          if (!x || typeof x !== "object") return;
+          const kg = num(x.weight);
+          const reps = num(x.reps);
+          if (!reps) return;
+          volume += kg * reps;
+          const one = kg ? `${kg}kg×${reps}` : `${reps}回`;
+          const last = sets[sets.length - 1];
+          if (last && last.one === one) last.n++;
+          else sets.push({ one, n: 1 });
+        });
+        if (sets.length) lines.push(`${name} ${sets.map((x) => (x.n > 1 ? `${x.one}×${x.n}` : x.one)).join("・")}`);
+      });
+    });
+  if (!lines.length) return "";
+  if (volume) lines.push(`総量 ${Math.round(volume).toLocaleString("ja-JP")}kg`);
+  return lines.slice(0, 20).join("\n").slice(0, 600);
+}
+// つないだツールの、その日の中身（いまはキロっくだけ）
+export function linkedNote(link, date) {
+  if (link !== "kiloq") return "";
+  try {
+    return kiloqNote(JSON.parse(localStorage.getItem(LINKS.kiloq.key) || "null"), date);
+  } catch {
+    return "";
   }
 }
 

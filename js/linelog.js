@@ -4,7 +4,7 @@
 // - つなぐ先は、使う人が自分で入れた自分の GAS の URL だけ（URL の ?〜 からは受けとらない。W5・W9）
 // - ブラウザで開いたとき・設定が空のときは何もしない（つづくは今までどおり端末の中だけ）
 // - 約束（何を送り、何が返るか）は docs/linelog-api.md
-import { LINE_LOG } from "./line-config.js?v=202610242310";
+import { LINE_LOG } from "./line-config.js?v=202610250010";
 
 const SDK = "https://static.line-scdn.net/liff/edge/2/sdk.js";
 const TIMEOUT_MS = 15000;
@@ -79,7 +79,7 @@ export function makeClient(gasUrl, getIdToken, fetchImpl = (...a) => fetch(...a)
     }
   }
   return {
-    record: (text, date, keepalive) => post({ op: "record", text, date }, keepalive),
+    record: (text, date, keepalive, note) => post({ op: "record", text, date, ...(note ? { note } : {}) }, keepalive),
     days: (texts) => post({ op: "days", texts })
   };
 }

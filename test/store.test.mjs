@@ -319,3 +319,20 @@ test("orderToday：まだを先に・つづいている順・しぼりこみ（�
   assert.deepEqual(run({ sort: "<x>", filter: 1 }), ["a", "b", "c", "d"]);
   assert.deepEqual(store.cleanView(null), { sort: "mine", filter: "all" });
 });
+
+test("kiloqNote：その日のトレーニングを短い文に（同じセットはまとめる・自重は回数・総量）", async () => {
+  const store = await import("../js/store.js");
+  const list = [
+    { date: "2026-10-24", title: "胸", exercises: [
+      { name: "ベンチプレス", sets: [{ weight: 60, reps: 10 }, { weight: "60", reps: "10" }, { weight: 55, reps: 8 }, { weight: "", reps: "" }] },
+      { name: "腕立て", sets: [{ weight: "", reps: 20 }] },
+      { name: "", sets: [{ weight: 10, reps: 10 }] },
+      null
+    ] },
+    { date: "2026-10-23", title: "脚", exercises: [{ name: "スクワット", sets: [{ weight: 80, reps: 5 }] }] }
+  ];
+  assert.equal(store.kiloqNote(list, "2026-10-24"), "メニュー：胸\nベンチプレス 60kg×10×2・55kg×8\n腕立て 20回\n総量 1,640kg");
+  assert.equal(store.kiloqNote(list, "2026-10-22"), "");
+  assert.equal(store.kiloqNote("x", "2026-10-24"), "");
+  assert.equal(store.kiloqNote([{ date: "2026-10-24", exercises: "x" }], "2026-10-24"), "");
+});

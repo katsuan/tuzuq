@@ -1,11 +1,11 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242310";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242310";
-import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242310";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242310";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242310";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242310";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610250010";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610250010";
+import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610250010";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610250010";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610250010";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610250010";
 
 const $ = (id) => document.getElementById(id);
 // カードの「✅ つづくでチェックする」で開く先は、LINE の中のつづく（OPEN_URL。js/line-config.js）
@@ -150,7 +150,7 @@ async function sendLinkedToBot(habits) {
     let added = 0;
     for (const d of days) {
       linkedTried.add(`${h.id}|${d}`);
-      const res = await lineLog.record(h.lineText, d);
+      const res = await lineLog.record(h.lineText, d, false, linkedNote(h.link, d)); // キロっくなら、種目・重さ・回数も
       if (!res.ok) break; // 1つでもだめなら、この習慣はここまで
       confirmBotDay(state, h.id, res.date || d);
       if (res.added) added++;
