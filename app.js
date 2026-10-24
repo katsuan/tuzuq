@@ -1,11 +1,11 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242200";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242200";
-import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242200";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242200";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242200";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242200";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610241328";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610241328";
+import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610241328";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610241328";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610241328";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610241328";
 
 const $ = (id) => document.getElementById(id);
 // カードの「✅ つづくでチェックする」で開く先は、LINE の中のつづく（OPEN_URL。js/line-config.js）
@@ -40,6 +40,9 @@ const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "
 function persist() {
   if (!save(state)) say("この端末に残せませんでした（プライベートブラウズでは、閉じると消えます）");
 }
+
+// 季節の絵文字をときどき文の後ろに（Q キットの season.js。まだ読めていなければ、そのまま）
+const cheer = (text) => (window.QSeason ? window.QSeason.decorate(text) : text);
 
 function say(text, undo) {
   if (window.LineShareUI?.toast) {
@@ -624,7 +627,7 @@ function applyToggle(h, date) {
   render();
   if (!on) return;
   const n = streak(daysOf(h).all, today);
-  const text = date === today ? (n >= 2 ? `🔥 「${h.name}」${n}日つづいています` : `✅ 「${h.name}」できました`) : `✅ 「${h.name}」${label(date)}にチェックしました`;
+  const text = date === today ? cheer(n >= 2 ? `🔥 「${h.name}」${n}日つづいています` : `✅ 「${h.name}」できました`) : `✅ 「${h.name}」${label(date)}にチェックしました`;
   if (lineLog && h.lineText) {
     if (!withinBotDays(date, today)) return say(`${text}（8日より前は、この端末だけに残ります）`);
     queueSend(h, date);
