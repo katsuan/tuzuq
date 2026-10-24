@@ -2,6 +2,7 @@
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
 import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, cleanBotId, oneMark, lineRecordUrl, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242000";
 import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242000";
+import { holdMs, withinBotDays } from "./js/hold.js?v=202610242000";
 import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242000";
 import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242000";
 import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242000";
@@ -63,22 +64,25 @@ function daysOf(h) {
 let lineLog = null; // js/linelog.js の startLineLog の返事（つなげないときは null）
 const inLine = !!LINE_LOG.liffId && inLineApp(); // つなぎ先の欄は、LINE の中で開いたときだけ出す
 const SEND_DELAY_MS = 5000; // ○のあと「元に戻す」を押せるあいだは送らない
-const pending = new Map(); // 習慣の id → { date, text, timer }（まだ送っていない○）
+const pending = new Map(); // 「習慣の id|日付」→ { id, date, text, timer }（まだ送っていないチェック）
+const pendKey = (id, date) => `${id}|${date}`;
 let lastRead = 0;
 
 function queueSend(h, date) {
-  cancelSend(h.id);
-  pending.set(h.id, { date, text: h.lineText, timer: setTimeout(() => sendNow(h.id), SEND_DELAY_MS) });
+  const key = pendKey(h.id, date);
+  cancelSend(key);
+  pending.set(key, { id: h.id, date, text: h.lineText, timer: setTimeout(() => sendNow(key), SEND_DELAY_MS) });
 }
-function cancelSend(id) {
-  const p = pending.get(id);
+function cancelSend(key) {
+  const p = pending.get(key);
   if (p) clearTimeout(p.timer);
-  pending.delete(id);
+  pending.delete(key);
 }
-async function sendNow(id, keepalive = false) {
-  const p = pending.get(id);
+async function sendNow(key, keepalive = false) {
+  const p = pending.get(key);
   if (!p || !lineLog) return;
-  cancelSend(id);
+  cancelSend(key);
+  const id = p.id;
   const res = await lineLog.record(p.text, p.date, keepalive);
   if (keepalive) return; // 閉じるところ。次に開いたときに読みなおす
   const h = state.habits.find((x) => x.id === id);
@@ -86,19 +90,20 @@ async function sendNow(id, keepalive = false) {
     if (h) confirmBotDay(state, id, res.date || p.date);
     persist();
     render();
-    if (h) say(res.added ? `💬 「${h.name}」を記録ボットに入れました${res.github ? "（GitHub にも）" : ""}` : `💬 「${h.name}」は、もう記録ボットに入っています`);
+    const day = p.date === ymd() ? "" : `${label(p.date)}の分として`;
+    if (h) say(res.added ? `💬 「${h.name}」を${day}記録ボットに入れました${res.github ? "（GitHub にも）" : ""}` : `💬 「${h.name}」は、もう記録ボットに入っています`);
     return;
   }
   const again = h && (res.error === "net" || res.error === "fail");
   if (again && window.LineShareUI?.toast) {
-    window.LineShareUI.toast(lineLogMessage(res.error), { actionLabel: "もう一度", onAction: () => (pending.set(id, { ...p, timer: 0 }), sendNow(id)), ms: 8000 });
+    window.LineShareUI.toast(lineLogMessage(res.error), { actionLabel: "もう一度", onAction: () => (pending.set(key, { ...p, timer: 0 }), sendNow(key)), ms: 8000 });
   } else {
     say(lineLogMessage(res.error));
   }
 }
 // 閉じる・ほかのアプリに切りかえるときは、待っている○をすぐ送る
 function flushSends() {
-  [...pending.keys()].forEach((id) => sendNow(id, true));
+  [...pending.keys()].forEach((key) => sendNow(key, true));
 }
 
 // 記録ボットで記録した日を読む（開いたとき・戻ってきたとき。1分に1回まで）
@@ -191,34 +196,9 @@ $("habitList").addEventListener("click", (e) => {
   const h = state.habits.find((x) => x.id === b.dataset.toggle);
   // 別のタブで消した習慣・日付をまたいだ古いボタンなら、描きなおすだけ
   if (!h || b.dataset.date > ymd()) return render();
-  const date = b.dataset.date;
-  const on = toggle(state, h.id, date);
-  persist();
-  if (on) ui.justDone = `${h.id}:${date}`;
-  if (!on) cancelSend(h.id); // 送る前に外したら、送らない
-  render();
-  if (on && date === ymd()) {
-    const n = streak(daysOf(h).all, date);
-    const text = n >= 2 ? `🔥 「${h.name}」${n}日つづいています` : `✅ 「${h.name}」できました`;
-    // LINE の中：送る文のある習慣は、少し待ってから記録ボットに入れる（そのあいだは「元に戻す」で取りやめ）
-    if (lineLog && h.lineText) {
-      queueSend(h, date);
-      say(`${text}（記録ボットにも入れます）`, () => {
-        cancelSend(h.id);
-        if ((state.done[h.id] || []).includes(date)) toggle(state, h.id, date);
-        persist();
-        render();
-      });
-      return;
-    }
-    // LINE でも記録（自分用）：送る文を決めた習慣なら、ボットのトークを開くボタンを出す
-    const url = lineRecordUrl(state.lineBot, h.lineText);
-    if (url && window.LineShareUI?.toast) {
-      window.LineShareUI.toast(text, { actionLabel: "💬 LINE でも記録", onAction: () => (location.href = url), ms: 8000 });
-    } else {
-      say(text);
-    }
-  }
+  // 前の日は長押し（指・マウスで押したとき）。キーボード（Enter）では、そのままつけ外し
+  if (holdMs(b.dataset.date, ymd()) && e.detail !== 0) return;
+  applyToggle(h, b.dataset.date);
 });
 
 // おくるんのお知らせカード：きょうの○の一覧と、続いた日数
@@ -510,10 +490,87 @@ $("calHabits").addEventListener("click", (e) => {
 $("calendar").addEventListener("click", (e) => {
   const b = e.target.closest("[data-cal-day]");
   if (!b || b.disabled || b.dataset.calDay > ymd()) return;
-  toggle(state, ui.cal, b.dataset.calDay);
-  persist();
-  render();
+  if (holdMs(b.dataset.calDay, ymd()) && e.detail !== 0) return; // 前の日は長押し
+  const h = state.habits.find((x) => x.id === ui.cal);
+  if (h) applyToggle(h, b.dataset.calDay);
 });
+
+/**
+ * チェックをつけ外しする（一覧・カレンダーで同じ）
+ * - LINE の中で、送る文のある習慣なら、7日前までは記録ボットにも入れる（5秒の「元に戻す」のあと）
+ */
+function applyToggle(h, date) {
+  const today = ymd();
+  const on = toggle(state, h.id, date);
+  persist();
+  if (on) ui.justDone = `${h.id}:${date}`;
+  if (!on) cancelSend(pendKey(h.id, date)); // 送る前に外したら、送らない
+  render();
+  if (!on) return;
+  const n = streak(daysOf(h).all, today);
+  const text = date === today ? (n >= 2 ? `🔥 「${h.name}」${n}日つづいています` : `✅ 「${h.name}」できました`) : `✅ 「${h.name}」${label(date)}にチェックしました`;
+  if (lineLog && h.lineText) {
+    if (!withinBotDays(date, today)) return say(`${text}（8日より前は、この端末だけに残ります）`);
+    queueSend(h, date);
+    say(`${text}（記録ボットにも入れます）`, () => {
+      cancelSend(pendKey(h.id, date));
+      if ((state.done[h.id] || []).includes(date)) toggle(state, h.id, date);
+      persist();
+      render();
+    });
+    return;
+  }
+  // LINE でも記録（自分用）：きょうの分で、送る文を決めた習慣なら、ボットのトークを開くボタンを出す
+  const url = date === today ? lineRecordUrl(state.lineBot, h.lineText) : "";
+  if (url && window.LineShareUI?.toast) {
+    window.LineShareUI.toast(text, { actionLabel: "💬 LINE でも記録", onAction: () => (location.href = url), ms: 8000 });
+  } else if (date === today) {
+    say(text);
+  }
+}
+
+// ---- 前の日の長押し（一覧の7つの丸・カレンダーの日） ----
+// 押しつづけると丸のまわりが満ちて、つけ外しする。途中で離したら何もしない
+(function holdToToggle() {
+  let hold = null; // { el, timer }
+  const targetOf = (e) => e.target.closest("[data-toggle], [data-cal-day]");
+  const dateOf = (el) => el.dataset.date || el.dataset.calDay;
+  const stop = (fired) => {
+    if (!hold) return;
+    clearTimeout(hold.timer);
+    hold.el.classList.remove("is-holding");
+    if (!fired) {
+      const ms = holdMs(dateOf(hold.el), ymd());
+      say(`前の日は、長押しでつけ外しします（${(ms / 1000).toFixed(1)}秒）`);
+    }
+    hold = null;
+  };
+  document.addEventListener("pointerdown", (e) => {
+    const el = targetOf(e);
+    if (!el || el.disabled) return;
+    const ms = holdMs(dateOf(el), ymd());
+    if (!ms) return;
+    stop(true);
+    el.style.setProperty("--hold", `${ms}ms`);
+    el.classList.add("is-holding");
+    hold = {
+      el,
+      timer: setTimeout(() => {
+        const h = state.habits.find((x) => x.id === (el.dataset.toggle || ui.cal));
+        const date = dateOf(el);
+        stop(true);
+        if (h && date <= ymd()) applyToggle(h, date);
+      }, ms),
+    };
+  });
+  ["pointerup", "pointercancel", "pointerleave"].forEach((type) =>
+    document.addEventListener(type, (e) => {
+      if (hold && (type !== "pointerleave" || e.target === hold.el)) stop(false);
+    }, true)
+  );
+  // 長押しで出るメニュー（コピー・画像を保存など）を出さない
+  document.addEventListener("contextmenu", (e) => targetOf(e) && e.preventDefault());
+})();
 $("weekStart").addEventListener("click", (e) => {
   const b = e.target.closest("[data-week-start]");
   if (!b) return;

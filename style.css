@@ -179,3 +179,10 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .dot-legend .lg-auto { color: var(--auto); }
 .line-guide-close { min-height: 44px; padding: 0 6px; border: 0; background: none; color: var(--ls-subtext); font-size: 13px; font-weight: 700; cursor: pointer; }
 .where-note[hidden] { display: none; }
+
+/* 前の日の長押し：押しつづけると丸が満ちていく（--hold の長さで） */
+.dot, .cell, .check { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+.dot, .cell { position: relative; }
+.dot.is-holding::after, .cell.is-holding::after { content: ""; position: absolute; inset: 0; margin: auto; width: 34px; height: 34px; border-radius: 50%; background: color-mix(in srgb, var(--ls-accent) 35%, transparent); transform: scale(0.2); animation: hold-fill var(--hold, 800ms) linear forwards; pointer-events: none; }
+@keyframes hold-fill { to { transform: scale(1.15); } }
+@media (prefers-reduced-motion: reduce) { .dot.is-holding::after, .cell.is-holding::after { animation: none; transform: scale(1); } }

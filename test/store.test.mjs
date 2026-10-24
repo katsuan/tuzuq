@@ -246,3 +246,20 @@ test("カレンダーの「すべて」：できた数・色の濃さ・全部�
   assert.equal(fullStreak(sets, "2026-10-24"), 2, "きょうまだなら、きのうまで（22・23）");
   assert.equal(fullStreak([], "2026-10-24"), 0);
 });
+
+test("前の日ほど長押し（きょうは0）。記録ボットに入れられるのは7日前まで", async () => {
+  const { holdMs, withinBotDays } = await import("../js/hold.js");
+  const t = "2026-10-24";
+  assert.equal(holdMs(t, t), 0);
+  assert.equal(holdMs("2026-10-23", t), 500);
+  assert.equal(holdMs("2026-10-22", t), 800);
+  assert.equal(holdMs("2026-10-21", t), 800);
+  assert.equal(holdMs("2026-10-20", t), 1200);
+  assert.equal(holdMs("2026-10-17", t), 1200);
+  assert.equal(holdMs("2026-10-16", t), 1500);
+  assert.equal(holdMs("2026-01-01", t), 1500);
+  assert.equal(holdMs("2026-10-25", t), 0, "未来はそもそも押せない");
+  assert.equal(withinBotDays("2026-10-17", t), true);
+  assert.equal(withinBotDays("2026-10-16", t), false);
+  assert.equal(withinBotDays("2026-10-25", t), false);
+});
