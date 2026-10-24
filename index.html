@@ -134,6 +134,14 @@
           <input id="lineBot" class="ls-input" maxlength="41" placeholder="例：@123abcde" autocomplete="off" autocapitalize="off" spellcheck="false">
         </label>
         <p id="lineBotError" class="ls-hint is-error" role="alert" hidden>@ から始まる ID を入れてね（例：@123abcde）</p>
+        <div id="gasField" hidden>
+          <label class="ls-field">
+            <span class="ls-label">○を記録する、自分の GAS の URL</span>
+            <input id="gasUrl" class="ls-input" type="url" inputmode="url" maxlength="200" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" autocapitalize="off" spellcheck="false">
+          </label>
+          <p id="gasUrlError" class="ls-hint is-error" role="alert" hidden>GAS のウェブアプリの URL（…/exec）を入れてね</p>
+          <p class="ls-hint small">自分の記録ボット（LOgBOT の複製）の URL です。GitHub は、その GAS につないだときだけ。<a href="docs/linelog-setup.html" target="_blank" rel="noopener">つなぎ方</a>・<a href="privacy.html" target="_blank" rel="noopener">LINE の情報の使い方</a></p>
+        </div>
         <p id="lineLogNote" class="ls-hint" hidden>💬 いまは LINE の中で開いているので、送る文のある習慣は、今日の○を押すだけで記録ボットに入ります（トークに切りかえなくてよい）。ボットで記録した日にも○が出ます（黄色。つづくでは外せません）。習慣を直すと「送る文」を決められます。</p>
       </div>
     </details>

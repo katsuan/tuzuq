@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja" data-ls-dark="auto">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>つづく｜自分の記録ボットとつなぐ</title>
+<link rel="icon" href="../icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
+<link rel="stylesheet" href="../style.css?v=202610242000">
+<style>.doc h2 { margin: 1.4em 0 .4em; font-size: 18px; } .doc li { margin: .3em 0; } .doc code { overflow-wrap: anywhere; } .doc pre { overflow-x: auto; padding: 10px; border-radius: 10px; background: var(--ls-surface-2, #f3f5f8); font-size: 13px; }</style>
+</head>
+<body>
+<main class="ls-page ls-stack doc">
+  <header class="ls-brand">
+    <h1 class="ls-brand-name"><img class="ls-brand-icon" src="../icon.svg" alt="" width="30" height="30">つづく</h1>
+  </header>
+  <p class="ls-brand-copy">自分の記録ボットとつなぐ</p>
+
+  <section class="ls-panel">
+    <p>つづくは、ふだんは記録をこの端末の中だけに残します。LINE の中で開いたときだけ、<b>自分で用意した GAS（記録ボット LOgBOT の複製）</b>に、○を押した習慣を記録できます。GAS に GitHub の鍵を入れておけば、GitHub に草も付きます。</p>
+    <p>つづくは、あなたの LINE の鍵・GitHub の鍵を預かりません。送るのは、LINE が出す「本人の確かめ用の印（ID トークン）」と、記録する文と日付だけです。印は確かめに使うだけで、つづくにも GAS にも残りません。</p>
+  </section>
+
+  <section class="ls-panel">
+    <h2>つなぎ方（はじめて）</h2>
+    <ol>
+      <li>持ち主から届いた LOgBOT のリンクを開き、「コピーを作成」</li>
+      <li>GAS エディタで <code>setupTuzuq</code> を実行（記録のシートを自分のドライブに作ります。今までのシートを使うなら、先に「スクリプト プロパティ」の <code>SPREADSHEET_ID</code> にそのシートの ID を入れる）</li>
+      <li>「デプロイ」→「新しいデプロイ」→ 種類「ウェブアプリ」、実行するユーザー「自分」、アクセスできるユーザー「全員」→ 出てきた URL（<code>…/exec</code>）をコピー<br><small>（画面は、このデプロイでも持ち主しか開けません。つづくからの呼び出しは、確かめた本人のものだけ受けます）</small></li>
+      <li>LINE の中でつづくを開き、「💬 LINE でも記録」に 3 の URL を入れる。「持ち主の登録を受けつけました」と出ます</li>
+      <li>10分以内に、GAS エディタで <code>adoptTuzuqOwner</code> を実行（実行ログに自分の名前が出ればよい）</li>
+      <li>つづくで習慣を直し、「送る文」（例：<code># workout</code>）を決める。今日の○を押すと記録されます</li>
+    </ol>
+    <p class="ls-hint">GitHub にも付けるときは、「スクリプト プロパティ」に <code>GITHUB_TOKEN</code>（リポジトリ1つ・Contents の読み書きだけの fine-grained token）、<code>GITHUB_OWNER</code>、<code>GITHUB_REPO</code> を入れます。<code>checkTuzuq</code> で、準備ができているかを見られます。</p>
+    <p class="ls-hint">やめるときは、つづくの URL の欄を空にし、GAS のデプロイをアーカイブします。</p>
+  </section>
+
+  <section class="ls-panel">
+    <h2>受け口の約束（GAS を自分で作る人向け）</h2>
+    <p>つづくは、入れた URL に <code>POST</code> します（本文は <code>text/plain</code> の JSON）。</p>
+<pre>{ "app": "tuzuq", "v": 1, "op": "record", "idToken": "…", "text": "# workout", "date": "2026-10-24" }
+→ { "ok": true, "added": true, "date": "2026-10-24", "github": true }
+
+{ "app": "tuzuq", "v": 1, "op": "days", "idToken": "…", "texts": ["# workout", "# 読書"] }
+→ { "ok": true, "days": [["2026-10-20", "2026-10-24"], []], "today": "2026-10-24", "github": true }
+
+うまくいかないとき → { "ok": false, "error": "auth" | "off" | "claim" | "notyou" | "bad" | "day" | "many" | "fail" }</pre>
+    <ul>
+      <li>本人の確かめ：<code>POST https://api.line.me/oauth2/v2.1/verify</code>（<code>id_token</code>、<code>client_id</code>＝つづくの LIFF のチャネル ID）。<code>aud</code>・<code>iss</code>（https://access.line.me）・<code>exp</code> を確かめ、<code>sub</code> が持ち主の ID のときだけ受ける。送られてきた userId は使わない</li>
+      <li>書く：今日（日本時間）の分だけ。同じ日・同じ行動は1件。文は60字・1行まで。1日30件まで</li>
+      <li>読む：本人の、習慣ごとの記録した日（ここ数か月）だけ。本文・時刻・ID は返さない</li>
+      <li>返すのは上の決まった言葉だけ（エラーの中身は返さない）。ID トークンは残さない・ログに出さない</li>
+    </ul>
+    <p class="ls-hint">URL は秘密ではありません。知られても、確かめなしには何も書けず、何も読めません。ただし、知らない人から渡された URL は入れないでください（入れた先に、確かめ用の印が届きます）。</p>
+  </section>
+</main>
+</body>
+</html>

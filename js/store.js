@@ -34,8 +34,10 @@ export const REMIND_DEFAULT = "21:00";
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 // lineBot：LINE でも記録（自分用）で送る先のボットの LINE の ID（@ から）。空ならこの機能は出さない
 const BOT_ID = /^@[a-z0-9._-]{2,40}$/i;
+// gasUrl：LINE の中で開いたときに、○を記録する自分の GAS（記録ボット）の URL。秘密ではない（js/linelog.js と同じ形）
+const GAS_URL = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{10,120}\/exec$/;
 function blank() {
-  return { v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: REMIND_DEFAULT, lineBot: "", bot: {} };
+  return { v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: REMIND_DEFAULT, lineBot: "", gasUrl: "", bot: {} };
 }
 export const cleanBotId = (v) => (BOT_ID.test(String(v ?? "").trim()) ? String(v).trim() : "");
 // ボットのトークを、送る文を入れた状態で開くリンク（送るのは本人。書きこみ用の鍵は持たない）
@@ -63,6 +65,7 @@ function clean(raw) {
   s.weekStart = raw.weekStart === 0 ? 0 : 1;
   s.remindAt = TIME.test(raw.remindAt) ? raw.remindAt : REMIND_DEFAULT;
   s.lineBot = cleanBotId(raw.lineBot);
+  s.gasUrl = GAS_URL.test(String(raw.gasUrl || "")) ? String(raw.gasUrl) : "";
   const auto = raw.auto && typeof raw.auto === "object" ? raw.auto : {};
   Object.keys(LINKS).forEach((link) => {
     if (Array.isArray(auto[link])) s.auto[link] = dayList(auto[link]);

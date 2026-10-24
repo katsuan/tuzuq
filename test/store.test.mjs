@@ -14,7 +14,7 @@ const { load, importJson, exportJson, linkedDays, MAX_HABITS, MAX_DAYS_PER_HABIT
 
 const XSS = '" onclick=alert(1) x="'; // qcheck-ok: W8 テストの見本の文字
 const ID = /^[a-z0-9]{4,24}$/;
-const blank = () => ({ v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: "21:00", lineBot: "", bot: {} });
+const blank = () => ({ v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: "21:00", lineBot: "", gasUrl: "", bot: {} });
 
 test("ボタンに入る id は英数字だけ（控えの id に記号が入っていても作りなおす）", () => {
   const s = blank();

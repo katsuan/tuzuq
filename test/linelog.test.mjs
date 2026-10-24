@@ -9,7 +9,7 @@ globalThis.localStorage = {
   setItem: (k, v) => mem.set(k, String(v)),
   removeItem: (k) => mem.delete(k)
 };
-const { inLineApp, makeClient, startLineLog, lineLogMessage } = await import("../js/linelog.js");
+const { cleanGasUrl, inLineApp, makeClient, startLineLog, lineLogMessage } = await import("../js/linelog.js");
 const { LINE_LOG } = await import("../js/line-config.js");
 const store = await import("../js/store.js");
 
@@ -28,9 +28,9 @@ test("ボットに送るのは ID トークンと、記録する文・日付だ�
   assert.equal(seen[0].url, GAS);
   assert.equal(seen[0].opt.method, "POST");
   assert.match(seen[0].opt.headers["Content-Type"], /^text\/plain/);
-  assert.deepEqual(seen[0].body, { app: "tuzuq", idToken: TOKEN, op: "record", text: "# workout", date: "2026-10-24" });
+  assert.deepEqual(seen[0].body, { app: "tuzuq", v: 1, idToken: TOKEN, op: "record", text: "# workout", date: "2026-10-24" });
   await c.days(["# workout", "# coding"]);
-  assert.deepEqual(seen[1].body, { app: "tuzuq", idToken: TOKEN, op: "days", texts: ["# workout", "# coding"] });
+  assert.deepEqual(seen[1].body, { app: "tuzuq", v: 1, idToken: TOKEN, op: "days", texts: ["# workout", "# coding"] });
 });
 
 test("ID トークンがないときは送らない。通信できないときは net", async () => {
@@ -59,12 +59,13 @@ test("ID トークンは端末に残さない（W7）", async () => {
 test("ブラウザで開いたとき・設定が空のときは、LIFF を読まずに null（つづくは今までどおり）", async () => {
   assert.equal(inLineApp("Mozilla/5.0 (iPhone) Safari/604.1"), false);
   assert.equal(inLineApp("Mozilla/5.0 (iPhone) Line/14.1.0 LIFF"), true);
-  assert.equal(await startLineLog({ liffId: "", gasUrl: GAS }), null);
-  assert.equal(await startLineLog({ liffId: "2000000001-abcd", gasUrl: "https://evil.example.com/exec" }), null);
+  assert.equal(await startLineLog(GAS, { liffId: "" }), null);
+  assert.equal(await startLineLog("https://evil.example.com/exec", { liffId: "2000000001-abcd" }), null);
+  assert.equal(await startLineLog("", { liffId: "2000000001-abcd" }), null);
   globalThis.navigator ??= {};
-  assert.equal(await startLineLog({ liffId: "2000000001-abcd", gasUrl: GAS }), null, "LINE のアプリでなければ null");
-  // 公開しているつづくは、空のまま（ユーザーが LIFF を作ってから入れる）
-  assert.deepEqual(LINE_LOG, { liffId: "", gasUrl: "" });
+  assert.equal(await startLineLog(GAS, { liffId: "2000000001-abcd" }), null, "LINE のアプリでなければ null");
+  // 公開しているつづくには、だれかの GAS の URL を置かない（使う人がそれぞれ入れる）
+  assert.deepEqual(Object.keys(LINE_LOG), ["liffId"]);
 });
 
 test("ボットから読んだ日：日付だけ、習慣ごとに置きかえる。ボットに入った日は外せない○にうつす", () => {
@@ -119,4 +120,19 @@ test("失敗の言葉に、仕組みの言葉（LIFF・GAS・トークン）を�
   ["auth", "day", "off", "net", "fail", "many", "bad", undefined].forEach((e) => {
     assert.doesNotMatch(lineLogMessage(e), /LIFF|GAS|トークン|API|error/i);
   });
+});
+
+test("つなぐ GAS の URL は、GAS のウェブアプリの形だけ（ほかのサイト・スクリプトは入らない）", () => {
+  assert.equal(cleanGasUrl(GAS), GAS);
+  assert.equal(cleanGasUrl(" " + GAS + " "), GAS);
+  ["https://evil.example.com/macros/s/AKfyTEST_123/exec", "http://script.google.com/macros/s/AKfyTEST_123/exec", "https://script.google.com/macros/s/AKfyTEST_123/exec?x=1", "javascript:alert(1)//script.google.com/macros/s/AKfyTEST_123/exec", "https://script.google.com.evil.com/macros/s/AKfyTEST_123/exec", ""].forEach((u) => assert.equal(cleanGasUrl(u), "", u)); // qcheck-ok: W8 テストの見本の文字
+  mem.set("tuzuq:v1", JSON.stringify({ habits: [], gasUrl: "https://evil.example.com/exec" }));
+  assert.equal(store.load().gasUrl, "");
+  mem.set("tuzuq:v1", JSON.stringify({ habits: [], gasUrl: GAS }));
+  assert.equal(store.load().gasUrl, GAS);
+});
+
+test("持ち主の登録・持ち主でないときの言葉", () => {
+  assert.match(lineLogMessage("claim"), /adoptTuzuqOwner/);
+  assert.match(lineLogMessage("notyou"), /持ち主ではありません/);
 });

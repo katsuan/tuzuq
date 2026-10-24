@@ -1,7 +1,8 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
 import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, cleanBotId, lineRecordUrl, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242000";
-import { lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242000";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242000";
+import { LINE_LOG } from "./js/line-config.js?v=202610242000";
 import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242000";
 import { best, label, lastDays, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242000";
 
@@ -59,6 +60,7 @@ function daysOf(h) {
 
 // ---- 記録ボット（LINE の中で開いたときだけ） ----
 let lineLog = null; // js/linelog.js の startLineLog の返事（つなげないときは null）
+const inLine = !!LINE_LOG.liffId && inLineApp(); // つなぎ先の欄は、LINE の中で開いたときだけ出す
 const SEND_DELAY_MS = 5000; // ○のあと「元に戻す」を押せるあいだは送らない
 const pending = new Map(); // 習慣の id → { date, text, timer }（まだ送っていない○）
 let lastRead = 0;
@@ -107,6 +109,7 @@ async function readBotDays(force = false) {
   const res = await lineLog.days(habits.map((h) => h.lineText));
   if (!res.ok) {
     if (res.error === "auth") say("記録ボットの○を読めませんでした。LINE で、つづくを開きなおしてね");
+    else if (res.error === "claim" || res.error === "notyou") say(lineLogMessage(res.error));
     else if (res.error !== "off") say("記録ボットの○を読めませんでした（電波のよい所で開きなおしてね）");
     return;
   }
@@ -239,6 +242,7 @@ function cardUrl(today) {
 function renderForm() {
   $("lineTextField").hidden = !state.lineBot && !lineLog;
   $("lineLogNote").hidden = !lineLog;
+  $("gasField").hidden = !inLine;
   $("emojis").innerHTML = EMOJIS.map((e) => `<button class="ls-chip emoji" type="button" role="radio" aria-checked="${e === ui.emoji}" data-emoji="${e}">${e}</button>`).join("");
   const used = new Set(state.habits.map((h) => h.name));
   $("ideas").innerHTML = ui.editing
@@ -560,12 +564,30 @@ function render() {
 render();
 
 // LINE の中（LIFF）で開いたときだけ、記録ボットとつなぐ（ブラウザでは何もしない）
-startLineLog().then((client) => {
-  if (!client) return;
-  lineLog = client;
-  $("lead").textContent = "できた日に○をつけるだけ。送る文のある習慣は、記録ボットにも残ります。";
-  render();
-  readBotDays(true);
+// つなぎ先を入れなおしたときも、ここからやりなおす
+function connectLineLog() {
+  lineLog = null;
+  return startLineLog(state.gasUrl).then((client) => {
+    if (!client) return render();
+    lineLog = client;
+    $("lead").textContent = "できた日に○をつけるだけ。送る文のある習慣は、記録ボットにも残ります。";
+    render();
+    readBotDays(true);
+  });
+}
+connectLineLog();
+
+// つなぐ GAS の URL（自分で入れたものだけ。URL の ?〜 からは受けとらない）
+$("gasUrl").value = state.gasUrl;
+$("gasUrl").addEventListener("change", () => {
+  const raw = $("gasUrl").value.trim();
+  const url = cleanGasUrl(raw);
+  $("gasUrlError").hidden = !raw || !!url;
+  if (raw && !url) return;
+  state.gasUrl = url;
+  persist();
+  say(url ? "💬 つなぎ先を決めました（LINE の中で開くと使えます）" : "つなぎ先を消しました");
+  connectLineLog();
 });
 
 // カレンダーの予定から開いたとき（?h=習慣の id）：その習慣まで動かして、少し光らせる。アドレスからは消す
