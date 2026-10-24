@@ -4,7 +4,7 @@
 // - つなぐ先は、使う人が自分で入れた自分の GAS の URL だけ（URL の ?〜 からは受けとらない。W5・W9）
 // - ブラウザで開いたとき・設定が空のときは何もしない（つづくは今までどおり端末の中だけ）
 // - 約束（何を送り、何が返るか）は docs/linelog-api.md
-import { LINE_LOG } from "./line-config.js?v=202610250020";
+import { LINE_LOG } from "./line-config.js?v=202610250130";
 
 const SDK = "https://static.line-scdn.net/liff/edge/2/sdk.js";
 const TIMEOUT_MS = 15000;
@@ -80,7 +80,8 @@ export function makeClient(gasUrl, getIdToken, fetchImpl = (...a) => fetch(...a)
   }
   return {
     record: (text, date, keepalive, note) => post({ op: "record", text, date, ...(note ? { note } : {}) }, keepalive),
-    days: (texts) => post({ op: "days", texts })
+    days: (texts) => post({ op: "days", texts }),
+    status: () => post({ op: "status" }) // いまの設定（見るだけ）
   };
 }
 
@@ -92,4 +93,23 @@ export function lineLogMessage(error) {
   if (error === "claim") return "つなぎ先の GAS に、持ち主の登録を受けつけました。10分以内に、GAS エディタで adoptTuzuqOwner を実行してね";
   if (error === "notyou") return "つなぎ先の GAS の持ち主ではありません。つなぎ先の URL を確かめてね";
   return "記録ボットに入れられませんでした。チェックはこの端末に残っています";
+}
+
+// いまの設定の答えを、見出しと行の並びに（入口の GAS は sections、配布用シートの GAS は status だけ返す）
+export function statusSections(res) {
+  if (!res || res.ok !== true) return null;
+  const str = (v) => String(v ?? "").slice(0, 300);
+  if (Array.isArray(res.sections)) {
+    return res.sections
+      .filter((x) => x && typeof x === "object")
+      .slice(0, 8)
+      .map((x) => ({ title: str(x.title), rows: (Array.isArray(x.rows) ? x.rows : []).slice(0, 10).map(str) }));
+  }
+  const st = res.status && typeof res.status === "object" ? res.status : null;
+  if (!st) return null;
+  const habits = Array.isArray(st.habits) ? st.habits.slice(0, 12).map(str) : [];
+  return [
+    { title: "✅ つづく", rows: [`持ち主：${st.tuzuqOwner ? "登録ずみ" : "まだ"}`, `送る文：${habits.length ? habits.join("・") : "まだ"}`] },
+    { title: "🌱 GitHub", rows: [st.github ? "つながっています" : "つながっていません（つながなくても記録はできます）"] }
+  ];
 }

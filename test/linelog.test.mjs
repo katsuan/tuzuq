@@ -140,3 +140,13 @@ test("持ち主の登録・持ち主でないときの言葉", () => {
   assert.match(lineLogMessage("claim"), /adoptTuzuqOwner/);
   assert.match(lineLogMessage("notyou"), /持ち主ではありません/);
 });
+
+test("いまの設定：入口の GAS の sections も、配布用の status も、見出しと行にそろえる（だめなら null）", async () => {
+  const { statusSections } = await import("../js/linelog.js");
+  assert.deepEqual(statusSections({ ok: true, sections: [{ title: "🔔 知らせ", rows: ["毎日 20:00", 5] }, null] }), [{ title: "🔔 知らせ", rows: ["毎日 20:00", "5"] }]);
+  const s = statusSections({ ok: true, status: { tuzuqOwner: true, github: false, habits: ["# workout"] } });
+  assert.equal(s[0].rows[1], "送る文：# workout");
+  assert.match(s[1].rows[0], /つながっていません/);
+  assert.equal(statusSections({ ok: false, error: "notyou" }), null);
+  assert.equal(statusSections(null), null);
+});

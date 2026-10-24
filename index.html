@@ -28,7 +28,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、つづくの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610250020">
+<link rel="stylesheet" href="style.css?v=202610250130">
 </head>
 <body>
 <main class="ls-page ls-stack">
@@ -205,6 +205,12 @@
       <div class="ls-fold-body">
         <p id="lineLogNote" class="ls-hint" hidden>💬 送る文のある習慣は、きょうの丸を押すだけで記録ボットに入ります（トークに切りかえなくてよい）。ボットで記録した日にも○が出ます（黄色。つづくでは外せません）。習慣を直すと「送る文」を決められます。</p>
 
+        <!-- いまの設定（記録ボットにつながっているときだけ。トークの「# 設定」と同じ中身。見るだけ） -->
+        <div id="statusBox" class="status-box" hidden>
+          <button id="statusBtn" class="ls-button is-block" type="button">🔎 記録ボットのいまの設定を見る</button>
+          <div id="statusList" class="status-list" aria-live="polite"></div>
+          <p id="statusHint" class="ls-hint small" hidden>変えるときは、記録ボットのトークで「# 設定」と送り、下のボタンから。</p>
+        </div>
         <button class="ls-button is-block" type="button" data-show-line-guide>👀 使い方（4コマ）を見る</button>
         <div class="line-advanced">
           <div id="gasField" hidden>
@@ -245,7 +251,7 @@
 <script src="https://katsuan.github.io/line-share/shared/week-start.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/ui.js" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/liff.js" defer></script>
-<script type="module" src="app.js?v=202610250020"></script>
+<script type="module" src="app.js?v=202610250130"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="tuzuq" defer></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>
 </body>

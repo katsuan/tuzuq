@@ -1,11 +1,11 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610250020";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610250020";
-import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610250020";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610250020";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610250020";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610250020";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610250130";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog, statusSections } from "./js/linelog.js?v=202610250130";
+import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610250130";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610250130";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610250130";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610250130";
 
 const $ = (id) => document.getElementById(id);
 // カードの「✅ つづくでチェックする」で開く先は、LINE の中のつづく（OPEN_URL。js/line-config.js）
@@ -886,6 +886,7 @@ function connectLineLog() {
     // つながらないときは、前につながっていたときだけ描きなおす（開いたときの「その習慣を光らせる」を消さないように）
     if (!client) return had && render();
     lineLog = client;
+    $("statusBox").hidden = false;
     $("whereNote").innerHTML = "📱 この版の記録は、ブラウザ版とは<b>別</b>です。<br>「ボット連動」の札がある習慣は、チェックすると記録ボットにも届きます。"; // qcheck-ok: W1 決まった文字だけ
     $("whereNote").hidden = false;
     render();
@@ -893,6 +894,37 @@ function connectLineLog() {
   });
 }
 connectLineLog();
+
+// 記録ボットのいまの設定（見るだけ。字は textContent で入れる）
+$("statusBtn").addEventListener("click", async () => {
+  if (!lineLog) return;
+  const btn = $("statusBtn");
+  btn.disabled = true;
+  btn.textContent = "読みこみ中…";
+  const sections = statusSections(await lineLog.status());
+  btn.disabled = false;
+  btn.textContent = "🔎 記録ボットのいまの設定を見る";
+  const list = $("statusList");
+  list.replaceChildren();
+  if (!sections) {
+    say("いまの設定を読めませんでした（電波のよい所で、もう一度）");
+    return;
+  }
+  sections.forEach((sec) => {
+    const box = document.createElement("div");
+    box.className = "status-sec";
+    const h = document.createElement("b");
+    h.textContent = sec.title;
+    box.append(h);
+    sec.rows.forEach((r) => {
+      const p = document.createElement("p");
+      p.textContent = r;
+      box.append(p);
+    });
+    list.append(box);
+  });
+  $("statusHint").hidden = false;
+});
 
 // つなぐ GAS の URL（自分で入れたものだけ。URL の ?〜 からは受けとらない）
 $("gasUrl").value = state.gasUrl;
