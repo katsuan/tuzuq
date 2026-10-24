@@ -154,7 +154,10 @@ function renderToday(today) {
   $("progress").classList.remove("is-all");
   if (!state.habits.length) {
     $("progress").textContent = "";
-    $("habitList").innerHTML = `<div class="ls-empty"><span class="ls-empty-icon" aria-hidden="true">🌱</span>まずは、つづけたいことを1つ。<br>押すとふえます（自分で決めるなら下の「➕ 習慣をふやす」）</div>
+    // LINE の中で開いて習慣がないとき：ブラウザで使っていた記録は、ここには出ない（別のブラウザ）
+    const moved = inLineApp() ? '<br><small>ブラウザで使っていた記録は、ここには出ません（LINE の中は別のブラウザ）。ブラウザで「🔒 記録の控え」を書き出して、ここで読みこむとうつせます</small>' : "";
+    // qcheck-ok: W1 moved は決まった文字だけ（IDEAS も esc）
+    $("habitList").innerHTML = `<div class="ls-empty"><span class="ls-empty-icon" aria-hidden="true">🌱</span>まずは、つづけたいことを1つ。<br>押すとふえます（自分で決めるなら下の「➕ 習慣をふやす」）${moved}</div>
       <div class="ls-chips start-ideas">${IDEAS.slice(0, 6).map(([e, n], i) => `<button class="ls-chip is-small" type="button" data-quick="${i}">${e} ${esc(n)}</button>`).join("")}</div>`;
     $("sendArea").hidden = true;
     return;
@@ -675,6 +678,7 @@ function connectLineLog() {
     if (!client) return had && render();
     lineLog = client;
     $("lead").textContent = "できた日に○をつけるだけ。送る文のある習慣は、記録ボットにも残ります。";
+    $("whereNote").innerHTML = "📱 習慣の一覧と○は<b>この LINE の中だけ</b>に残ります（ブラウザ・ほかの端末とは別々）。送る文のある習慣の○は、記録ボット（自分の GAS）にも残り、開くたびに読みなおします。"; // qcheck-ok: W1 決まった文字だけ
     render();
     readBotDays(true);
   });

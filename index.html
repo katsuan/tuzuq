@@ -37,7 +37,9 @@
     <img class="ls-brand-logo" src="logo.svg" alt="TuzuQ" width="74" height="28">
   </header>
   <p class="ls-brand-copy">きょうのできたが、あしたにつづく</p>
-  <p class="ls-hint lead" id="lead">できた日に○をつけるだけ。記録はこの端末の中だけに残ります。</p>
+  <p class="ls-hint lead" id="lead">できた日に○をつけるだけ。GitHub や LINE をつながなくても、そのまま使えます。</p>
+  <!-- 記録の置き場所：ブラウザごと・端末ごとに別々（LINE の中も別のブラウザ） -->
+  <p class="where-note" id="whereNote">📱 記録は<b>このブラウザの中だけ</b>に残ります。LINE の中・ほかのブラウザ・ほかの端末では別々です（うつすときは「🔒 記録の控え」）。</p>
 
   <!-- ブラウザで開いたときだけ：LINE で使うと何ができるか（閉じたら、この端末では出さない） -->
   <div id="lineBanner" class="line-banner" hidden>
@@ -75,7 +77,7 @@
             <div class="lg-tap">👆</div>
           </div>
         </div>
-        <figcaption><b>1. LINE で開く</b>リンクを押すと、LINE の中でつづくが開きます（自分あてのトークに貼っておくと便利）</figcaption>
+        <figcaption><b>1. LINE で開く</b>リンクを押すと、LINE の中でつづくが開きます（自分あてのトークに貼っておくと便利）。LINE の中はブラウザとは別の記録なので、いまの記録は「🔒 記録の控え」でうつせます</figcaption>
       </figure>
       <figure class="lg-panel" role="listitem">
         <div class="lg-phone" aria-hidden="true">
@@ -223,7 +225,8 @@
     <details class="ls-fold" id="settings">
       <summary><span class="ls-fold-icon" aria-hidden="true">🔒</span>記録の控え</summary>
       <div class="ls-fold-body">
-        <p class="ls-hint">記録はこの端末（ブラウザ）の中だけにあります。機種変更やブラウザのデータを消す前に、控えを書き出しておいてください。</p>
+        <p class="ls-hint">記録はこのブラウザの中だけにあります（LINE の中・ほかのブラウザ・ほかの端末では別々）。機種変更やブラウザのデータを消す前に、控えを書き出しておいてください。</p>
+        <p class="ls-hint small">ほかのブラウザ・LINE の中にうつすとき：ここで「⬇️ 控えを書き出す」→ うつす先のつづくで「⬆️ 控えを読みこむ」。</p>
         <div class="form-actions">
           <button id="exportBtn" class="ls-button is-block" type="button">⬇️ 控えを書き出す</button>
           <label class="ls-button is-block file-btn">⬆️ 控えを読みこむ<input id="importFile" type="file" accept="application/json,.json"></label>

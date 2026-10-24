@@ -174,3 +174,7 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .lg-card-body { padding: 8px 10px; }
 .lg-card-body b { display: block; font-size: 14px; }
 .lg-card-btn { padding: 7px; border-top: 1px solid #e3e8f1; color: #2f80d8; font-weight: 700; text-align: center; }
+
+/* 記録の置き場所の注意（ブラウザごと・端末ごとに別々） */
+.where-note { margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--ls-surface-sub); color: var(--ls-subtext); font-size: 13px; line-height: 1.55; }
+.where-note b { color: var(--ls-text); }
