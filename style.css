@@ -116,3 +116,9 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
   :root[data-ls-dark="auto"] .auto-tag { background: rgba(236, 138, 22, 0.2); color: #ffc070; }
   :root[data-ls-dark="auto"] .check { color: #fff; }
 }
+
+/* カレンダーでお知らせ */
+.remind-time { max-width: 180px; }
+.remind-row { grid-template-columns: minmax(0, 1fr) auto; padding: 6px 6px 6px 12px; }
+.remind-row .name { overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.remind-row .ls-chip { text-decoration: none; }

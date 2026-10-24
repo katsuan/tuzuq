@@ -14,7 +14,7 @@ const { load, importJson, exportJson, linkedDays, MAX_HABITS, MAX_DAYS_PER_HABIT
 
 const XSS = '" onclick=alert(1) x="'; // qcheck-ok: W8 テストの見本の文字
 const ID = /^[a-z0-9]{4,24}$/;
-const blank = () => ({ v: 1, habits: [], done: {}, weekStart: 1, auto: {} });
+const blank = () => ({ v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: "21:00" });
 
 test("ボタンに入る id は英数字だけ（控えの id に記号が入っていても作りなおす）", () => {
   const s = blank();
@@ -182,4 +182,13 @@ test("長い名前を切っても、絵文字が半分にならない", () => {
   assert.equal(h.emoji, "💧💧💧💧");
   mem.set("tuzuq:v1", JSON.stringify({ habits: [{ id: "emoj0002", name: "a", emoji: "abcdefg💧" }], done: {} }));
   assert.equal(load().habits[0].emoji, "abcdefg");
+});
+
+test("お知らせの時刻は 21:00 が既定。形のちがう値は 21:00 に", () => {
+  mem.set("tuzuq:v1", JSON.stringify({ habits: [], done: {}, remindAt: "07:30" }));
+  assert.equal(load().remindAt, "07:30");
+  mem.set("tuzuq:v1", JSON.stringify({ habits: [], done: {}, remindAt: "25:99" }));
+  assert.equal(load().remindAt, "21:00");
+  mem.delete("tuzuq:v1");
+  assert.equal(load().remindAt, "21:00");
 });

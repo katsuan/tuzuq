@@ -4,7 +4,7 @@
 // done = { 習慣の id: ["YYYY-MM-DD", ...] }（○をつけた日）
 // 消した習慣は、○の記録ごと控え（trash）に1つだけ残して「元に戻す」で戻せるようにする
 
-import { isDate } from "./stats.js?v=202610230932";
+import { isDate } from "./stats.js?v=202610240731";
 
 const KEY = "tuzuq:v1";
 const OLD_KEY = "tsuduq:v1"; // 前の名前
@@ -28,8 +28,11 @@ const dayList = (list) => [...new Set(list.filter(isDate))].sort().slice(-MAX_DA
 
 // weekStart：カレンダーの週のはじまり（1＝月曜・既定、0＝日曜）
 // auto：つないだツールの記録から読んだ日を覚えておく（{ shoquji: [日付...] }）。もとのツールが古い記録を消しても○が残るように
+// remindAt：カレンダーでお知らせする時刻（"HH:MM"。js/remind.js）
+export const REMIND_DEFAULT = "21:00";
+const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 function blank() {
-  return { v: 1, habits: [], done: {}, weekStart: 1, auto: {} };
+  return { v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: REMIND_DEFAULT };
 }
 
 function cleanHabit(h) {
@@ -47,6 +50,7 @@ function clean(raw) {
   const s = blank();
   if (!raw || typeof raw !== "object") return s;
   s.weekStart = raw.weekStart === 0 ? 0 : 1;
+  s.remindAt = TIME.test(raw.remindAt) ? raw.remindAt : REMIND_DEFAULT;
   const auto = raw.auto && typeof raw.auto === "object" ? raw.auto : {};
   Object.keys(LINKS).forEach((link) => {
     if (Array.isArray(auto[link])) s.auto[link] = dayList(auto[link]);

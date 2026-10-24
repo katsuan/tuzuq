@@ -28,7 +28,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、つづくの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610230932">
+<link rel="stylesheet" href="style.css?v=202610240731">
 </head>
 <body>
 <main class="ls-page ls-stack">
@@ -105,6 +105,21 @@
       </div>
     </details>
 
+    <!-- カレンダーでお知らせ（毎日くり返す予定。js/remind.js） -->
+    <details class="ls-fold" id="remindFold">
+      <summary><span class="ls-fold-icon" aria-hidden="true">🔔</span>カレンダーでお知らせ</summary>
+      <div class="ls-fold-body">
+        <p class="ls-hint">毎日決まった時刻に、カレンダーが知らせてくれます。予定から、つづくを開いて○をつけられます。</p>
+        <label class="ls-field remind-time">
+          <span class="ls-label">お知らせの時刻</span>
+          <input id="remindAt" class="ls-input" type="time" step="300">
+        </label>
+        <div id="remindList" class="manage-list"></div>
+        <button id="remindIcs" class="ls-button is-block" type="button">📥 まとめてカレンダーに入れる</button>
+        <p class="ls-hint small">iPhone はファイルを開いて「すべてを追加」。1つずつ入れるときは「Google」（毎日くり返す予定として入ります）。止めるときは、カレンダーの予定を消します。</p>
+      </div>
+    </details>
+
     <!-- 記録の控え -->
     <details class="ls-fold" id="settings">
       <summary><span class="ls-fold-icon" aria-hidden="true">🔒</span>記録の控え</summary>
@@ -127,7 +142,7 @@
 
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/ui.js" defer></script>
-<script type="module" src="app.js?v=202610230932"></script>
+<script type="module" src="app.js?v=202610240731"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="tuzuq" defer></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>
 </body>

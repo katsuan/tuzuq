@@ -1,6 +1,7 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, addHabit, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610230932";
-import { best, label, lastDays, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610230932";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, addHabit, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610240731";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610240731";
+import { best, label, lastDays, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610240731";
 
 const $ = (id) => document.getElementById(id);
 const PAGE_URL = "https://katsuan.github.io/tuzuq/";
@@ -350,23 +351,54 @@ function shiftMonth(n) {
 $("prevMonth").addEventListener("click", () => shiftMonth(-1));
 $("nextMonth").addEventListener("click", () => shiftMonth(1));
 
-// ---- 控え ----
-$("exportBtn").addEventListener("click", async () => {
-  const file = new File([exportJson(state)], `tuzuq-${ymd()}.json`, { type: "application/json" });
+// ファイルを渡す：共有できる端末は共有メニュー、ほかはダウンロード。共有したら true
+async function handOver(file, shareTitle) {
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], title: "つづくの記録の控え" });
+      await navigator.share({ files: [file], title: shareTitle });
     } catch {
       // やめたときは何もしない
     }
-    return;
+    return true;
   }
   const a = document.createElement("a");
   a.href = URL.createObjectURL(file);
   a.download = file.name;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  say("⬇️ 控えを書き出しました");
+  return false;
+}
+
+// ---- カレンダーでお知らせ ----
+function renderRemind() {
+  $("remindAt").value = state.remindAt;
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+  // qcheck-ok: W1 名前・絵文字は esc、URL は URLSearchParams で作ったもの
+  $("remindList").innerHTML = state.habits.length
+    ? state.habits
+        .map(
+          (h) => `<div class="manage remind-row"><span class="name">${esc(h.emoji)} ${esc(h.name)}</span>
+          <a class="ls-chip is-small" href="${esc(googleRemindUrl(h, state.remindAt, ymd(), tz))}" target="_blank" rel="noopener" aria-label="${esc(h.name)} を Google カレンダーに入れる">Google</a></div>`
+        )
+        .join("")
+    : '<p class="ls-hint">習慣をふやすと、ここからカレンダーに入れられます。</p>';
+  $("remindIcs").disabled = !state.habits.length;
+}
+$("remindAt").addEventListener("change", () => {
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test($("remindAt").value)) return;
+  state.remindAt = $("remindAt").value;
+  persist();
+  renderRemind();
+});
+$("remindIcs").addEventListener("click", async () => {
+  const file = new File([remindIcs(state.habits, state.remindAt, ymd())], "tuzuq-remind.ics", { type: "text/calendar" });
+  if (!(await handOver(file, "つづくのお知らせ"))) say("📥 カレンダーのファイルを書き出しました。開くとカレンダーに入ります");
+});
+
+// ---- 控え ----
+$("exportBtn").addEventListener("click", async () => {
+  const file = new File([exportJson(state)], `tuzuq-${ymd()}.json`, { type: "application/json" });
+  if (!(await handOver(file, "つづくの記録の控え"))) say("⬇️ 控えを書き出しました");
 });
 
 $("importFile").addEventListener("change", async (e) => {
@@ -408,6 +440,7 @@ document.addEventListener("visibilitychange", () => document.visibilityState ===
 setInterval(() => ymd() !== shownDay && render(), 30000);
 
 function render() {
+  renderRemind();
   // つないだツールの記録から読んだ日を覚えておく（もとのツールが古い記録を消しても○が残る）
   if (rememberLinked(state)) persist();
   linkedCache = {};
