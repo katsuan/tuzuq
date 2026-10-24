@@ -7,7 +7,8 @@ import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
 const sh = (cmd) => execSync(cmd, { cwd: new URL("..", import.meta.url), encoding: "utf8" }).trim();
-const versions = (text) => [...new Set([...text.matchAll(/\?v=(\d{8,})/g)].map((m) => m[1]))];
+// このリポジトリのファイルの印だけを見る（Q キットの ui.css など、https:// で読む外のファイルの印は別）
+const versions = (text) => [...new Set([...text.replace(/https?:\/\/[^"'\s]*/g, "").matchAll(/\?v=(\d{8,})/g)].map((m) => m[1]))];
 
 test("読みこみの印は、どのファイルでも同じ値", () => {
   const files = ["index.html", "app.js", ...sh("ls js/*.js").split("\n")];

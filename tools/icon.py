@@ -6,7 +6,8 @@
 Q はカレンダーの○：白い輪の中にチェック、しっぽは右下からのびて輪の中に○をつけにいく黄色い手（ふちなし・ひとまとまり）。
 
   icon.svg・icon-32.png・apple-touch-icon.png・icon-512.png・icon-maskable-512.png … アイコン
-  logo.svg … 横長のロゴ「TuzuQ」（Jua。Q はアイコンと同じ形。z は書き順どおりの矢印＝上の横線 → 斜め → 下の横線の先に矢じり）
+  logo.svg … 横長のロゴ「TZQ」（Jua。Q はアイコンと同じ形。名前の英字は TuzuQ のまま。
+             ロゴだけ短く、おくるん（OQRN）と同じ大文字の並びに）
   ogp.png  … 共有したときの画像（1200×630）
 
 使い方: python3 tools/icon.py（となりのおくるん（q-oqrn）の tools/brandkit.py を使う）
@@ -74,10 +75,11 @@ def path_bounds(d):
     return min(xs), min(ys), max(xs), max(ys)
 
 
-def z_arrow_logo(svg):
-    """ロゴの z を、書き順どおりの矢印にする（上の横線を右へ → 斜めに左下へ → 下の横線を右へ、最後に矢じり）"""
+def z_arrow_logo(svg, index):
+    """ロゴの Z を、書き順どおりの矢印にする（上の横線を右へ → 斜めに左下へ → 下の横線を右へ、最後に矢じり）
+    index：字のパスの中で Z が何番目か（Q は字のパスに入らない）"""
     paths = re.findall(r'<path d="([^"]+)" fill="[^"]+" stroke="[^"]+"/>', svg)
-    z = paths[2]  # 字の並びは T・u・z・u（Q は字のパスに入らない）
+    z = paths[index]
     x0, y0, x1, y1 = path_bounds(z)
     w, h = x1 - x0, y1 - y0
     sw = h * 0.2  # 線の太さ（Jua の字の太さに近く）
@@ -100,8 +102,8 @@ def z_arrow_logo(svg):
 
 def main():
     BRAND.write_icons(ROOT, SHAPES)
-    logo, ratio = BRAND.logo_svg("TuzuQ", SHAPES, C, RING_OUTER, "TuzuQ（つづく）")
-    (ROOT / "logo.svg").write_text(z_arrow_logo(logo), encoding="utf-8")
+    logo, ratio = BRAND.logo_svg("TZQ", SHAPES, C, RING_OUTER, "TZQ（つづく）")
+    (ROOT / "logo.svg").write_text(logo, encoding="utf-8")
     BRAND.write_ogp(
         ROOT / "ogp.png", SHAPES, "つづく", "TuzuQ",
         ["できた日に丸を押すだけ", "登録なしで、すぐ使える"], decorate,

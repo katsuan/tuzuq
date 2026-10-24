@@ -27,14 +27,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、つづくの色に -->
-<link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610250130">
+<link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css?v=202610242337">
+<link rel="stylesheet" href="style.css?v=202610250135">
 </head>
 <body>
 <main class="ls-page ls-stack">
   <header class="ls-brand">
     <h1 class="ls-brand-name"><img class="ls-brand-icon" src="icon.svg" alt="" width="30" height="30">つづく</h1>
-    <img class="ls-brand-logo" src="logo.svg" alt="TuzuQ" width="74" height="28">
+    <img class="ls-brand-logo" src="logo.svg" alt="TZQ（つづく）" width="58" height="28">
   </header>
   <p class="ls-brand-copy">きょうのできたが、あしたにつづく</p>
   <p class="ls-hint lead" id="lead">できた日に丸を押すだけの、習慣カレンダー。</p>
@@ -55,7 +55,7 @@
     <!-- 記録ボットにつないでいる人が、LINE の中の LIFF ではない形（アプリ内のブラウザ）で開いたとき -->
     <p class="where-note" id="reopenInLiff" hidden>💬 チェックを記録ボットに届けるには、<a href="https://liff.line.me/2012187502-o87l8Esu">LINE 版で開きなおす ›</a></p>
     <div id="sendArea" class="send-area" hidden>
-      <a id="sendBtn" class="ls-button is-block line" href="#">💬 カードで送る<small>（おくるん）</small></a>
+      <a id="sendBtn" class="ls-button is-block line is-oqrn" href="#">カードで送る</a>
     </div>
   </section>
 
@@ -107,7 +107,7 @@
             </div>
           </div>
         </div>
-        <figcaption><b>3. カードで送る</b>「💬 カードで送る」で、家族や友だちに、きょうできたことを送れます</figcaption>
+        <figcaption><b>3. カードで送る</b>「カードで送る」で、家族や友だちに、きょうできたことを送れます</figcaption>
       </figure>
       <figure class="lg-panel" role="listitem">
         <div class="lg-phone" aria-hidden="true">
@@ -251,7 +251,7 @@
 <script src="https://katsuan.github.io/line-share/shared/week-start.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/ui.js" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/liff.js" defer></script>
-<script type="module" src="app.js?v=202610250130"></script>
+<script type="module" src="app.js?v=202610250135"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="tuzuq" defer></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>
 </body>
