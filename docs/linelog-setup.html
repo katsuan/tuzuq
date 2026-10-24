@@ -25,11 +25,11 @@
   <section class="ls-panel">
     <h2>つなぎ方（はじめて）</h2>
     <ol>
-      <li>持ち主から届いた LOgBOT のリンクを開き、「コピーを作成」</li>
-      <li>GAS エディタで <code>setupTuzuq</code> を実行（記録のシートを自分のドライブに作ります。今までのシートを使うなら、先に「スクリプト プロパティ」の <code>SPREADSHEET_ID</code> にそのシートの ID を入れる）</li>
+      <li><a href="https://docs.google.com/spreadsheets/d/152I6QzRRMm3SZ5E0s10ktpwc-Ib6kHI0C8eZgFYCRh0/copy" target="_blank" rel="noopener">配布用シート（LOgBOT つづく版）</a>を開き、「コピーを作成」（シートについた GAS も一緒にコピーされます。記録はこのシートに入ります）</li>
+      <li>コピーしたシートの「拡張機能」→「Apps Script」を開き、いちばん上の <code>0_setup</code> を開いて <code>setupTuzuq</code> を実行（はじめは権限の確認が出ます）</li>
       <li>「デプロイ」→「新しいデプロイ」→ 種類「ウェブアプリ」、実行するユーザー「自分」、アクセスできるユーザー「全員」→ 出てきた URL（<code>…/exec</code>）をコピー<br><small>（画面は、このデプロイでも持ち主しか開けません。つづくからの呼び出しは、確かめた本人のものだけ受けます）</small></li>
       <li>LINE の中でつづくを開き、「💬 LINE でも記録」に 3 の URL を入れる。「持ち主の登録を受けつけました」と出ます</li>
-      <li>10分以内に、GAS エディタで <code>adoptTuzuqOwner</code> を実行（実行ログに自分の名前が出ればよい）</li>
+      <li>10分以内に、同じ <code>0_setup</code> で <code>adoptTuzuqOwner</code> を実行（実行ログに自分の名前が出ればよい）</li>
       <li>つづくで習慣を直し、「送る文」（例：<code># workout</code>）を決める。今日の○を押すと記録されます</li>
     </ol>
     <p class="ls-hint">GitHub にも付けるときは、「スクリプト プロパティ」に <code>GITHUB_TOKEN</code>（リポジトリ1つ・Contents の読み書きだけの fine-grained token）、<code>GITHUB_OWNER</code>、<code>GITHUB_REPO</code> を入れます。<code>checkTuzuq</code> で、準備ができているかを見られます。</p>
