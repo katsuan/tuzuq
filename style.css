@@ -211,3 +211,10 @@ p, li, figcaption, small, .ls-hint, .ls-empty, .ls-tip li { word-break: auto-phr
 .habit-tags .auto-tag { margin-top: 0; }
 /* いまの習慣：つないだツール・送る文は、名前の下の短い1行に */
 .manage .name .manage-sub { display: block; margin-top: 2px; overflow: hidden; color: var(--ls-subtext); font-size: 12px; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
+
+/* きょうの○の並べ方・しぼりこみ */
+.today-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin: -2px 0 8px; }
+.today-filter { gap: 4px; }
+.today-filter .ls-chip[aria-pressed="true"] { border-color: var(--ls-accent); background: var(--ls-accent); color: #fff; }
+.today-sort select { -webkit-appearance: none; appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ls-subtext) 50%), linear-gradient(135deg, var(--ls-subtext) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; min-height: 34px; padding: 4px 28px 4px 10px; border: 1.5px solid var(--ls-line); border-radius: 999px; background-color: var(--ls-surface, #fff); color: inherit; font-size: 16px; font-weight: 700; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

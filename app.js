@@ -1,11 +1,11 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, moveHabitTo, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242140";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242140";
-import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242140";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242140";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242140";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242140";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242200";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242200";
+import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242200";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242200";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242200";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242200";
 
 const $ = (id) => document.getElementById(id);
 // カードの「✅ つづくでチェックする」で開く先は、LINE の中のつづく（OPEN_URL。js/line-config.js）
@@ -31,7 +31,8 @@ const ui = {
   cal: null, // カレンダーで見る習慣の id
   month: ymd().slice(0, 7), // "YYYY-MM"
   justDone: null, // ○をつけたばかりの「id:日付」（少し弾ませる）
-  focus: null // カレンダーの予定から開いて、光らせている習慣の id
+  focus: null, // カレンダーの予定から開いて、光らせている習慣の id
+  order: null // きょうの○の並び（id の列）。押すたびに行が動かないよう、開いたとき・並べ方を変えたときだけ決めなおす
 };
 
 const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -203,8 +204,35 @@ function renderToday(today) {
     return;
   }
   const week = lastDays(today, 7);
-  $("habitList").innerHTML = state.habits.map((h, i) => habitHtml(h, today, week, i === 0 && neverChecked())).join("");
-  const doneToday = state.habits.filter((h) => daysOf(h).all.has(today)).length;
+  const isDone = (h) => daysOf(h).all.has(today);
+  // 並び：習慣がふえた・へった・日がかわった・並べ方を変えたときだけ決めなおす
+  const ids = state.habits.map((h) => h.id).join(",");
+  if (!ui.order || ui.order.ids !== ids || ui.order.day !== today) {
+    ui.order = { ids, day: today, list: orderToday(state.habits, state.view, isDone, (h) => streak(daysOf(h).all, today)) };
+  }
+  const shown = ui.order.list.map((id) => state.habits.find((h) => h.id === id)).filter(Boolean);
+  const v = state.view || {};
+  const todoCount = state.habits.filter((h) => !isDone(h)).length;
+  $("todayTools").hidden = state.habits.length < 2;
+  const toolsHtml = `<div class="ls-chips today-filter" role="group" aria-label="しぼりこみ">${[
+    ["all", `すべて ${state.habits.length}`],
+    ["todo", `まだ ${todoCount}`],
+    ["done", `できた ${state.habits.length - todoCount}`]
+  ]
+    .map(([k, t]) => `<button class="ls-chip is-small" type="button" data-filter="${k}" aria-pressed="${(v.filter || "all") === k}">${t}</button>`)
+    .join("")}</div>
+    <label class="today-sort"><span class="sr-only">並べ方</span><select id="todaySort">${[
+      ["mine", "いつもの順"],
+      ["todo", "まだを先に"],
+      ["streak", "🔥 つづいている順"]
+    ]
+      .map(([k, t]) => `<option value="${k}"${(v.sort || "mine") === k ? " selected" : ""}>${t}</option>`)
+      .join("")}</select></label>`;
+  $("todayTools").innerHTML = toolsHtml; // qcheck-ok: W1 決まった文字と数だけ
+  $("habitList").innerHTML = shown.length
+    ? shown.map((h, i) => habitHtml(h, today, week, i === 0 && neverChecked())).join("")
+    : `<div class="ls-empty">${v.filter === "todo" ? "🎉 まだの習慣はありません" : "まだ、できた習慣はありません"}<br><button class="ls-chip is-small" type="button" data-filter="all">すべてを見る</button></div>`;
+  const doneToday = state.habits.length - todoCount;
   $("progress").innerHTML = `<b>${doneToday}</b> / ${state.habits.length}`; // qcheck-ok: W1 数だけ
   $("progress").classList.toggle("is-all", doneToday === state.habits.length);
   ui.justDone = null;
@@ -215,7 +243,24 @@ function renderToday(today) {
   $("legendAuto").hidden = !state.habits.some((h) => h.link || (lineLog && h.lineText) || botDays(state, h.id).size);
 }
 
+// きょうの○の並べ方・しぼりこみ（この端末に覚える）。同じものをもう一度押すと、いまの状態で並べなおす
+function setView(next) {
+  state.view = { ...(state.view || {}), ...next };
+  ui.order = null;
+  persist();
+  render();
+}
+$("todayTools").addEventListener("click", (e) => {
+  const f = e.target.closest("[data-filter]");
+  if (f) setView({ filter: f.dataset.filter });
+});
+$("todayTools").addEventListener("change", (e) => {
+  if (e.target.id === "todaySort") setView({ sort: e.target.value });
+});
+
 $("habitList").addEventListener("click", (e) => {
+  const all = e.target.closest("[data-filter]");
+  if (all) return setView({ filter: all.dataset.filter });
   const quick = e.target.closest("[data-quick]");
   if (quick) {
     const [emoji, name, link] = IDEAS[Number(quick.dataset.quick)];

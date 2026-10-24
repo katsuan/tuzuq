@@ -14,7 +14,7 @@ const { load, importJson, exportJson, linkedDays, MAX_HABITS, MAX_DAYS_PER_HABIT
 
 const XSS = '" onclick=alert(1) x="'; // qcheck-ok: W8 テストの見本の文字
 const ID = /^[a-z0-9]{4,24}$/;
-const blank = () => ({ v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: "21:00", lineBot: "", gasUrl: "", bot: {} });
+const blank = () => ({ v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: "21:00", lineBot: "", gasUrl: "", bot: {}, view: { sort: "mine", filter: "all" } });
 
 test("ボタンに入る id は英数字だけ（控えの id に記号が入っていても作りなおす）", () => {
   const s = blank();
@@ -290,4 +290,19 @@ test("moveHabitTo：引っぱった先へ並べ替える（はみ出たら端）
   assert.deepEqual(s.habits.map((h) => h.id), ["a", "b", "c"]);
   store.moveHabitTo(s, "zz", 0);
   assert.deepEqual(s.habits.map((h) => h.id), ["a", "b", "c"]);
+});
+
+test("orderToday：まだを先に・つづいている順・しぼりこみ（同じなら自分の順）", async () => {
+  const store = await import("../js/store.js");
+  const hs = [{ id: "a" }, { id: "b" }, { id: "c" }, { id: "d" }];
+  const done = { a: true, c: true };
+  const n = { a: 3, b: 0, c: 9, d: 3 };
+  const run = (view) => store.orderToday(hs, view, (h) => done[h.id], (h) => n[h.id]);
+  assert.deepEqual(run({}), ["a", "b", "c", "d"]);
+  assert.deepEqual(run({ sort: "todo" }), ["b", "d", "a", "c"]);
+  assert.deepEqual(run({ sort: "streak" }), ["c", "a", "d", "b"]);
+  assert.deepEqual(run({ filter: "todo" }), ["b", "d"]);
+  assert.deepEqual(run({ filter: "done", sort: "streak" }), ["c", "a"]);
+  assert.deepEqual(run({ sort: "<x>", filter: 1 }), ["a", "b", "c", "d"]);
+  assert.deepEqual(store.cleanView(null), { sort: "mine", filter: "all" });
 });

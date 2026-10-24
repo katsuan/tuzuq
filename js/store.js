@@ -5,7 +5,7 @@
 // bot = { 習慣の id: ["YYYY-MM-DD", ...] }（LINE の中で開いたときに、記録ボットから読んだ「記録した日」。日付だけ）
 // 消した習慣は、○の記録ごと控え（trash）に1つだけ残して「元に戻す」で戻せるようにする
 
-import { isDate } from "./stats.js?v=202610242140";
+import { isDate } from "./stats.js?v=202610242200";
 
 const KEY = "tuzuq:v1";
 const OLD_KEY = "tsuduq:v1"; // 前の名前
@@ -50,7 +50,7 @@ const BOT_ID = /^@[a-z0-9._-]{2,40}$/i;
 // gasUrl：LINE の中で開いたときに、○を記録する自分の GAS（記録ボット）の URL。秘密ではない（js/linelog.js と同じ形）
 const GAS_URL = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{10,120}\/exec$/;
 function blank() {
-  return { v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: REMIND_DEFAULT, lineBot: "", gasUrl: "", bot: {} };
+  return { v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: REMIND_DEFAULT, lineBot: "", gasUrl: "", bot: {}, view: { sort: "mine", filter: "all" } };
 }
 export const cleanBotId = (v) => (BOT_ID.test(String(v ?? "").trim()) ? String(v).trim() : "");
 // ボットのトークを、送る文を入れた状態で開くリンク（送るのは本人。書きこみ用の鍵は持たない）
@@ -81,6 +81,7 @@ function clean(raw) {
   const s = blank();
   if (!raw || typeof raw !== "object") return s;
   s.weekStart = raw.weekStart === 0 ? 0 : 1;
+  s.view = cleanView(raw.view);
   s.remindAt = TIME.test(raw.remindAt) ? raw.remindAt : REMIND_DEFAULT;
   s.lineBot = cleanBotId(raw.lineBot);
   s.gasUrl = GAS_URL.test(String(raw.gasUrl || "")) ? String(raw.gasUrl) : "";
@@ -167,6 +168,26 @@ export function moveHabit(state, id, dir) {
   const j = i + dir;
   if (i < 0 || j < 0 || j >= state.habits.length) return;
   [state.habits[i], state.habits[j]] = [state.habits[j], state.habits[i]];
+}
+
+// ---- きょうの○の並べ方・しぼりこみ ----
+// sort：mine＝自分で決めた順・todo＝まだを先に・streak＝つづいている日が長い順
+// filter：all＝すべて・todo＝まだ・done＝できた
+export const SORTS = ["mine", "todo", "streak"];
+export const FILTERS = ["all", "todo", "done"];
+export function cleanView(v) {
+  const o = v && typeof v === "object" ? v : {};
+  return { sort: SORTS.includes(o.sort) ? o.sort : "mine", filter: FILTERS.includes(o.filter) ? o.filter : "all" };
+}
+// 並べた id の列を返す。isDone(h)・streakOf(h) は画面側から渡す（同じなら、自分で決めた順）
+export function orderToday(habits, view, isDone, streakOf) {
+  const v = cleanView(view);
+  const list = habits
+    .map((h, i) => ({ h, i, done: !!isDone(h), n: Number(streakOf(h)) || 0 }))
+    .filter((x) => v.filter === "all" || (v.filter === "done" ? x.done : !x.done));
+  if (v.sort === "todo") list.sort((a, b) => a.done - b.done || a.i - b.i);
+  if (v.sort === "streak") list.sort((a, b) => b.n - a.n || a.i - b.i);
+  return list.map((x) => x.h.id);
 }
 
 // 引っぱって並べ替え：id の習慣を to 番目へ（はみ出たら端へ）
