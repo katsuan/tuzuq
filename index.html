@@ -39,6 +39,16 @@
   <p class="ls-brand-copy">きょうのできたが、あしたにつづく</p>
   <p class="ls-hint lead" id="lead">できた日に○をつけるだけ。記録はこの端末の中だけに残ります。</p>
 
+  <!-- ブラウザで開いたときだけ：LINE で使うと何ができるか（閉じたら、この端末では出さない） -->
+  <div id="lineBanner" class="line-banner" hidden>
+    <p class="line-banner-text">📱 LINE で開くと、○が記録ボットにも残せて、カードで送れます</p>
+    <div class="line-banner-actions">
+      <a class="ls-button line" href="https://liff.line.me/2012187502-o87l8Esu">💬 LINE で開く</a>
+      <button class="ls-button" type="button" data-open-line-guide>👀 使い方を見る</button>
+    </div>
+    <button class="line-banner-close" type="button" aria-label="この案内を閉じる">✕</button>
+  </div>
+
   <!-- きょうの○：習慣ごとに、きょうの○と、この1週間の○（押すとつけ外し） -->
   <section class="ls-panel" aria-labelledby="todayTitle">
     <div class="today-head">
@@ -128,25 +138,79 @@
       </div>
     </details>
 
-    <!-- LINE でも記録（自分用）：○をつけたら、記録ボットのトークを送る文入りで開く -->
+    <!-- LINE で使う：4コマの使い方（LINE の画面に似せた絵。明るいまま）と、くわしい人向けの設定 -->
     <details class="ls-fold" id="lineFold">
-      <summary><span class="ls-fold-icon" aria-hidden="true">💬</span>LINE でも記録（自分用）</summary>
+      <summary><span class="ls-fold-icon" aria-hidden="true">💬</span>LINE で使う</summary>
       <div class="ls-fold-body">
-        <p class="ls-hint">自分の記録ボットにも送りたいときに。ボットの LINE の ID を入れると、習慣ごとに「送る文」を決められます。今日の○をつけると「💬 LINE でも記録」が出て、押すとボットのトークが送る文入りで開きます（送るのは自分）。</p>
-        <label class="ls-field">
-          <span class="ls-label">ボットの LINE の ID</span>
-          <input id="lineBot" class="ls-input" maxlength="41" placeholder="例：@123abcde" autocomplete="off" autocapitalize="off" spellcheck="false">
-        </label>
-        <p id="lineBotError" class="ls-hint is-error" role="alert" hidden>@ から始まる ID を入れてね（例：@123abcde）</p>
-        <div id="gasField" hidden>
-          <label class="ls-field">
-            <span class="ls-label">○を記録する、自分の GAS の URL</span>
-            <input id="gasUrl" class="ls-input" type="url" inputmode="url" maxlength="200" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" autocapitalize="off" spellcheck="false">
-          </label>
-          <p id="gasUrlError" class="ls-hint is-error" role="alert" hidden>GAS のウェブアプリの URL（…/exec）を入れてね</p>
-          <p class="ls-hint small">自分の記録ボット（LOgBOT の複製）の URL です。GitHub は、その GAS につないだときだけ。<a href="docs/linelog-setup.html" target="_blank" rel="noopener">つなぎ方</a>・<a href="privacy.html" target="_blank" rel="noopener">LINE の情報の使い方</a></p>
+        <p class="ls-hint">横にめくると、4コマで使い方がわかります。</p>
+        <div class="line-guide" role="list" aria-label="LINE での使い方">
+          <figure class="lg-panel" role="listitem">
+            <div class="lg-phone" aria-hidden="true">
+              <div class="lg-top">‹ 自分のトーク</div>
+              <div class="lg-talk">
+                <div class="lg-msg is-me">✅ つづく<br><u>liff.line.me/…</u></div>
+                <div class="lg-tap">👆</div>
+              </div>
+            </div>
+            <figcaption><b>1. LINE で開く</b>リンクを押すと、LINE の中でつづくが開きます（自分あてのトークに貼っておくと便利）</figcaption>
+          </figure>
+          <figure class="lg-panel" role="listitem">
+            <div class="lg-phone" aria-hidden="true">
+              <div class="lg-top">つづく</div>
+              <div class="lg-app">
+                <div class="lg-row"><span>💪 筋トレ</span><i class="is-done">✓</i></div>
+                <div class="lg-row"><span>📖 読書</span><i class="is-pop">✓</i></div>
+                <div class="lg-row"><span>💧 水を2L</span><i></i></div>
+                <div class="lg-toast">💬 記録ボットに入れました</div>
+              </div>
+            </div>
+            <figcaption><b>2. ○を押す</b>きょうの○を押すだけ。記録ボットとつないでいれば、そちらにも入ります（GitHub の草にも）</figcaption>
+          </figure>
+          <figure class="lg-panel" role="listitem">
+            <div class="lg-phone" aria-hidden="true">
+              <div class="lg-top">‹ 家族</div>
+              <div class="lg-talk">
+                <div class="lg-card">
+                  <div class="lg-card-head">✅ きょうの○</div>
+                  <div class="lg-card-body"><b>2 / 3 できた</b>○ 💪 筋トレ（🔥5日）<br>○ 📖 読書<br>・ 💧 水を2L</div>
+                  <div class="lg-card-btn">✅ つづくで○をつける</div>
+                </div>
+              </div>
+            </div>
+            <figcaption><b>3. カードで送る</b>「💬 LINEで送る」で、家族や友だちに今日の○を送れます</figcaption>
+          </figure>
+          <figure class="lg-panel" role="listitem">
+            <div class="lg-phone" aria-hidden="true">
+              <div class="lg-top">‹ 記録ボット</div>
+              <div class="lg-talk">
+                <div class="lg-msg">🎉 きょうの習慣、ぜんぶできました 🌿<br><br>✅ # 💪workout（🔥5日）<br>✅ # 読書<br><br>今週：○○・○○</div>
+              </div>
+            </div>
+            <figcaption><b>4. 毎晩まとめが届く</b>自分の記録ボットがある人は、20時にきょうと今週のまとめが届きます（「# 通知」で時刻を変えられます）</figcaption>
+          </figure>
         </div>
-        <p id="lineLogNote" class="ls-hint" hidden>💬 いまは LINE の中で開いているので、送る文のある習慣は、今日の○を押すだけで記録ボットに入ります（トークに切りかえなくてよい）。ボットで記録した日にも○が出ます（黄色。つづくでは外せません）。習慣を直すと「送る文」を決められます。</p>
+        <a id="openInLine" class="ls-button line is-block" href="https://liff.line.me/2012187502-o87l8Esu">💬 LINE で開く</a>
+        <p id="openInLineNote" class="ls-hint small">パソコンで見ているときは、スマホの LINE で同じリンク（https://liff.line.me/2012187502-o87l8Esu）を開いてね。</p>
+        <p id="lineLogNote" class="ls-hint" hidden>💬 いまは LINE の中で開いています。送る文のある習慣は、今日の○を押すだけで記録ボットに入ります（トークに切りかえなくてよい）。ボットで記録した日にも○が出ます（黄色。つづくでは外せません）。習慣を直すと「送る文」を決められます。</p>
+
+        <details class="line-advanced">
+          <summary>⚙️ くわしい人向け：自分の記録ボットとつなぐ</summary>
+          <div id="gasField" hidden>
+            <label class="ls-field">
+              <span class="ls-label">○を記録する、自分の GAS の URL</span>
+              <input id="gasUrl" class="ls-input" type="url" inputmode="url" maxlength="200" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" autocapitalize="off" spellcheck="false">
+            </label>
+            <p id="gasUrlError" class="ls-hint is-error" role="alert" hidden>GAS のウェブアプリの URL（…/exec）を入れてね</p>
+            <p class="ls-hint small">自分の記録ボット（LOgBOT の複製）の URL です。この欄は LINE の中で開いたときに出ます。</p>
+          </div>
+          <p class="ls-hint small"><a href="docs/linelog-setup.html" target="_blank" rel="noopener">つなぎ方（配布用シートのコピーから5手）</a>・<a href="privacy.html" target="_blank" rel="noopener">LINE の情報の使い方</a></p>
+          <p class="ls-hint">LINE の中で開いていないときの代わり：ボットの LINE の ID を入れると、今日の○のあとに「💬 LINE でも記録」が出て、ボットのトークが送る文入りで開きます（送るのは自分）。</p>
+          <label class="ls-field">
+            <span class="ls-label">ボットの LINE の ID</span>
+            <input id="lineBot" class="ls-input" maxlength="41" placeholder="例：@123abcde" autocomplete="off" autocapitalize="off" spellcheck="false">
+          </label>
+          <p id="lineBotError" class="ls-hint is-error" role="alert" hidden>@ から始まる ID を入れてね（例：@123abcde）</p>
+        </details>
       </div>
     </details>
 

@@ -633,6 +633,35 @@ function render() {
 render();
 
 // LINE の中（LIFF）で開いたときだけ、記録ボットとつなぐ（ブラウザでは何もしない）
+// ---- LINE で使う：ブラウザで開いたときの案内の帯と、4コマ ----
+const BANNER_KEY = "tuzuq:lineBannerOff"; // この端末で閉じたか（設定なので端末に残してよい）
+(function lineGuide() {
+  const inLine = inLineApp();
+  let off = false;
+  try {
+    off = localStorage.getItem(BANNER_KEY) === "1";
+  } catch {
+    off = false;
+  }
+  $("lineBanner").hidden = inLine || off;
+  $("openInLine").hidden = inLine;
+  $("openInLineNote").hidden = inLine;
+  document.querySelector(".line-banner-close").addEventListener("click", () => {
+    $("lineBanner").hidden = true;
+    try {
+      localStorage.setItem(BANNER_KEY, "1");
+    } catch {
+      // 残せなくても、いまは閉じる
+    }
+  });
+  document.querySelectorAll("[data-open-line-guide]").forEach((b) =>
+    b.addEventListener("click", () => {
+      $("lineFold").open = true;
+      $("lineFold").scrollIntoView({ behavior: "smooth", block: "start" });
+    })
+  );
+})();
+
 // つなぎ先を入れなおしたときも、ここからやりなおす
 function connectLineLog() {
   const had = !!lineLog;

@@ -144,3 +144,35 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .habit.is-focus { border-color: var(--ls-accent); box-shadow: 0 0 0 4px var(--ls-accent-soft); animation: habit-focus 0.9s ease-in-out 2; }
 @keyframes habit-focus { 50% { box-shadow: 0 0 0 8px var(--ls-accent-soft); } }
 @media (prefers-reduced-motion: reduce) { .habit.is-focus { animation: none; } }
+
+/* ---- LINE で使う：ブラウザで開いたときの案内の帯 ---- */
+.line-banner { position: relative; display: grid; gap: 8px; padding: 12px 40px 12px 14px; border-radius: 16px; background: #e8f9ee; color: #14532d; }
+.line-banner[hidden] { display: none; }
+.line-banner-text { margin: 0; font-size: 14px; font-weight: 700; line-height: 1.5; }
+.line-banner-actions { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.line-banner-close { position: absolute; top: 4px; right: 4px; width: 44px; height: 44px; border: 0; background: none; color: #14532d; font-size: 16px; cursor: pointer; }
+
+/* ---- LINE で使う：4コマ（LINE の画面に似せた絵。暗い表示でも明るいまま） ---- */
+.line-guide { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 72%); gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 2px 10px; -webkit-overflow-scrolling: touch; }
+.lg-panel { margin: 0; scroll-snap-align: start; display: grid; gap: 8px; align-content: start; }
+.lg-panel figcaption { color: var(--ls-subtext); font-size: 13px; line-height: 1.5; }
+.lg-panel figcaption b { display: block; color: var(--ls-text); font-size: 14px; }
+.lg-phone { overflow: hidden; height: 230px; border: 2px solid #c9d2df; border-radius: 22px; background: #fff; color: #1b2540; font-size: 12px; line-height: 1.45; }
+.lg-top { padding: 8px 12px; background: #fff; border-bottom: 1px solid #e3e8f1; font-weight: 700; font-size: 12px; }
+.lg-talk { position: relative; display: grid; gap: 8px; align-content: start; height: 100%; padding: 10px; background: #8cabd9; }
+.lg-msg { justify-self: start; max-width: 88%; padding: 8px 10px; border-radius: 14px; background: #fff; }
+.lg-msg.is-me { justify-self: end; background: #8de055; }
+.lg-tap { position: absolute; right: 30px; top: 66px; font-size: 22px; }
+.lg-app { display: grid; gap: 6px; padding: 10px; background: #f4f8fd; height: 100%; align-content: start; }
+.lg-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; border-radius: 10px; background: #fff; }
+.lg-row i { display: grid; place-items: center; width: 22px; height: 22px; border: 2px dashed #b9c6d8; border-radius: 50%; font-style: normal; font-size: 12px; color: transparent; }
+.lg-row i.is-done { border: 0; background: var(--auto); color: #fff; }
+.lg-row i.is-pop { border: 0; background: #2f80d8; color: #fff; }
+.lg-toast { justify-self: center; margin-top: 6px; padding: 6px 10px; border-radius: 999px; background: #1b2540; color: #fff; font-size: 11px; }
+.lg-card { justify-self: start; width: 88%; overflow: hidden; border-radius: 14px; background: #fff; }
+.lg-card-head { padding: 6px 10px; background: #2f80d8; color: #fff; font-weight: 700; }
+.lg-card-body { padding: 8px 10px; }
+.lg-card-body b { display: block; font-size: 14px; }
+.lg-card-btn { padding: 7px; border-top: 1px solid #e3e8f1; color: #2f80d8; font-weight: 700; text-align: center; }
+.line-advanced { margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--ls-line); }
+.line-advanced > summary { min-height: 44px; display: flex; align-items: center; color: var(--ls-subtext); font-size: 14px; font-weight: 700; cursor: pointer; }
