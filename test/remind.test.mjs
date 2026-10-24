@@ -2,7 +2,7 @@
 //   node --test test/
 import test from "node:test";
 import assert from "node:assert/strict";
-import { googleRemindUrl, remindIcs, PAGE_URL } from "../js/remind.js";
+import { googleRemindUrl, remindIcs, PAGE_URL, habitUrl } from "../js/remind.js";
 
 const habit = { id: "abcd1234", name: "水を2L, 飲む; かならず", emoji: "💧" };
 
@@ -31,4 +31,12 @@ test(".ics：習慣ごとに毎日くり返す予定と、時刻ちょうどの�
   assert.match(ics, /TRIGGER:PT0M/);
   assert.ok(ics.includes("SUMMARY:💧 水を2L\\, 飲む\\; かならず"));
   assert.ok(ics.endsWith("END:VCALENDAR\r\n"));
+});
+
+test("予定のリンクは、習慣の印（?h=）つきでつづくを開く", () => {
+  assert.equal(habitUrl(habit), `${PAGE_URL}?h=abcd1234`);
+  const q = new URL(googleRemindUrl(habit, "21:00", "2026-10-24")).searchParams;
+  assert.ok(q.get("details").includes(`${PAGE_URL}?h=abcd1234`));
+  const ics = remindIcs([habit], "21:00", "2026-10-24");
+  assert.ok(ics.includes(`URL:${PAGE_URL}?h=abcd1234`));
 });

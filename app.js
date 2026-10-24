@@ -1,7 +1,7 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, addHabit, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610240731";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610240731";
-import { best, label, lastDays, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610240731";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, addHabit, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610240735";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610240735";
+import { best, label, lastDays, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610240735";
 
 const $ = (id) => document.getElementById(id);
 const PAGE_URL = "https://katsuan.github.io/tuzuq/";
@@ -73,7 +73,7 @@ function habitHtml(h, today, week) {
       return `<button class="dot${x.cls}" type="button" data-toggle="${h.id}" data-date="${date}" ${x.auto ? "disabled" : ""} aria-pressed="${x.on}" aria-label="${label(date)} ${x.on ? "○あり" : "○なし"}"><span>${weekday(date)}</span><i></i></button>`;
     })
     .join("");
-  return `<div class="habit${now.on ? " is-done" : ""}">
+  return `<div class="habit${now.on ? " is-done" : ""}" data-habit="${h.id}">
         <div class="habit-top">
           <span class="habit-emoji" aria-hidden="true">${esc(h.emoji)}</span>
           <span class="habit-name"><b>${esc(h.name)}</b>${h.link ? `<small class="auto-tag">${esc(LINKS[h.link].label.split(" ")[0])} 記録した日に自動で○</small>` : ""}</span>
@@ -452,3 +452,20 @@ function render() {
 }
 
 render();
+
+// カレンダーの予定から開いたとき（?h=習慣の id）：その習慣まで動かして、少し光らせる。アドレスからは消す
+(function focusFromLink() {
+  const url = new URL(location.href);
+  const id = url.searchParams.get("h");
+  if (!url.searchParams.has("h")) return;
+  url.searchParams.delete("h");
+  history.replaceState(null, "", url);
+  const h = /^[a-z0-9]{4,24}$/.test(id || "") && state.habits.find((x) => x.id === id);
+  if (!h) return say("この端末には、その習慣がありません（ほかの端末で作った習慣かもしれません）");
+  const card = document.querySelector(`.habit[data-habit="${h.id}"]`);
+  if (!card) return;
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+  card.classList.add("is-focus");
+  setTimeout(() => card.classList.remove("is-focus"), 2600);
+  if (!daysOf(h).all.has(ymd())) say(`「${h.name}」できたら、右の○を押してね`);
+})();

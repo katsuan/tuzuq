@@ -14,7 +14,9 @@ function at(day, time, plusMinutes = 0) {
   return `${t.getFullYear()}${pad(t.getMonth() + 1)}${pad(t.getDate())}T${pad(t.getHours())}${pad(t.getMinutes())}00`;
 }
 const title = (h) => `${h.emoji} ${h.name}`;
-const details = (h) => `「${h.name}」ができたら、つづくで○をつけよう\n${PAGE_URL}`;
+// 予定から開くリンク：?h=習慣の id で、開いたらその習慣を目立たせる
+export const habitUrl = (h) => `${PAGE_URL}?h=${encodeURIComponent(h.id)}`;
+const details = (h) => `「${h.name}」ができたら、つづくで○をつけよう\n${habitUrl(h)}`;
 
 export function googleRemindUrl(habit, time, today, tz = "") {
   const q = new URLSearchParams({
@@ -42,7 +44,7 @@ export function remindIcs(habits, time, today) {
       "RRULE:FREQ=DAILY",
       `SUMMARY:${esc(title(h))}`,
       `DESCRIPTION:${esc(details(h))}`,
-      `URL:${PAGE_URL}`,
+      `URL:${habitUrl(h)}`,
       "BEGIN:VALARM",
       "ACTION:DISPLAY",
       `DESCRIPTION:${esc(title(h))}`,

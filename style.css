@@ -122,3 +122,8 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .remind-row { grid-template-columns: minmax(0, 1fr) auto; padding: 6px 6px 6px 12px; }
 .remind-row .name { overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .remind-row .ls-chip { text-decoration: none; }
+
+/* カレンダーの予定から開いたとき（?h=）、その習慣を少し光らせる */
+.habit.is-focus { border-color: var(--ls-accent); box-shadow: 0 0 0 4px var(--ls-accent-soft); animation: habit-focus 0.9s ease-in-out 2; }
+@keyframes habit-focus { 50% { box-shadow: 0 0 0 8px var(--ls-accent-soft); } }
+@media (prefers-reduced-motion: reduce) { .habit.is-focus { animation: none; } }

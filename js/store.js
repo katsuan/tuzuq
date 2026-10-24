@@ -4,7 +4,7 @@
 // done = { 習慣の id: ["YYYY-MM-DD", ...] }（○をつけた日）
 // 消した習慣は、○の記録ごと控え（trash）に1つだけ残して「元に戻す」で戻せるようにする
 
-import { isDate } from "./stats.js?v=202610240731";
+import { isDate } from "./stats.js?v=202610240735";
 
 const KEY = "tuzuq:v1";
 const OLD_KEY = "tsuduq:v1"; // 前の名前
