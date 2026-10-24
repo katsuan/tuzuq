@@ -174,5 +174,3 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .lg-card-body { padding: 8px 10px; }
 .lg-card-body b { display: block; font-size: 14px; }
 .lg-card-btn { padding: 7px; border-top: 1px solid #e3e8f1; color: #2f80d8; font-weight: 700; text-align: center; }
-.line-advanced { margin-top: 12px; padding-top: 8px; border-top: 1px solid var(--ls-line); }
-.line-advanced > summary { min-height: 44px; display: flex; align-items: center; color: var(--ls-subtext); font-size: 14px; font-weight: 700; cursor: pointer; }

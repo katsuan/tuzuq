@@ -649,8 +649,8 @@ const BANNER_KEY = "tuzuq:lineBannerOff"; // この端末で閉じたか（設�
     const shown = window.LineShareLiff?.outsideHelp?.($("lineOutside"), { appUrl: () => OPEN_URL, canLogin: false });
     if (!shown) $("lineOutside").innerHTML = `<a class="ls-button line is-block" href="${esc(OPEN_URL)}">💬 LINEで開く</a>`;
   }
-  $("openInLine").hidden = inLine;
-  $("openInLineNote").hidden = inLine;
+  // LINE の中では、4コマ（LINE で開く・使い方）は出さない
+  $("lineGuidePanel").hidden = inLine;
   document.querySelector(".line-banner-close").addEventListener("click", () => {
     $("lineBanner").hidden = true;
     try {
@@ -661,8 +661,7 @@ const BANNER_KEY = "tuzuq:lineBannerOff"; // この端末で閉じたか（設�
   });
   document.querySelectorAll("[data-open-line-guide]").forEach((b) =>
     b.addEventListener("click", () => {
-      $("lineFold").open = true;
-      $("lineFold").scrollIntoView({ behavior: "smooth", block: "start" });
+      $("lineGuidePanel").scrollIntoView({ behavior: "smooth", block: "start" });
     })
   );
 })();
