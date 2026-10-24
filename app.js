@@ -8,7 +8,8 @@ import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242000";
 import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242000";
 
 const $ = (id) => document.getElementById(id);
-// カードの「✅ つづくで○をつける」で開く先（LINE の中で開く。js/line-config.js）
+// カードの「✅ つづくでチェックする」で開く先（受け取った人が開くので、ふつうのページ。おくるんのカードは登録していない LIFF のリンクをボタンにしない）
+const PAGE_URL = "https://katsuan.github.io/tuzuq/";
 const CARD_COLOR = "#2F80D8"; // ロゴの青
 // しるしの候補：6列×3段の18個（どの端末でも6列にそろえる。style.css の .emojis）
 const EMOJIS = ["✅", "💧", "🚶", "🏃", "📖", "🧘", "🦷", "💊", "📓", "🛏️", "☀️", "🥗", "🎹", "📚", "🌱", "🧹", "💪", "🍚"];
@@ -20,8 +21,8 @@ const IDEAS = [
   ["🦷", "フロス"],
   ["📓", "日記を書く"],
   ["🛏️", "0時までに寝る"],
-  ["🍚", "しょくじを記録", "shoquji"],
-  ["🏋️", "筋トレ（キロっく）", "kiloq"]
+  ["🍚", "食事を記録", "shoquji"],
+  ["🏋️", "筋トレ", "kiloq"]
 ];
 
 let state = load();
@@ -147,7 +148,7 @@ function habitHtml(h, today, week) {
   return `<div class="habit${now.on ? " is-done" : ""}${ui.focus === h.id ? " is-focus" : ""}" data-habit="${h.id}">
         <div class="habit-top">
           <span class="habit-emoji" aria-hidden="true">${esc(h.emoji)}</span>
-          <span class="habit-name"><b>${esc(h.name)}</b>${h.link ? `<a class="auto-tag is-link" href="${esc(LINKS[h.link].url)}" aria-label="${esc(LINKS[h.link].name)}を開く（記録した日に自動で○）">${esc(LINKS[h.link].label.split(" ")[0])} 記録した日に自動で○ ›</a>` : ""}${lineLog && h.lineText ? '<small class="auto-tag bot-tag">💬 ○で記録ボットにも</small>' : ""}</span>
+          <span class="habit-name"><b>${esc(h.name)}</b>${h.link ? `<a class="auto-tag is-link" href="${esc(LINKS[h.link].url)}" aria-label="${esc(LINKS[h.link].name)}（${esc(LINKS[h.link].what)}）を開く。記録した日は自動でチェック">${esc(LINKS[h.link].label.split(" ")[0])} ${esc(LINKS[h.link].name)}（${esc(LINKS[h.link].what)}）と連動 ›</a>` : ""}${lineLog && h.lineText ? '<small class="auto-tag bot-tag">💬 記録ボットと連動</small>' : ""}</span>
           <span class="habit-streak${n ? "" : " is-zero"}">${n ? `🔥${n}日` : "これから"}</span>
           <button class="check${now.on ? " is-on" : ""}${ui.justDone === `${h.id}:${today}` ? " is-pop" : ""}" type="button" data-toggle="${h.id}" data-date="${today}" ${now.auto ? "disabled" : ""} aria-pressed="${now.on}" aria-label="${esc(h.name)} きょう${now.on ? "できた" : "まだ"}">${now.on ? "✓" : ""}</button>
         </div>
@@ -221,7 +222,7 @@ function cardUrl(today) {
     customColor: CARD_COLOR,
     showAction: "true",
     actionLabel: "✅ つづくでチェックする",
-    actionUrl: OPEN_URL,
+    actionUrl: PAGE_URL, // 受け取るのは家族・友だち。LINE の中（LIFF）ではなく、だれでも開けるふつうのページ
     from: "tuzuq"
   });
   return window.OQRN ? window.OQRN.cardUrl(params) : "#";

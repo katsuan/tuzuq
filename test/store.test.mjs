@@ -212,6 +212,7 @@ test("自動の○のピルから開くのは、決まった自分のツール�
   Object.values(LINKS).forEach((def) => {
     assert.match(def.url, /^https:\/\/(katsuan\.github\.io\/[a-z-]+\/|liff\.line\.me\/\d{10}-[A-Za-z0-9]+)$/);
     assert.ok(def.name);
+    assert.ok(def.what, "何のツールかがわかる言葉（例：食事の記録）");
   });
 });
 

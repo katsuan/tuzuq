@@ -16,9 +16,9 @@ export const MAX_IMPORT_BYTES = 1024 * 1024; // 控えのファイルは 1MB ま
 const ID = /^[a-z0-9]{4,24}$/;
 export const LINKS = {
   // url：自動の○のしるし（ピル）を押すと開く、そのツール（決まった自分のツールだけ。W5）
-  shoquji: { name: "しょくじ", label: "🍚 しょくじを記録した日", key: "shoquji:v1", url: "https://katsuan.github.io/shoquji/" },
+  shoquji: { name: "しょくじ", what: "食事の記録", label: "🍚 しょくじ（食事の記録）で記録した日", key: "shoquji:v1", url: "https://katsuan.github.io/shoquji/" },
   // キロっくは LINE の中で使う。この端末の同じブラウザ（LINE の中）で開いたときだけ読める。開くのも LINE の中で
-  kiloq: { name: "キロっく", label: "🏋️ キロっくで記録した日", key: "liff-workout-history", url: "https://liff.line.me/2009927582-2isjfmkk" }
+  kiloq: { name: "キロっく", what: "筋トレの記録", label: "🏋️ キロっく（筋トレの記録）で記録した日", key: "liff-workout-history", url: "https://liff.line.me/2009927582-2isjfmkk" }
 };
 // 文字を n 字（UTF-16）までに切る。絵文字が半分に切れて残らないように
 export function cut(text, n) {
