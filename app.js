@@ -4,7 +4,7 @@ import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, cleanBotId, oneMark, lineRecordUrl
 import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242000";
 import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242000";
 import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242000";
-import { best, label, lastDays, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242000";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242000";
 
 const $ = (id) => document.getElementById(id);
 // カードの「✅ つづくで○をつける」で開く先（LINE の中で開く。js/line-config.js）
@@ -432,19 +432,23 @@ function renderCalendar(today) {
     $("monthLabel").textContent = "";
     return;
   }
-  if (!state.habits.some((h) => h.id === ui.cal)) ui.cal = state.habits[0].id;
-  const h = state.habits.find((x) => x.id === ui.cal);
-  $("calHabits").innerHTML = state.habits
-    .map((x) => `<button class="ls-chip is-small" type="button" aria-pressed="${x.id === ui.cal}" data-cal="${x.id}">${esc(x.emoji)} ${esc(x.name)}</button>`)
-    .join("");
+  // 先頭の「🗓 すべて」は、習慣を重ねて見る（ui.cal = "all"）
+  if (ui.cal !== "all" && !state.habits.some((h) => h.id === ui.cal)) ui.cal = state.habits[0].id;
+  $("calHabits").innerHTML =
+    `<button class="ls-chip is-small" type="button" aria-pressed="${ui.cal === "all"}" data-cal="all">🗓 すべて</button>` +
+    state.habits
+      .map((x) => `<button class="ls-chip is-small" type="button" aria-pressed="${x.id === ui.cal}" data-cal="${x.id}">${esc(x.emoji)} ${esc(x.name)}</button>`)
+      .join("");
   const [y, m] = ui.month.split("-").map(Number);
   $("monthLabel").textContent = `${y}年${m}月`;
   $("nextMonth").disabled = ui.month >= today.slice(0, 7);
-  const d = daysOf(h);
   $("calWeek").innerHTML = weekHeader(state.weekStart) // qcheck-ok: W1 決まった曜日の字だけ
     .map((w) => `<span class="${w.dow === 0 ? "is-sun" : w.dow === 6 ? "is-sat" : ""}">${w.label}</span>`)
     .join("");
   const cells = monthGrid(y, m, state.weekStart);
+  if (ui.cal === "all") return renderCalendarAll(cells, today);
+  const h = state.habits.find((x) => x.id === ui.cal);
+  const d = daysOf(h);
   $("calendar").innerHTML = cells
     .map((date) => {
       if (!date) return '<span class="cell is-blank"></span>';
@@ -460,6 +464,35 @@ function renderCalendar(today) {
     <div><span>いま</span><b>${streak(d.all, today)}<small>日</small></b><em>つづいている</em></div>
     <div><span>いちばん</span><b>${best(d.all)}<small>日</small></b><em>つづいた</em></div>`;
 }
+
+// 「🗓 すべて」：日ごとに、できた習慣の数を色の濃さで（全部できた日がいちばん濃い）。日を押すと、その日のようす
+function renderCalendarAll(cells, today) {
+  const sets = state.habits.map((h) => daysOf(h).all);
+  const n = sets.length;
+  $("calendar").innerHTML = cells
+    .map((date) => {
+      if (!date) return '<span class="cell is-blank"></span>';
+      const c = doneCount(sets, date);
+      const lv = level(c, n);
+      return `<button class="cell lv-${lv}${date === today ? " is-today" : ""}" type="button" data-cal-all="${date}" ${date > today ? "disabled" : ""} aria-label="${label(date)} ${c}/${n}">${Number(date.slice(8))}</button>`;
+    })
+    .join("");
+  const days = cells.filter((d) => d && d <= today);
+  const full = days.filter((d) => doneCount(sets, d) === n).length;
+  const some = days.filter((d) => doneCount(sets, d) > 0).length;
+  $("calStats").innerHTML = `
+    <div><span>この月</span><b>${full}<small>日</small></b><em>全部できた</em></div>
+    <div><span>この月</span><b>${some}<small>日</small></b><em>1つ以上</em></div>
+    <div><span>いま</span><b>${fullStreak(sets, today)}<small>日</small></b><em>全部つづき</em></div>`;
+}
+
+$("calendar").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-cal-all]");
+  if (!b || b.disabled) return;
+  const date = b.dataset.calAll;
+  const list = state.habits.map((h) => `${daysOf(h).all.has(date) ? "✅" : "⬜"} ${h.emoji}${h.name}`).join("　");
+  say(`${label(date)}　${list}`);
+});
 
 $("calHabits").addEventListener("click", (e) => {
   const b = e.target.closest("[data-cal]");

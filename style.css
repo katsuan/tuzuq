@@ -107,6 +107,11 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .cell.is-on { background: var(--ls-accent); color: #fff; }
 .cell.is-auto { background: var(--auto); color: #fff; }
 .cell.is-today { border-color: var(--ls-accent); }
+/* 「🗓 すべて」：できた習慣の数で濃さを変える（4＝全部） */
+.cell.lv-1 { background: color-mix(in srgb, var(--ls-accent) 22%, transparent); }
+.cell.lv-2 { background: color-mix(in srgb, var(--ls-accent) 45%, transparent); }
+.cell.lv-3 { background: color-mix(in srgb, var(--ls-accent) 70%, transparent); color: #fff; }
+.cell.lv-4 { background: var(--ls-accent); color: #fff; }
 .cell:disabled:not(.is-auto) { color: var(--ls-line-strong); cursor: default; }
 .cal-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .cal-stats > div { display: grid; justify-items: center; gap: 1px; padding: 8px 4px; border-radius: 12px; background: var(--ls-surface-sub); }

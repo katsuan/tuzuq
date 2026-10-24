@@ -228,3 +228,21 @@ test("しるしは、見た目の1文字だけ（つながった絵文字も1つ
   assert.equal(addHabit(s, { name: "a", emoji: "" }).emoji, "✅");
   assert.equal(addHabit(s, { name: "b", emoji: "🐈‍⬛ねこ" }).emoji, "🐈‍⬛");
 });
+
+test("カレンダーの「すべて」：できた数・色の濃さ・全部つづいた日数", async () => {
+  const { doneCount, level, fullStreak } = await import("../js/stats.js");
+  const a = new Set(["2026-10-21", "2026-10-22", "2026-10-23", "2026-10-24"]);
+  const b = new Set(["2026-10-22", "2026-10-23"]);
+  const c = new Set(["2026-10-22", "2026-10-23", "2026-10-24"]);
+  const sets = [a, b, c];
+  assert.equal(doneCount(sets, "2026-10-23"), 3);
+  assert.equal(doneCount(sets, "2026-10-24"), 2);
+  assert.equal(level(0, 3), 0);
+  assert.equal(level(1, 3), 1);
+  assert.equal(level(2, 3), 2);
+  assert.equal(level(3, 3), 4);
+  assert.equal(level(1, 12), 1);
+  assert.equal(level(11, 12), 3);
+  assert.equal(fullStreak(sets, "2026-10-24"), 2, "きょうまだなら、きのうまで（22・23）");
+  assert.equal(fullStreak([], "2026-10-24"), 0);
+});

@@ -85,3 +85,27 @@ export function monthStats(cells, days, today, since) {
   const passed = dates.filter((d) => d <= today && d >= since).length;
   return { count, rate: passed ? Math.min(100, Math.round((count / passed) * 100)) : 0 };
 }
+
+// ---- カレンダーの「すべて」（習慣を重ねて見る） ----
+// その日にできた習慣の数（sets：習慣ごとの○の日の Set）
+export const doneCount = (sets, date) => sets.filter((s) => s.has(date)).length;
+
+// 色の濃さ（0：なし … 4：全部）。1つ以上なら 1〜3、全部なら 4
+export function level(count, total) {
+  if (!total || !count) return 0;
+  if (count >= total) return 4;
+  return Math.min(3, Math.max(1, Math.ceil((count / total) * 3)));
+}
+
+// 全部できた日が何日つづいているか（今日まだなら、昨日までで数える）
+export function fullStreak(sets, today) {
+  if (!sets.length) return 0;
+  const all = (d) => doneCount(sets, d) === sets.length;
+  let d = all(today) ? today : addDays(today, -1);
+  let n = 0;
+  while (all(d)) {
+    n++;
+    d = addDays(d, -1);
+  }
+  return n;
+}
