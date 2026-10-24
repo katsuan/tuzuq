@@ -1,11 +1,11 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242038";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242038";
-import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242038";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242038";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242038";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242038";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242041";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242041";
+import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242041";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242041";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242041";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242041";
 
 const $ = (id) => document.getElementById(id);
 // カードの「✅ つづくでチェックする」で開く先は、LINE の中のつづく（OPEN_URL。js/line-config.js）
@@ -147,7 +147,7 @@ function habitHtml(h, today, week) {
   return `<div class="habit${now.on ? " is-done" : ""}${ui.focus === h.id ? " is-focus" : ""}" data-habit="${h.id}">
         <div class="habit-top">
           <span class="habit-emoji" aria-hidden="true">${esc(h.emoji)}</span>
-          <span class="habit-name"><b>${esc(h.name)}</b>${h.link ? `<a class="auto-tag is-link" href="${esc(LINKS[h.link].url)}" aria-label="${esc(LINKS[h.link].name)}（${esc(LINKS[h.link].what)}）を開く。記録した日は自動でチェック">${esc(LINKS[h.link].label.split(" ")[0])} ${esc(LINKS[h.link].name)}（${esc(LINKS[h.link].what)}）と連動 ›</a>` : ""}${lineLog && h.lineText ? '<small class="auto-tag bot-tag">💬 記録ボットと連動</small>' : ""}</span>
+          <span class="habit-name"><b>${esc(h.name)}</b>${h.link ? `<a class="auto-tag is-link" href="${esc(LINKS[h.link].url)}" aria-label="${esc(LINKS[h.link].name)}（${esc(LINKS[h.link].what)}）を開く。記録した日は自動でチェック">${esc(LINKS[h.link].label.split(" ")[0])} 自動 ›</a>` : ""}${lineLog && h.lineText ? '<small class="auto-tag bot-tag" title="記録ボットにも記録します">💬 ボット</small>' : ""}</span>
           <span class="habit-streak${n ? "" : " is-zero"}">${n ? `🔥${n}日` : "これから"}</span>
           <button class="check${now.on ? " is-on" : ""}${ui.justDone === `${h.id}:${today}` ? " is-pop" : ""}" type="button" data-toggle="${h.id}" data-date="${today}" ${now.auto ? "disabled" : ""} aria-pressed="${now.on}" aria-label="${esc(h.name)} きょう${now.on ? "できた" : "まだ"}">${now.on ? "✓" : ""}</button>
         </div>

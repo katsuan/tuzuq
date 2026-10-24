@@ -191,3 +191,6 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 p, li, figcaption, small, .ls-hint, .ls-empty, .ls-tip li { word-break: auto-phrase; text-wrap: pretty; line-break: strict; }
 /* 切れると読みにくいひとかたまり（色の見本など）は、まとめて次の行へ */
 .nobr { display: inline-block; }
+
+/* 習慣の札（🍚 自動 ›・💬 ボット）：短く1行（押せる広さは ::after で広げているので、はみ出しを切らない） */
+.auto-tag { white-space: nowrap; }
