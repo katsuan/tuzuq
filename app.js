@@ -1,11 +1,11 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242041";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242041";
-import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242041";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242041";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242041";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242041";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242042";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242042";
+import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610242042";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242042";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242042";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242042";
 
 const $ = (id) => document.getElementById(id);
 // カードの「✅ つづくでチェックする」で開く先は、LINE の中のつづく（OPEN_URL。js/line-config.js）
@@ -123,6 +123,33 @@ async function readBotDays(force = false) {
   if (applyBotDays(state, habits, res.days)) {
     persist();
     render();
+  }
+  sendLinkedToBot(habits);
+}
+
+// ほかのツール（しょくじ・キロっく）で記録した日を、記録ボットにも入れる（つづくが仲介する）
+// - 送る文を決めた、ツール連動の習慣だけ。今日から7日以内で、まだ記録ボットにない日を、1日ずつ
+// - うまく送れなかった日は、開いているあいだは送りなおさない（次に開いたときにまた試す）
+const linkedTried = new Set(); // 「習慣の id|日付」
+async function sendLinkedToBot(habits) {
+  const today = ymd();
+  for (const h of habits) {
+    if (!h.link || !lineLog) continue;
+    const bot = botDays(state, h.id);
+    const days = [...linkedOf(h.link)].filter((d) => withinBotDays(d, today) && !bot.has(d) && !linkedTried.has(`${h.id}|${d}`)).sort();
+    let added = 0;
+    for (const d of days) {
+      linkedTried.add(`${h.id}|${d}`);
+      const res = await lineLog.record(h.lineText, d);
+      if (!res.ok) break; // 1つでもだめなら、この習慣はここまで
+      confirmBotDay(state, h.id, res.date || d);
+      if (res.added) added++;
+    }
+    if (days.length) {
+      persist();
+      render();
+    }
+    if (added) say(`💬 ${h.name}：${LINKS[h.link].name}（${LINKS[h.link].what}）の ${added}日分を記録ボットに入れました`);
   }
 }
 
