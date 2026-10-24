@@ -6,3 +6,6 @@
 export const LINE_LOG = {
   liffId: "2012187502-o87l8Esu"
 };
+
+// つづくを LINE の中（LIFF）で開く URL。カードのボタン・カレンダーの予定から開くときに使う（ブラウザで押しても、つづくが開く）
+export const OPEN_URL = LINE_LOG.liffId ? `https://liff.line.me/${LINE_LOG.liffId}` : "https://katsuan.github.io/tuzuq/";

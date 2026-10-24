@@ -2,12 +2,12 @@
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
 import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, cleanBotId, oneMark, lineRecordUrl, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242000";
 import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242000";
-import { LINE_LOG } from "./js/line-config.js?v=202610242000";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610242000";
 import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242000";
 import { best, label, lastDays, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242000";
 
 const $ = (id) => document.getElementById(id);
-const PAGE_URL = "https://katsuan.github.io/tuzuq/";
+// カードの「✅ つづくで○をつける」で開く先（LINE の中で開く。js/line-config.js）
 const CARD_COLOR = "#2F80D8"; // ロゴの青
 const EMOJIS = ["✅", "💧", "🚶", "🏃", "📖", "🧘", "🦷", "💊", "📓", "🛏️", "🥗", "🎹", "📚", "🌱", "🧹", "💪", "🍚"];
 const IDEAS = [
@@ -28,7 +28,8 @@ const ui = {
   editing: null, // 直している習慣の id
   cal: null, // カレンダーで見る習慣の id
   month: ymd().slice(0, 7), // "YYYY-MM"
-  justDone: null // ○をつけたばかりの「id:日付」（少し弾ませる）
+  justDone: null, // ○をつけたばかりの「id:日付」（少し弾ませる）
+  focus: null // カレンダーの予定から開いて、光らせている習慣の id
 };
 
 const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -137,7 +138,7 @@ function habitHtml(h, today, week) {
       return `<button class="dot${x.cls}" type="button" data-toggle="${h.id}" data-date="${date}" ${x.auto ? "disabled" : ""} aria-pressed="${x.on}" aria-label="${label(date)} ${x.on ? "○あり" : "○なし"}"><span>${weekday(date)}</span><i></i></button>`;
     })
     .join("");
-  return `<div class="habit${now.on ? " is-done" : ""}" data-habit="${h.id}">
+  return `<div class="habit${now.on ? " is-done" : ""}${ui.focus === h.id ? " is-focus" : ""}" data-habit="${h.id}">
         <div class="habit-top">
           <span class="habit-emoji" aria-hidden="true">${esc(h.emoji)}</span>
           <span class="habit-name"><b>${esc(h.name)}</b>${h.link ? `<a class="auto-tag is-link" href="${esc(LINKS[h.link].url)}" aria-label="${esc(LINKS[h.link].name)}を開く（記録した日に自動で○）">${esc(LINKS[h.link].label.split(" ")[0])} 記録した日に自動で○ ›</a>` : ""}${lineLog && h.lineText ? '<small class="auto-tag bot-tag">💬 ○で記録ボットにも</small>' : ""}</span>
@@ -232,7 +233,7 @@ function cardUrl(today) {
     customColor: CARD_COLOR,
     showAction: "true",
     actionLabel: "✅ つづくで○をつける",
-    actionUrl: PAGE_URL,
+    actionUrl: OPEN_URL,
     from: "tuzuq"
   });
   return window.OQRN ? window.OQRN.cardUrl(params) : "#";
@@ -601,9 +602,11 @@ render();
 // LINE の中（LIFF）で開いたときだけ、記録ボットとつなぐ（ブラウザでは何もしない）
 // つなぎ先を入れなおしたときも、ここからやりなおす
 function connectLineLog() {
+  const had = !!lineLog;
   lineLog = null;
   return startLineLog(state.gasUrl).then((client) => {
-    if (!client) return render();
+    // つながらないときは、前につながっていたときだけ描きなおす（開いたときの「その習慣を光らせる」を消さないように）
+    if (!client) return had && render();
     lineLog = client;
     $("lead").textContent = "できた日に○をつけるだけ。送る文のある習慣は、記録ボットにも残ります。";
     render();
@@ -628,16 +631,30 @@ $("gasUrl").addEventListener("change", () => {
 // カレンダーの予定から開いたとき（?h=習慣の id）：その習慣まで動かして、少し光らせる。アドレスからは消す
 (function focusFromLink() {
   const url = new URL(location.href);
-  const id = url.searchParams.get("h");
-  if (!url.searchParams.has("h")) return;
+  // LINE の中で開くリンク（liff.line.me/…?h=）をブラウザで押したときは、liff.state に入って届く。LINE の中では LIFF が ?h= に戻してくれる
+  let id = url.searchParams.get("h");
+  if (!url.searchParams.has("h") && !inLineApp()) {
+    try {
+      id = new URLSearchParams(String(url.searchParams.get("liff.state") || "").replace(/^[^?]*\?/, "")).get("h");
+    } catch {
+      id = null;
+    }
+    if (!id) return;
+  } else if (!url.searchParams.has("h")) return;
   url.searchParams.delete("h");
+  if (!inLineApp()) url.searchParams.delete("liff.state");
   history.replaceState(null, "", url);
   const h = /^[a-z0-9]{4,24}$/.test(id || "") && state.habits.find((x) => x.id === id);
   if (!h) return say("この端末には、その習慣がありません（ほかの端末で作った習慣かもしれません）");
   const card = document.querySelector(`.habit[data-habit="${h.id}"]`);
   if (!card) return;
   card.scrollIntoView({ behavior: "smooth", block: "center" });
+  // 描きなおしても消えないように、光らせている習慣を覚えておく（habitHtml が is-focus を付ける）
+  ui.focus = h.id;
   card.classList.add("is-focus");
-  setTimeout(() => card.classList.remove("is-focus"), 2600);
+  setTimeout(() => {
+    ui.focus = null;
+    document.querySelector(`.habit[data-habit="${h.id}"]`)?.classList.remove("is-focus");
+  }, 2600);
   if (!daysOf(h).all.has(ymd())) say(`「${h.name}」できたら、右の○を押してね`);
 })();

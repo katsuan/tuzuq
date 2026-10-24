@@ -40,3 +40,8 @@ test("予定のリンクは、習慣の印（?h=）つきでつづくを開く",
   const ics = remindIcs([habit], "21:00", "2026-10-24");
   assert.ok(ics.includes(`URL:${PAGE_URL}?h=abcd1234`));
 });
+
+test("予定・カードから開くのは、つづくの LINE の中（LIFF）の URL", () => {
+  assert.equal(PAGE_URL, "https://liff.line.me/2012187502-o87l8Esu");
+  assert.equal(habitUrl({ id: "abcd1234" }), "https://liff.line.me/2012187502-o87l8Esu?h=abcd1234");
+});
