@@ -160,6 +160,7 @@ function renderToday(today) {
     $("habitList").innerHTML = `<div class="ls-empty"><span class="ls-empty-icon" aria-hidden="true">🌱</span>まずは、つづけたいことを1つ。<br>押すとふえます（自分で決めるなら下の「➕ 習慣をふやす」）${moved}</div>
       <div class="ls-chips start-ideas">${IDEAS.slice(0, 6).map(([e, n], i) => `<button class="ls-chip is-small" type="button" data-quick="${i}">${e} ${esc(n)}</button>`).join("")}</div>`;
     $("sendArea").hidden = true;
+    $("dotLegend").hidden = true;
     return;
   }
   const week = lastDays(today, 7);
@@ -170,6 +171,9 @@ function renderToday(today) {
   ui.justDone = null;
   $("sendArea").hidden = false;
   $("sendBtn").href = cardUrl(today);
+  // ○の色の見本：自動の○（記録ボット・ほかのツール）がつながっている習慣があるときだけ、オレンジの説明も
+  $("dotLegend").hidden = false;
+  $("legendAuto").hidden = !state.habits.some((h) => h.link || (lineLog && h.lineText) || botDays(state, h.id).size);
 }
 
 $("habitList").addEventListener("click", (e) => {

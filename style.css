@@ -178,3 +178,9 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 /* 記録の置き場所の注意（ブラウザごと・端末ごとに別々） */
 .where-note { margin: 0; padding: 8px 12px; border-radius: 12px; background: var(--ls-surface-sub); color: var(--ls-subtext); font-size: 13px; line-height: 1.55; }
 .where-note b { color: var(--ls-text); }
+
+/* ○の色の見本 */
+.dot-legend { margin: 8px 2px 0; color: var(--ls-subtext); font-size: 12px; line-height: 1.7; }
+.dot-legend[hidden] { display: none; }
+.dot-legend .lg-own { color: var(--ls-accent); }
+.dot-legend .lg-auto { color: var(--auto); }
