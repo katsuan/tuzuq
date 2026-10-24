@@ -28,7 +28,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、つづくの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css">
-<link rel="stylesheet" href="style.css?v=202610240819">
+<link rel="stylesheet" href="style.css?v=202610242000">
 </head>
 <body>
 <main class="ls-page ls-stack">
@@ -37,7 +37,7 @@
     <img class="ls-brand-logo" src="logo.svg" alt="TuzuQ" width="74" height="28">
   </header>
   <p class="ls-brand-copy">きょうのできたが、あしたにつづく</p>
-  <p class="ls-hint lead">できた日に○をつけるだけ。記録はこの端末の中だけに残ります。</p>
+  <p class="ls-hint lead" id="lead">できた日に○をつけるだけ。記録はこの端末の中だけに残ります。</p>
 
   <!-- きょうの○：習慣ごとに、きょうの○と、この1週間の○（押すとつけ外し） -->
   <section class="ls-panel" aria-labelledby="todayTitle">
@@ -98,7 +98,7 @@
         <div id="calWeek" class="cal-week" aria-hidden="true"></div>
         <div id="calendar" class="calendar"></div>
         <div id="calStats" class="cal-stats"></div>
-        <p class="ls-hint small">日を押すと○をつけ外しできます。🍚・🏋️ の自動の○は、しょくじ・キロっくの記録で決まります（同じブラウザで開いたときだけ読めます。キロっくは LINE の中）。一度読んだ日は、もとの記録が消えても残ります。</p>
+        <p class="ls-hint small">日を押すと○をつけ外しできます。🍚・🏋️・💬 の自動の○は、しょくじ・キロっく・記録ボットの記録で決まります（同じブラウザで開いたときだけ読めます。キロっくは LINE の中）。一度読んだ日は、もとの記録が消えても残ります。</p>
         <div class="week-start">
           <span class="ls-hint small">週のはじまり</span>
           <div id="weekStart" class="ls-chips" role="radiogroup" aria-label="週のはじまり">
@@ -134,6 +134,7 @@
           <input id="lineBot" class="ls-input" maxlength="41" placeholder="例：@123abcde" autocomplete="off" autocapitalize="off" spellcheck="false">
         </label>
         <p id="lineBotError" class="ls-hint is-error" role="alert" hidden>@ から始まる ID を入れてね（例：@123abcde）</p>
+        <p id="lineLogNote" class="ls-hint" hidden>💬 いまは LINE の中で開いているので、送る文のある習慣は、今日の○を押すだけで記録ボットに入ります（トークに切りかえなくてよい）。ボットで記録した日にも○が出ます（黄色。つづくでは外せません）。習慣を直すと「送る文」を決められます。</p>
       </div>
     </details>
 
@@ -159,7 +160,7 @@
 
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/ui.js" defer></script>
-<script type="module" src="app.js?v=202610240819"></script>
+<script type="module" src="app.js?v=202610242000"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="tuzuq" defer></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>
 </body>

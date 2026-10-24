@@ -1,7 +1,9 @@
 // つづく（TuzuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, cleanBotId, lineRecordUrl, addHabit, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610240819";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610240819";
-import { best, label, lastDays, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610240819";
+// LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, cleanBotId, lineRecordUrl, addHabit, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, load, moveHabit, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610242000";
+import { lineLogMessage, startLineLog } from "./js/linelog.js?v=202610242000";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610242000";
+import { best, label, lastDays, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610242000";
 
 const $ = (id) => document.getElementById(id);
 const PAGE_URL = "https://katsuan.github.io/tuzuq/";
@@ -48,11 +50,70 @@ function say(text, undo) {
 let linkedCache = {};
 const linkedOf = (link) => linkedCache[link] || (linkedCache[link] = linkedDays(link, state));
 
-// 習慣ごとの○の日（自分でつけた日＋つないだツールの記録の日）
+// 習慣ごとの○の日（自分でつけた日＋つないだツールの記録の日＋記録ボットで記録した日）
 function daysOf(h) {
   const own = new Set(state.done[h.id] || []);
-  const auto = h.link ? linkedOf(h.link) : new Set();
+  const auto = new Set([...(h.link ? linkedOf(h.link) : []), ...botDays(state, h.id)]);
   return { own, auto, all: new Set([...own, ...auto]) };
+}
+
+// ---- 記録ボット（LINE の中で開いたときだけ） ----
+let lineLog = null; // js/linelog.js の startLineLog の返事（つなげないときは null）
+const SEND_DELAY_MS = 5000; // ○のあと「元に戻す」を押せるあいだは送らない
+const pending = new Map(); // 習慣の id → { date, text, timer }（まだ送っていない○）
+let lastRead = 0;
+
+function queueSend(h, date) {
+  cancelSend(h.id);
+  pending.set(h.id, { date, text: h.lineText, timer: setTimeout(() => sendNow(h.id), SEND_DELAY_MS) });
+}
+function cancelSend(id) {
+  const p = pending.get(id);
+  if (p) clearTimeout(p.timer);
+  pending.delete(id);
+}
+async function sendNow(id, keepalive = false) {
+  const p = pending.get(id);
+  if (!p || !lineLog) return;
+  cancelSend(id);
+  const res = await lineLog.record(p.text, p.date, keepalive);
+  if (keepalive) return; // 閉じるところ。次に開いたときに読みなおす
+  const h = state.habits.find((x) => x.id === id);
+  if (res.ok) {
+    if (h) confirmBotDay(state, id, res.date || p.date);
+    persist();
+    render();
+    if (h) say(res.added ? `💬 「${h.name}」を記録ボットに入れました${res.github ? "（GitHub にも）" : ""}` : `💬 「${h.name}」は、もう記録ボットに入っています`);
+    return;
+  }
+  const again = h && (res.error === "net" || res.error === "fail");
+  if (again && window.LineShareUI?.toast) {
+    window.LineShareUI.toast(lineLogMessage(res.error), { actionLabel: "もう一度", onAction: () => (pending.set(id, { ...p, timer: 0 }), sendNow(id)), ms: 8000 });
+  } else {
+    say(lineLogMessage(res.error));
+  }
+}
+// 閉じる・ほかのアプリに切りかえるときは、待っている○をすぐ送る
+function flushSends() {
+  [...pending.keys()].forEach((id) => sendNow(id, true));
+}
+
+// 記録ボットで記録した日を読む（開いたとき・戻ってきたとき。1分に1回まで）
+async function readBotDays(force = false) {
+  if (!lineLog || (!force && Date.now() - lastRead < 60000)) return;
+  const habits = botHabits(state);
+  if (!habits.length) return;
+  lastRead = Date.now();
+  const res = await lineLog.days(habits.map((h) => h.lineText));
+  if (!res.ok) {
+    if (res.error === "auth") say("記録ボットの○を読めませんでした。LINE で、つづくを開きなおしてね");
+    else if (res.error !== "off") say("記録ボットの○を読めませんでした（電波のよい所で開きなおしてね）");
+    return;
+  }
+  if (applyBotDays(state, habits, res.days)) {
+    persist();
+    render();
+  }
 }
 
 // ○のボタンの見た目（is-on・is-auto・is-today・is-pop）
@@ -76,7 +137,7 @@ function habitHtml(h, today, week) {
   return `<div class="habit${now.on ? " is-done" : ""}" data-habit="${h.id}">
         <div class="habit-top">
           <span class="habit-emoji" aria-hidden="true">${esc(h.emoji)}</span>
-          <span class="habit-name"><b>${esc(h.name)}</b>${h.link ? `<small class="auto-tag">${esc(LINKS[h.link].label.split(" ")[0])} 記録した日に自動で○</small>` : ""}</span>
+          <span class="habit-name"><b>${esc(h.name)}</b>${h.link ? `<small class="auto-tag">${esc(LINKS[h.link].label.split(" ")[0])} 記録した日に自動で○</small>` : ""}${lineLog && h.lineText ? '<small class="auto-tag bot-tag">💬 ○で記録ボットにも</small>' : ""}</span>
           <span class="habit-streak${n ? "" : " is-zero"}">${n ? `🔥${n}日` : "これから"}</span>
           <button class="check${now.on ? " is-on" : ""}${ui.justDone === `${h.id}:${today}` ? " is-pop" : ""}" type="button" data-toggle="${h.id}" data-date="${today}" ${now.auto ? "disabled" : ""} aria-pressed="${now.on}" aria-label="${esc(h.name)} きょう${now.on ? "できた" : "まだ"}">${now.on ? "✓" : ""}</button>
         </div>
@@ -123,10 +184,22 @@ $("habitList").addEventListener("click", (e) => {
   const on = toggle(state, h.id, date);
   persist();
   if (on) ui.justDone = `${h.id}:${date}`;
+  if (!on) cancelSend(h.id); // 送る前に外したら、送らない
   render();
   if (on && date === ymd()) {
     const n = streak(daysOf(h).all, date);
     const text = n >= 2 ? `🔥 「${h.name}」${n}日つづいています` : `○ 「${h.name}」できました`;
+    // LINE の中：送る文のある習慣は、少し待ってから記録ボットに入れる（そのあいだは「元に戻す」で取りやめ）
+    if (lineLog && h.lineText) {
+      queueSend(h, date);
+      say(`${text}（記録ボットにも入れます）`, () => {
+        cancelSend(h.id);
+        if ((state.done[h.id] || []).includes(date)) toggle(state, h.id, date);
+        persist();
+        render();
+      });
+      return;
+    }
     // LINE でも記録（自分用）：送る文を決めた習慣なら、ボットのトークを開くボタンを出す
     const url = lineRecordUrl(state.lineBot, h.lineText);
     if (url && window.LineShareUI?.toast) {
@@ -164,7 +237,8 @@ function cardUrl(today) {
 
 // ---- 習慣をふやす・直す ----
 function renderForm() {
-  $("lineTextField").hidden = !state.lineBot;
+  $("lineTextField").hidden = !state.lineBot && !lineLog;
+  $("lineLogNote").hidden = !lineLog;
   $("emojis").innerHTML = EMOJIS.map((e) => `<button class="ls-chip emoji" type="button" role="radio" aria-checked="${e === ui.emoji}" data-emoji="${e}">${e}</button>`).join("");
   const used = new Set(state.habits.map((h) => h.name));
   $("ideas").innerHTML = ui.editing
@@ -257,6 +331,7 @@ $("saveBtn").addEventListener("click", () => {
   persist();
   clearForm();
   render();
+  if (entry.lineText) readBotDays(true);
 });
 
 $("cancelEdit").addEventListener("click", () => {
@@ -459,7 +534,15 @@ window.addEventListener("storage", (e) => {
 });
 // 日付をまたいで開きっぱなしでも、今日に（戻ってきたとき・開いたまま0時をこえたとき）
 let shownDay = "";
-document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && render());
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    render();
+    readBotDays();
+  } else {
+    flushSends();
+  }
+});
+window.addEventListener("pagehide", flushSends);
 setInterval(() => ymd() !== shownDay && render(), 30000);
 
 function render() {
@@ -475,6 +558,15 @@ function render() {
 }
 
 render();
+
+// LINE の中（LIFF）で開いたときだけ、記録ボットとつなぐ（ブラウザでは何もしない）
+startLineLog().then((client) => {
+  if (!client) return;
+  lineLog = client;
+  $("lead").textContent = "できた日に○をつけるだけ。送る文のある習慣は、記録ボットにも残ります。";
+  render();
+  readBotDays(true);
+});
 
 // カレンダーの予定から開いたとき（?h=習慣の id）：その習慣まで動かして、少し光らせる。アドレスからは消す
 (function focusFromLink() {

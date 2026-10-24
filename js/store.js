@@ -2,9 +2,10 @@
 // 習慣 1件 = { id, name, emoji, link, at }
 //   link：ほかの Q ツールの記録で自動で○をつける（"shoquji" … しょくじを記録した日）。なければ null
 // done = { 習慣の id: ["YYYY-MM-DD", ...] }（○をつけた日）
+// bot = { 習慣の id: ["YYYY-MM-DD", ...] }（LINE の中で開いたときに、記録ボットから読んだ「記録した日」。日付だけ）
 // 消した習慣は、○の記録ごと控え（trash）に1つだけ残して「元に戻す」で戻せるようにする
 
-import { isDate } from "./stats.js?v=202610240819";
+import { isDate } from "./stats.js?v=202610242000";
 
 const KEY = "tuzuq:v1";
 const OLD_KEY = "tsuduq:v1"; // 前の名前
@@ -34,7 +35,7 @@ const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
 // lineBot：LINE でも記録（自分用）で送る先のボットの LINE の ID（@ から）。空ならこの機能は出さない
 const BOT_ID = /^@[a-z0-9._-]{2,40}$/i;
 function blank() {
-  return { v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: REMIND_DEFAULT, lineBot: "" };
+  return { v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: REMIND_DEFAULT, lineBot: "", bot: {} };
 }
 export const cleanBotId = (v) => (BOT_ID.test(String(v ?? "").trim()) ? String(v).trim() : "");
 // ボットのトークを、送る文を入れた状態で開くリンク（送るのは本人。書きこみ用の鍵は持たない）
@@ -67,6 +68,7 @@ function clean(raw) {
     if (Array.isArray(auto[link])) s.auto[link] = dayList(auto[link]);
   });
   const done = raw.done && typeof raw.done === "object" ? raw.done : {};
+  const bot = raw.bot && typeof raw.bot === "object" ? raw.bot : {};
   const seen = new Set();
   (Array.isArray(raw.habits) ? raw.habits : [])
     .filter((h) => h && typeof h === "object" && String(h.name || "").trim())
@@ -78,6 +80,7 @@ function clean(raw) {
       const days = Array.isArray(done[h.id]) && habit.id === String(h.id) ? done[h.id] : [];
       s.habits.push(habit);
       s.done[habit.id] = dayList(days);
+      if (habit.id === String(h.id) && Array.isArray(bot[h.id]) && bot[h.id].length) s.bot[habit.id] = dayList(bot[h.id]);
     });
   return s;
 }
@@ -125,14 +128,17 @@ export function removeHabit(state, id) {
   if (i < 0) return null;
   const [habit] = state.habits.splice(i, 1);
   const days = state.done[id] || [];
+  const bot = (state.bot && state.bot[id]) || [];
   delete state.done[id];
-  return { habit, days, index: i };
+  if (state.bot) delete state.bot[id];
+  return { habit, days, bot, index: i };
 }
 
 export function restoreHabit(state, trash) {
   if (!trash || state.habits.some((x) => x.id === trash.habit.id)) return;
   state.habits.splice(Math.min(trash.index, state.habits.length), 0, trash.habit);
   state.done[trash.habit.id] = trash.days;
+  if (trash.bot && trash.bot.length) (state.bot = state.bot || {})[trash.habit.id] = trash.bot;
 }
 
 export function moveHabit(state, id, dir) {
@@ -193,6 +199,36 @@ export function rememberLinked(state) {
   return changed;
 }
 
+// ---- 記録ボット（LINE の中で開いたとき。js/linelog.js） ----
+// ボットに記録する習慣（送る文があるもの）
+export const botHabits = (state) => state.habits.filter((h) => h.lineText);
+
+// ボットから読んだ日に置きかえる（habits[i] の日 = days[i]）。変わったら true
+export function applyBotDays(state, habits, days) {
+  if (!Array.isArray(days)) return false;
+  state.bot = state.bot || {};
+  let changed = false;
+  habits.forEach((h, i) => {
+    if (!state.habits.includes(h)) return;
+    const next = Array.isArray(days[i]) ? dayList(days[i]) : [];
+    if (JSON.stringify(next) === JSON.stringify(state.bot[h.id] || [])) return;
+    if (next.length) state.bot[h.id] = next;
+    else delete state.bot[h.id];
+    changed = true;
+  });
+  return changed;
+}
+
+// ボットに入った日：ボットの日にうつす（自分の○からは外す。外せない○になる）
+export function confirmBotDay(state, id, date) {
+  if (!isDate(date) || !state.habits.some((h) => h.id === id)) return;
+  state.bot = state.bot || {};
+  state.bot[id] = dayList([...(state.bot[id] || []), date]);
+  state.done[id] = (state.done[id] || []).filter((d) => d !== date);
+}
+
+export const botDays = (state, id) => new Set((state.bot && state.bot[id]) || []);
+
 // 控え（書き出し・読みこみ）。読みこみは同じ習慣の○を足し、ほかの習慣は加える
 export function exportJson(state) {
   return JSON.stringify({ app: "tuzuq", exportedAt: new Date().toISOString(), ...state }, null, 1);
@@ -215,6 +251,7 @@ export function importJson(state, text) {
       added++;
     }
     state.done[h.id] = dayList([...(state.done[h.id] || []), ...incoming.done[h.id]]);
+    if (incoming.bot[h.id]) (state.bot = state.bot || {})[h.id] = dayList([...((state.bot && state.bot[h.id]) || []), ...incoming.bot[h.id]]);
   });
   return added;
 }
