@@ -1,5 +1,6 @@
 // つづく：LINE の中（LIFF）で開いたときの、記録ボットとのつなぎのテスト（画面に触らない部分）
 //   node --test test/
+import "./_botlink.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -29,12 +30,12 @@ test("ボットに送るのは ID トークンと、記録する文・日付だ�
   assert.equal(seen[0].url, GAS);
   assert.equal(seen[0].opt.method, "POST");
   assert.match(seen[0].opt.headers["Content-Type"], /^text\/plain/);
-  assert.deepEqual(seen[0].body, { app: "tuzuq", v: 1, idToken: TOKEN, op: "record", text: "# workout", date: "2026-10-24" });
+  assert.deepEqual(seen[0].body, { app: "tuzuq", v: 1, op: "record", tool: "tuzuq", action: "record", liffId: LINE_LOG.liffId, idToken: TOKEN, text: "# workout", date: "2026-10-24" });
   await c.days(["# workout", "# coding"]);
-  assert.deepEqual(seen[1].body, { app: "tuzuq", v: 1, idToken: TOKEN, op: "days", texts: ["# workout", "# coding"] });
+  assert.deepEqual(seen[1].body, { app: "tuzuq", v: 1, op: "days", tool: "tuzuq", action: "days", liffId: LINE_LOG.liffId, idToken: TOKEN, texts: ["# workout", "# coding"] });
   // つないだツールの中身（キロっく）があるときだけ note も送る
   await c.record("# workout", "2026-10-24", false, "ベンチプレス 60kg×10");
-  assert.deepEqual(seen[2].body, { app: "tuzuq", v: 1, idToken: TOKEN, op: "record", text: "# workout", date: "2026-10-24", note: "ベンチプレス 60kg×10" });
+  assert.deepEqual(seen[2].body, { app: "tuzuq", v: 1, op: "record", tool: "tuzuq", action: "record", liffId: LINE_LOG.liffId, idToken: TOKEN, text: "# workout", date: "2026-10-24", note: "ベンチプレス 60kg×10" });
 });
 
 test("ID トークンがないときは送らない。通信できないときは net", async () => {
@@ -150,4 +151,11 @@ test("いまの設定：入口の GAS の sections も、配布用の status も
   assert.match(s[1].rows[0], /つながっていません/);
   assert.equal(statusSections({ ok: false, error: "notyou" }), null);
   assert.equal(statusSections(null), null);
+});
+
+test("くらぶボットにつなぐときは、くらぶボットの形（app: qlove・tool・action）で送る", async () => {
+  const seen = [];
+  const c = makeClient(GAS, () => TOKEN, okFetch({ ok: true }, seen), { legacy: false });
+  await c.record("# workout", "2026-10-25");
+  assert.deepEqual(seen[0].body, { app: "qlove", v: 1, tool: "tuzuq", action: "record", liffId: LINE_LOG.liffId, idToken: TOKEN, text: "# workout", date: "2026-10-25" });
 });

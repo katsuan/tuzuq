@@ -1,8 +1,8 @@
 // つづく：おくるんのお知らせカード（OQRN.cardUrl）に渡す中身。画面には触らない（テストで呼ぶ）
 // 読まれるところ：app.js（テストは test/card.test.mjs）
-import { cut } from "./store.js?v=202610251110";
-import { label } from "./stats.js?v=202610251110";
-import { OPEN_URL } from "./line-config.js?v=202610251110";
+import { cut } from "./store.js?v=202610251500";
+import { label } from "./stats.js?v=202610251500";
+import { OPEN_URL } from "./line-config.js?v=202610251500";
 
 export const CARD_COLOR = "#2F80D8"; // ロゴの青
 

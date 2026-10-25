@@ -6,8 +6,8 @@
 // 消した習慣は、○の記録ごと控え（trash）に1つだけ残して「元に戻す」で戻せるようにする
 // 読まれるところ：app.js・js/card.js（テストは test/linelog.test.mjs・test/store.test.mjs）
 
-import { isDate } from "./stats.js?v=202610251110";
-import { cleanGasUrl } from "./linelog.js?v=202610251110";
+import { isDate } from "./stats.js?v=202610251500";
+import { cleanGasUrl } from "./linelog.js?v=202610251500";
 
 const KEY = "tuzuq:v1";
 const OLD_KEY = "tsuduq:v1"; // 前の名前

@@ -5,8 +5,8 @@
 // - ブラウザで開いたとき・設定が空のときは何もしない（つづくは今までどおり端末の中だけ）
 // - 約束（何を送り、何が返るか）は docs/linelog-api.md
 // 読まれるところ：app.js・js/store.js（テストは test/linelog.test.mjs・test/store.test.mjs）
-import { LINE_LOG } from "./line-config.js?v=202610251110";
-import { addDays } from "./stats.js?v=202610251110";
+import { LINE_LOG } from "./line-config.js?v=202610251500";
+import { addDays } from "./stats.js?v=202610251500";
 
 // 記録ボットに入れられるのは、7日前まで（GAS の TUZUQ_BACK_DAYS_ と同じ）
 export const BOT_BACK_DAYS = 7;
@@ -16,86 +16,53 @@ export function withinBotDays(date, today) {
   return addDays(today, -BOT_BACK_DAYS) <= date;
 }
 
-const SDK = "https://static.line-scdn.net/liff/edge/2/sdk.js";
-const TIMEOUT_MS = 15000;
+// つなぐ・送るの中身は、Q キットの共通の部品（q-oqrn の shared/botlink.js。window.QBotLink）。ここはつづくの分だけ：
+//   つなぎ先（自分で入れた URL が先。なければ、くらぶボットに「つづく」の機能があるときだけ）・送る中身（record・days・status）
+const Q = () => globalThis.QBotLink;
+const TOOL = "tuzuq";
+// つなぐ GAS の URL の形（ちがえば ""）。共通の部品が読めなかったときも、入れてある URL を消さないよう同じ形で確かめる
 const GAS = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]{10,120}\/exec$/;
-// つなぐ GAS の URL の形（ちがえば ""）
-export const cleanGasUrl = (v) => (GAS.test(String(v ?? "").trim()) ? String(v).trim() : "");
-
+export const cleanGasUrl = (v) => (Q() ? Q().cleanUrl(v) : GAS.test(String(v ?? "").trim()) ? String(v).trim() : "");
 // LINE のアプリの中か（ブラウザでは LIFF の SDK も読まない）
-export const inLineApp = (ua = globalThis.navigator?.userAgent || "") => /\bLine\//i.test(ua);
-
-// LIFF の SDK を読みこむ（もう読んでいれば、そのまま）
-function loadSdk() {
-  if (window.liff) return Promise.resolve();
-  return new Promise((resolve, reject) => {
-    const s = document.createElement("script");
-    s.src = SDK;
-    s.charset = "utf-8";
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error("sdk"));
-    document.head.append(s);
-  });
-}
+export const inLineApp = (ua) => (Q() ? Q().inLineApp(ua) : false);
 
 /**
- * つなげるときは { record, days } を、つなげないときは null を返す
+ * つなげるときは { record, days, status } を、つなげないときは null を返す
  * - LINE のアプリの中で、LIFF として開き、ログインしているときだけ
+ * - 自分で入れた URL（記録ボット）には前の形（app: "tuzuq"・op）で、くらぶボットにはくらぶボットの形で送る
  */
 export async function startLineLog(gasUrl, config = LINE_LOG) {
+  const B = Q();
   const liffId = String(config?.liffId || "");
-  if (!liffId || !cleanGasUrl(gasUrl) || !inLineApp()) return null;
-  try {
-    await loadSdk();
-    await Promise.race([liff.init({ liffId }), new Promise((_, no) => setTimeout(() => no(new Error("timeout")), 10000))]);
-    if (!liff.isInClient() || !liff.isLoggedIn()) return null;
-  } catch (error) {
-    console.error(error);
-    return null;
-  }
-  return makeClient(gasUrl, () => {
-    try {
-      return liff.getIDToken() || "";
-    } catch {
-      return "";
-    }
-  });
+  if (!B || !liffId || !B.inLineApp()) return null;
+  const to = await B.target({ own: gasUrl, tool: TOOL });
+  if (!to) return null;
+  const client = await B.start({ liffId, url: to.url, tool: TOOL, legacyApp: to.legacy ? TOOL : "" });
+  return client ? ops(client) : null;
 }
 
 /**
- * ボットへの呼び出し（テストでは fetch と ID トークンを差しかえる）
+ * 記録ボットへの呼び出し（テストでは fetch と ID トークンを差しかえる）
  * 返事は { ok, ... } か { ok: false, error }（error：auth・off・bad・day・many・fail・net）
  */
-export function makeClient(gasUrl, getIdToken, fetchImpl = (...a) => fetch(...a)) {
-  // 記録ボットの GAS に1回送り、返事（{ ok, ... }）を返す。送れなければ { ok: false, error }
-  async function post(body, keepalive = false) {
-    const idToken = getIdToken();
-    if (!idToken) return { ok: false, error: "auth" };
-    const ctrl = typeof AbortController === "function" ? new AbortController() : null;
-    const timer = ctrl && setTimeout(() => ctrl.abort(), TIMEOUT_MS);
-    try {
-      // text/plain なら、GAS に前もっての問い合わせ（preflight）がいらない
-      const res = await fetchImpl(gasUrl, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ app: "tuzuq", v: 1, idToken, ...body }),
-        keepalive,
-        signal: ctrl?.signal
-      });
-      const json = await res.json();
-      return json && typeof json === "object" ? json : { ok: false, error: "net" };
-    } catch {
-      return { ok: false, error: "net" };
-    } finally {
-      if (timer) clearTimeout(timer);
-    }
-  }
+export function makeClient(gasUrl, getIdToken, fetchImpl, { legacy = true, liffId = LINE_LOG.liffId } = {}) {
+  return ops(Q().makeClient(gasUrl, getIdToken, { tool: TOOL, liffId, legacyApp: legacy ? TOOL : "", fetch: fetchImpl }));
+}
+
+// つづくがボットに頼むこと
+function ops(client) {
   return {
-    record: (text, date, keepalive, note) => post({ op: "record", text, date, ...(note ? { note } : {}) }, keepalive),
-    days: (texts) => post({ op: "days", texts }),
-    status: () => post({ op: "status" }) // いまの設定（見るだけ）
+    // ○を押した習慣を、その日の分として記録する（note：つないだツールの中身。キロっくの種目など）
+    record: (text, date, keepalive, note) => client.call("record", { text, date, ...(note ? { note } : {}) }, { keepalive }),
+    // 習慣ごとの、ボットで記録した日
+    days: (texts) => client.call("days", { texts }),
+    // いまの設定（見るだけ）
+    status: () => client.call("status", {})
   };
 }
+
+// 送れなかった○の箱（閉じるときに送ったもの・電波がなかったもの。次に開いたときに送りなおす。ID トークンは入れない）
+export const sendBox = (opts) => (Q() ? Q().outbox("tuzuq:outbox", opts) : { put() {}, drop() {}, all: () => [] });
 
 // 失敗したときに出す、やさしい言葉（E2：仕組みの言葉は出さない）
 export function lineLogMessage(error) {

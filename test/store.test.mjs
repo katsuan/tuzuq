@@ -1,5 +1,6 @@
 // つづく：記録の読みこみ（端末に残した中身・控えのファイル）のテスト（画面に触らない部分）
 //   node --test test/
+import "./_botlink.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
 

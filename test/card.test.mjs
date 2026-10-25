@@ -1,5 +1,6 @@
 // つづく：送るカードの中身（js/card.js）のテスト
 //   node --test test/
+import "./_botlink.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
 

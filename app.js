@@ -1,16 +1,16 @@
 // つづく（TuZuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
 // 読まれるところ：index.html（画面の入口。部品は js/ から読む）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610251110";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog, statusSections, withinBotDays } from "./js/linelog.js?v=202610251110";
-import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610251110";
-import { habitIdFromUrl } from "./js/link.js?v=202610251110";
-import { cardParams } from "./js/card.js?v=202610251110";
-import { dragSort } from "./js/drag-sort.js?v=202610251110";
-import { exportFile } from "./js/export-file.js?v=202610251110";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610251110";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610251110";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610251110";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610251500";
+import { cleanGasUrl, inLineApp, lineLogMessage, sendBox, startLineLog, statusSections, withinBotDays } from "./js/linelog.js?v=202610251500";
+import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610251500";
+import { habitIdFromUrl } from "./js/link.js?v=202610251500";
+import { cardParams } from "./js/card.js?v=202610251500";
+import { dragSort } from "./js/drag-sort.js?v=202610251500";
+import { exportFile } from "./js/export-file.js?v=202610251500";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610251500";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610251500";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610251500";
 
 const $ = (id) => document.getElementById(id);
 // しるしの候補：6列×3段の18個（どの端末でも6列にそろえる。style.css の .emojis）
@@ -105,7 +105,10 @@ async function sendNow(key, keepalive = false) {
   if (!p || !lineLog) return;
   cancelSend(key);
   const id = p.id;
+  // 送れたとわかるまで箱に入れておく（閉じるときに送った分・電波がなかった分は、次に開いたときに送りなおす）
+  outbox.put(key, { text: p.text, date: p.date });
   const res = await lineLog.record(p.text, p.date, keepalive);
+  if (res.ok || !RETRY_ERRORS.has(res.error)) outbox.drop(key);
   if (keepalive) return; // 閉じるところ。次に開いたときに読みなおす
   const h = state.habits.find((x) => x.id === id);
   if (res.ok) {
@@ -121,6 +124,23 @@ async function sendNow(key, keepalive = false) {
     window.LineShareUI.toast(lineLogMessage(res.error), { actionLabel: "もう一度", onAction: () => (pending.set(key, { ...p, timer: 0 }), sendNow(key)), ms: 8000 });
   } else {
     say(lineLogMessage(res.error));
+  }
+}
+// 送れなかった○の箱（js/linelog.js の sendBox。Q キットの shared/botlink.js の outbox）
+const outbox = sendBox();
+const RETRY_ERRORS = new Set(["net", "fail"]); // 送りなおせば入るかもしれない失敗
+// 前に送れなかった○を送りなおす（つないだとき。7日前までの分だけ。だめならまた次に）
+async function resendOutbox() {
+  if (!lineLog) return;
+  const today = ymd();
+  for (const { id, item } of outbox.all()) {
+    if (!item || !withinBotDays(item.date, today) || !item.text) {
+      outbox.drop(id);
+      continue;
+    }
+    const res = await lineLog.record(item.text, item.date);
+    if (res.ok || !RETRY_ERRORS.has(res.error)) outbox.drop(id);
+    if (!res.ok && RETRY_ERRORS.has(res.error)) break; // 電波がないあいだは、あとはまた次に
   }
 }
 // 閉じる・ほかのアプリに切りかえるときは、待っている○をすぐ送る
@@ -735,51 +755,13 @@ function render() {
 
 render();
 
-// ---- LINE で使う：ブラウザで開いたときの案内の帯と、4コマ（最初だけ。閉じたら出さない） ----
-const BANNER_KEY = "tuzuq:lineBannerOff"; // この端末で閉じたか（設定なので端末に残してよい）
-(function lineGuide() {
-  const inLineBrowser = inLineApp(); // LINE のアプリの中（LIFF でなくても）
-  let off = false;
-  try {
-    off = localStorage.getItem(BANNER_KEY) === "1";
-  } catch {
-    off = false;
-  }
-  // LINE 版の案内を出す・隠す（LINE 版の中では出さない）
-  const show = (open) => {
-    $("lineGuidePanel").hidden = inLineBrowser || !open;
-  };
-  show(!off);
-  // 「LINEで開く」は、おくるんの共通の案内に（読みこめなければ、ふつうのリンク）
-  if (!inLineBrowser) {
-    const shown = window.LineShareLiff?.outsideHelp?.($("lineOutside"), { appUrl: () => OPEN_URL, canLogin: false });
-    if (!shown) $("lineOutside").innerHTML = `<a class="ls-button line is-block" href="${esc(OPEN_URL)}">💬 LINE 版で開く</a>`;
-  }
-  // 案内を閉じたことを、この端末に覚える・忘れる
-  const remember = (value) => {
-    try {
-      if (value) localStorage.setItem(BANNER_KEY, "1");
-      else localStorage.removeItem(BANNER_KEY);
-    } catch {
-      // 残せなくても、いまは閉じる・開く
-    }
-  };
-  document.querySelectorAll("[data-close-line-guide]").forEach((b) =>
-    b.addEventListener("click", () => {
-      show(false);
-      remember(true);
-      say("使い方の案内を閉じました（「⚙️ 記録ボットとつなぐ」からまた見られます）");
-    })
-  );
-  document.querySelectorAll("[data-show-line-guide]").forEach((b) =>
-    b.addEventListener("click", () => {
-      remember(false);
-      show(true);
-      $("lineGuidePanel").hidden = false; // LINE の中でも見られるように
-      $("lineGuidePanel").scrollIntoView({ behavior: "smooth", block: "start" });
-    })
-  );
-})();
+// ---- LINE 版で使う：ブラウザで開いたときの案内と、4コマ（最初だけ。閉じたら出さない。Q キットの shared/botlink.js の guide） ----
+window.QBotLink?.guide({
+  key: "tuzuq:lineBannerOff", // この端末で閉じたか（設定なので端末に残してよい）
+  openUrl: OPEN_URL,
+  say,
+  closedText: "使い方の案内を閉じました（「⚙️ 記録ボットとつなぐ」からまた見られます）"
+});
 
 // 最初だけの使い方（Q キットの「💡 使い方」。「わかった」で消え、その端末では二度と出さない）
 window.addEventListener("load", () =>
@@ -801,7 +783,7 @@ function connectLineLog() {
   lineLog = null;
   return startLineLog(state.gasUrl).then((client) => {
     // 記録ボットにつないでいる人が、LINE のアプリ内のブラウザ（LIFF ではない）で開いたときは、開きなおしを出す
-    $("reopenInLiff").hidden = !!client || !state.gasUrl || !inLineApp();
+    $("reopenInLiff").hidden = window.QBotLink ? window.QBotLink.reopenHidden({ client, url: state.gasUrl }) : true;
     // つながらないときは、前につながっていたときだけ描きなおす（開いたときの「その習慣を光らせる」を消さないように）
     if (!client) return had && render();
     lineLog = client;
@@ -809,7 +791,7 @@ function connectLineLog() {
     $("whereNote").innerHTML = "📱 この版の記録は、ブラウザ版とは<b>別</b>です。<br>「ボット連動」の札がある習慣は、チェックすると記録ボットにも届きます。"; // qcheck-ok: W1 決まった文字だけ
     $("whereNote").hidden = false;
     render();
-    readBotDays(true);
+    resendOutbox().then(() => readBotDays(true));
   });
 }
 connectLineLog();

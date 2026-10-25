@@ -1,5 +1,6 @@
 // つづく：URL の受け渡し（js/link.js）のテスト
 //   node --test test/
+import "./_botlink.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { habitIdFromUrl, habitUrl, PAGE_URL } from "../js/link.js";

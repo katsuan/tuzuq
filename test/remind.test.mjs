@@ -1,5 +1,6 @@
 // つづく：カレンダーでお知らせ（Google カレンダーのリンク・.ics）のテスト
 //   node --test test/
+import "./_botlink.mjs";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { googleRemindUrl, remindIcs } from "../js/remind.js";
