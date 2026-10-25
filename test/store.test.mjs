@@ -262,7 +262,8 @@ test("カレンダーの「すべて」：できた数・色の濃さ・全部�
 });
 
 test("前の日ほど長押し（きょうは0）。記録ボットに入れられるのは7日前まで", async () => {
-  const { daysAgo, holdMs, withinBotDays } = await import("../js/hold.js");
+  const { daysAgo, holdMs } = await import("../js/long-press.js");
+  const { withinBotDays } = await import("../js/linelog.js");
   assert.equal(daysAgo("2026-10-21", "2026-10-24"), 3);
   assert.equal(daysAgo("2026-10-24", "2026-10-24"), 0);
   assert.equal(daysAgo("2026-09-24", "2026-10-24"), 30);

@@ -2,7 +2,8 @@
 //   node --test test/
 import test from "node:test";
 import assert from "node:assert/strict";
-import { googleRemindUrl, remindIcs, PAGE_URL, habitUrl } from "../js/remind.js";
+import { googleRemindUrl, remindIcs } from "../js/remind.js";
+import { PAGE_URL, habitUrl } from "../js/link.js";
 
 const habit = { id: "abcd1234", name: "水を2L, 飲む; かならず", emoji: "💧" };
 

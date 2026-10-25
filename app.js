@@ -1,15 +1,17 @@
 // つづく（TuZuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, cut, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610251001";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog, statusSections } from "./js/linelog.js?v=202610251001";
-import { daysAgo, holdMs, withinBotDays } from "./js/hold.js?v=202610251001";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610251001";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610251001";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610251001";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610251006";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog, statusSections, withinBotDays } from "./js/linelog.js?v=202610251006";
+import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610251006";
+import { habitIdFromUrl } from "./js/link.js?v=202610251006";
+import { cardParams } from "./js/card.js?v=202610251006";
+import { dragSort } from "./js/drag-sort.js?v=202610251006";
+import { exportFile } from "./js/export-file.js?v=202610251006";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610251006";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610251006";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610251006";
 
 const $ = (id) => document.getElementById(id);
-// カードの「✅ つづくでチェックする」で開く先は、LINE の中のつづく（OPEN_URL。js/line-config.js）
-const CARD_COLOR = "#2F80D8"; // ロゴの青
 // しるしの候補：6列×3段の18個（どの端末でも6列にそろえる。style.css の .emojis）
 const EMOJIS = ["✅", "💧", "🚶", "🏃", "📖", "🧘", "🦷", "💊", "📓", "🛏️", "☀️", "🥗", "🎹", "📚", "🌱", "🧹", "💪", "🍚"];
 const IDEAS = [
@@ -289,28 +291,12 @@ $("habitList").addEventListener("click", (e) => {
   applyToggle(h, b.dataset.date);
 });
 
-// おくるんのお知らせカード：きょうの○の一覧と、続いた日数
+// おくるんのお知らせカード：きょうの○の一覧と、続いた日数（中身は js/card.js）
 function cardUrl(today) {
-  let done = 0;
-  const lines = state.habits.map((h) => {
+  const params = cardParams(state.habits, (h) => {
     const d = daysOf(h);
-    const n = streak(d.all, today);
-    if (d.all.has(today)) done++;
-    return `${d.all.has(today) ? "○" : "・"} ${h.emoji} ${h.name}${n ? `（🔥${n}日）` : ""}`;
-  });
-  const params = new URLSearchParams({
-    headerTitle: "✅ きょうの○",
-    date: label(today),
-    showDate: "true",
-    title: done === state.habits.length ? `ぜんぶできた！ ${done} / ${done}` : `${done} / ${state.habits.length} できた`,
-    detail: cut(lines.join("\n"), 300),
-    theme: "custom",
-    customColor: CARD_COLOR,
-    showAction: "true",
-    actionLabel: "✅ つづくでチェックする",
-    actionUrl: OPEN_URL, // LINE の中のつづく（おくるんの config.js の trustedLiffIds に登録ずみ。チャネルを公開すると、だれでも開ける）
-    from: "tuzuq"
-  });
+    return { done: d.all.has(today), streak: streak(d.all, today) };
+  }, today);
   return window.OQRN ? window.OQRN.cardUrl(params) : "#";
 }
 
@@ -443,51 +429,14 @@ $("cancelEdit").addEventListener("click", () => {
   render();
 });
 
-// ⠿ を引っぱって並べ替え（指でもマウスでも。HTML の D&D は iPhone の指で動かないので pointer で）
-(function dragSort() {
-  const list = $("manageList");
-  let drag = null;
-  list.addEventListener("pointerdown", (e) => {
-    const grip = e.target.closest("[data-grip]");
-    if (!grip || (e.pointerType === "mouse" && e.button !== 0)) return;
-    e.preventDefault();
-    const row = grip.closest("[data-row]");
-    drag = { id: grip.dataset.grip, row, from: [...list.querySelectorAll("[data-row]")].indexOf(row) };
-    row.classList.add("is-dragging");
-    try {
-      grip.setPointerCapture(e.pointerId);
-    } catch {
-      // つかめなくても、一覧の上での動きで並べ替えられる
-    }
-  });
-  list.addEventListener("pointermove", (e) => {
-    if (!drag) return;
-    const rows = [...list.querySelectorAll("[data-row]")].filter((r) => r !== drag.row);
-    const next = rows.find((r) => {
-      const b = r.getBoundingClientRect();
-      return e.clientY < b.top + b.height / 2;
-    });
-    if (next) {
-      if (drag.row.nextElementSibling !== next) next.before(drag.row);
-    } else if (rows.length && rows[rows.length - 1].nextElementSibling !== drag.row) {
-      rows[rows.length - 1].after(drag.row);
-    }
-  });
-  const end = () => {
-    if (!drag) return;
-    const to = [...list.querySelectorAll("[data-row]")].indexOf(drag.row);
-    const { id, from } = drag;
-    drag.row.classList.remove("is-dragging");
-    drag = null;
-    if (to !== from) {
-      moveHabitTo(state, id, to);
-      persist();
-    }
-    render();
-  };
-  list.addEventListener("pointerup", end);
-  list.addEventListener("pointercancel", end);
-})();
+// ⠿ を引っぱって並べ替え（js/drag-sort.js）
+dragSort($("manageList"), (id, from, to) => {
+  if (to !== from) {
+    moveHabitTo(state, id, to);
+    persist();
+  }
+  render();
+});
 
 $("manageList").addEventListener("click", (e) => {
   const edit = e.target.closest("[data-edit]");
@@ -648,49 +597,18 @@ function applyToggle(h, date) {
   if (date === today) say(text);
 }
 
-// ---- 前の日の長押し（一覧の7つの丸・カレンダーの日） ----
-// 押しつづけると丸のまわりが満ちて、つけ外しする。途中で離したら何もしない
-(function holdToToggle() {
-  let hold = null; // { el, timer }
-  const targetOf = (e) => e.target.closest("[data-toggle], [data-cal-day]");
-  const dateOf = (el) => el.dataset.date || el.dataset.calDay;
-  const stop = (fired) => {
-    if (!hold) return;
-    clearTimeout(hold.timer);
-    hold.el.classList.remove("is-holding");
-    if (!fired) {
-      const date = dateOf(hold.el);
-      const ms = holdMs(date, ymd());
-      say(`${daysAgo(date, ymd())}日前は、長押しでつけ外しします（${(ms / 1000).toFixed(1)}秒）`);
-    }
-    hold = null;
-  };
-  document.addEventListener("pointerdown", (e) => {
-    const el = targetOf(e);
-    if (!el || el.disabled) return;
-    const ms = holdMs(dateOf(el), ymd());
-    if (!ms) return;
-    stop(true);
-    el.style.setProperty("--hold", `${ms}ms`);
-    el.classList.add("is-holding");
-    hold = {
-      el,
-      timer: setTimeout(() => {
-        const h = state.habits.find((x) => x.id === (el.dataset.toggle || ui.cal));
-        const date = dateOf(el);
-        stop(true);
-        if (h && date <= ymd()) applyToggle(h, date);
-      }, ms),
-    };
-  });
-  ["pointerup", "pointercancel", "pointerleave"].forEach((type) =>
-    document.addEventListener(type, (e) => {
-      if (hold && (type !== "pointerleave" || e.target === hold.el)) stop(false);
-    }, true)
-  );
-  // 長押しで出るメニュー（コピー・画像を保存など）を出さない
-  document.addEventListener("contextmenu", (e) => targetOf(e) && e.preventDefault());
-})();
+// ---- 前の日の長押し（一覧の7つの丸・カレンダーの日。js/long-press.js） ----
+// 押しつづけると丸のまわりが満ちて、つけ外しする。途中で離したら、長押しのことを知らせる
+watchLongPress({
+  targetOf: (e) => e.target.closest("[data-toggle], [data-cal-day]"),
+  dateOf: (el) => el.dataset.date || el.dataset.calDay,
+  today: ymd,
+  onFire: (el, date) => {
+    const h = state.habits.find((x) => x.id === (el.dataset.toggle || ui.cal));
+    if (h && date <= ymd()) applyToggle(h, date);
+  },
+  onShort: (date, ms) => say(`${daysAgo(date, ymd())}日前は、長押しでつけ外しします（${(ms / 1000).toFixed(1)}秒）`)
+});
 $("weekStart").addEventListener("click", (e) => {
   const b = e.target.closest("[data-week-start]");
   if (!b) return;
@@ -706,24 +624,6 @@ function shiftMonth(n) {
 }
 $("prevMonth").addEventListener("click", () => shiftMonth(-1));
 $("nextMonth").addEventListener("click", () => shiftMonth(1));
-
-// ファイルを渡す：共有できる端末は共有メニュー、ほかはダウンロード。共有したら true
-async function handOver(file, shareTitle) {
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title: shareTitle });
-    } catch {
-      // やめたときは何もしない
-    }
-    return true;
-  }
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(file);
-  a.download = file.name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  return false;
-}
 
 // ---- カレンダーでお知らせ ----
 function renderRemind() {
@@ -748,13 +648,13 @@ $("remindAt").addEventListener("change", () => {
 });
 $("remindIcs").addEventListener("click", async () => {
   const file = new File([remindIcs(state.habits, state.remindAt, ymd())], "tuzuq-remind.ics", { type: "text/calendar" });
-  if (!(await handOver(file, "つづくのお知らせ"))) say("📥 カレンダーのファイルを書き出しました。開くとカレンダーに入ります");
+  if (!(await exportFile(file, "つづくのお知らせ"))) say("📥 カレンダーのファイルを書き出しました。開くとカレンダーに入ります");
 });
 
 // ---- 控え ----
 $("exportBtn").addEventListener("click", async () => {
   const file = new File([exportJson(state)], `tuzuq-${ymd()}.json`, { type: "application/json" });
-  if (!(await handOver(file, "つづくの記録の控え"))) say("⬇️ 控えを書き出しました");
+  if (!(await exportFile(file, "つづくの記録の控え"))) say("⬇️ 控えを書き出しました");
 });
 
 $("importFile").addEventListener("change", async (e) => {
@@ -941,20 +841,10 @@ $("gasUrl").addEventListener("change", () => {
 
 // カレンダーの予定から開いたとき（?h=習慣の id）：その習慣まで動かして、少し光らせる。アドレスからは消す
 (function focusFromLink() {
-  const url = new URL(location.href);
-  // LINE の中で開くリンク（liff.line.me/…?h=）をブラウザで押したときは、liff.state に入って届く。LINE の中では LIFF が ?h= に戻してくれる
-  let id = url.searchParams.get("h");
-  if (!url.searchParams.has("h") && !inLineApp()) {
-    try {
-      id = new URLSearchParams(String(url.searchParams.get("liff.state") || "").replace(/^[^?]*\?/, "")).get("h");
-    } catch {
-      id = null;
-    }
-    if (!id) return;
-  } else if (!url.searchParams.has("h")) return;
-  url.searchParams.delete("h");
-  if (!inLineApp()) url.searchParams.delete("liff.state");
-  history.replaceState(null, "", url);
+  const got = habitIdFromUrl(location.href, inLineApp()); // js/link.js
+  if (!got) return;
+  history.replaceState(null, "", got.clean);
+  const id = got.id;
   const h = isHabitId(id) && state.habits.find((x) => x.id === id);
   if (!h) return say("この端末には、その習慣がありません（ほかの端末で作った習慣かもしれません）");
   const card = document.querySelector(`.habit[data-habit="${h.id}"]`);

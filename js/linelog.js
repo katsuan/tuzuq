@@ -4,7 +4,15 @@
 // - つなぐ先は、使う人が自分で入れた自分の GAS の URL だけ（URL の ?〜 からは受けとらない。W5・W9）
 // - ブラウザで開いたとき・設定が空のときは何もしない（つづくは今までどおり端末の中だけ）
 // - 約束（何を送り、何が返るか）は docs/linelog-api.md
-import { LINE_LOG } from "./line-config.js?v=202610251001";
+import { LINE_LOG } from "./line-config.js?v=202610251006";
+import { addDays } from "./stats.js?v=202610251006";
+
+// 記録ボットに入れられるのは、7日前まで（GAS の TUZUQ_BACK_DAYS_ と同じ）
+export const BOT_BACK_DAYS = 7;
+export function withinBotDays(date, today) {
+  if (!date || date > today) return false;
+  return addDays(today, -BOT_BACK_DAYS) <= date;
+}
 
 const SDK = "https://static.line-scdn.net/liff/edge/2/sdk.js";
 const TIMEOUT_MS = 15000;

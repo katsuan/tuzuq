@@ -2,9 +2,7 @@
 //   Google カレンダー：習慣ごとに、毎日くり返す予定を作る画面を開く（Google の「タスク」はリンクから作れないので、予定で）
 //   まとめて（.ics）：iPhone は開くと「すべてを追加」。時刻ちょうどのお知らせつき
 // どちらも予定の中に、つづくを開くリンクを入れる。止めるときはカレンダーの予定を消す
-import { OPEN_URL } from "./line-config.js?v=202610251001";
-// 予定から開くのは LINE の中（LIFF）。記録ボットとつないでいれば、そのまま○が記録ボットにも入る
-export const PAGE_URL = OPEN_URL;
+import { habitUrl } from "./link.js?v=202610251006"; // 予定から開くリンク（?h=習慣の id）
 const MINUTES = 15; // 予定の長さ
 
 const pad = (n) => String(n).padStart(2, "0");
@@ -16,8 +14,6 @@ function at(day, time, plusMinutes = 0) {
   return `${t.getFullYear()}${pad(t.getMonth() + 1)}${pad(t.getDate())}T${pad(t.getHours())}${pad(t.getMinutes())}00`;
 }
 const title = (h) => `${h.emoji} ${h.name}`;
-// 予定から開くリンク：?h=習慣の id で、開いたらその習慣を目立たせる
-export const habitUrl = (h) => `${PAGE_URL}?h=${encodeURIComponent(h.id)}`;
 const details = (h) => `「${h.name}」ができたら、つづくでチェックしよう\n${habitUrl(h)}`;
 
 export function googleRemindUrl(habit, time, today, tz = "") {
