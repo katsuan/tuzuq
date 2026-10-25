@@ -195,7 +195,7 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 
 /* 日本語の折り返し：文節の切れ目で（Chrome・Android の LINE）。行末に1〜2字だけ残らないように */
 /* text-wrap は折り返しの有無まで変えてしまう（nowrap の札が折り返す）ので、見た目だけの text-wrap-style にする */
-p, li, figcaption, small, .ls-hint, .ls-empty, .ls-tip li { word-break: auto-phrase; text-wrap-style: pretty; line-break: strict; }
+p, li, figcaption, small, .ls-hint, .ls-empty, .ls-tip li { text-wrap-style: pretty; line-break: strict; } /* 文節で折る（auto-phrase）と右に大きな余白ができるので、説明の文には使わない */
 /* 切れると読みにくいひとかたまり（色の見本など）は、まとめて次の行へ */
 .nobr { display: inline-block; }
 
