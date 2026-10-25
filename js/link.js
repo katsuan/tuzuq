@@ -1,6 +1,6 @@
 // つづく：URL の受け渡し（カレンダーの予定・カードから、その習慣を開くリンク）
 // 読まれるところ：app.js・js/remind.js（テストは test/link.test.mjs・test/remind.test.mjs）
-import { OPEN_URL } from "./line-config.js?v=202610260500";
+import { OPEN_URL } from "./line-config.js?v=202610260600";
 
 // 予定・カードから開くのは LINE 版（LIFF）。くらぶボットとつないでいれば、そのまま○がくらぶボットにも入る
 export const PAGE_URL = OPEN_URL;

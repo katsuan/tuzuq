@@ -47,6 +47,8 @@ body {
 .auto-tag.is-link:active { filter: brightness(0.95); }
 .habit-streak { color: var(--fire); font-size: 14px; font-weight: 800; white-space: nowrap; }
 .habit-streak.is-zero { color: var(--ls-subtext); font-size: 12px; }
+/* くらぶボットで記録した、きょうの合計（時間・距離・充電の％など） */
+.habit-value { color: var(--ls-subtext); font-size: 12px; font-weight: 700; white-space: nowrap; }
 
 /* きょうの○：大きな丸のボタン */
 .check { display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 2.5px dashed var(--ls-line-strong); border-radius: 50%; background: transparent; color: #fff; font-size: 26px; font-weight: 800; line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }

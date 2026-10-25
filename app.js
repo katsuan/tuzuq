@@ -1,16 +1,16 @@
 // つづく（TuZuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○をくらぶボットにも入れる（js/linelog.js）
 // 読まれるところ：index.html（画面の入口。部品は js/ から読む）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610260500";
-import { cleanGasUrl, inLineApp, lineLogMessage, sendBox, startLineLog, statusSections, withinBotDays } from "./js/linelog.js?v=202610260500";
-import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610260500";
-import { habitIdFromUrl } from "./js/link.js?v=202610260500";
-import { cardParams } from "./js/card.js?v=202610260500";
-import { dragSort } from "./js/drag-sort.js?v=202610260500";
-import { exportFile } from "./js/export-file.js?v=202610260500";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610260500";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610260500";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610260500";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610260600";
+import { cleanGasUrl, inLineApp, lineLogMessage, sendBox, startLineLog, statusSections, withinBotDays } from "./js/linelog.js?v=202610260600";
+import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610260600";
+import { habitIdFromUrl } from "./js/link.js?v=202610260600";
+import { cardParams } from "./js/card.js?v=202610260600";
+import { dragSort } from "./js/drag-sort.js?v=202610260600";
+import { exportFile } from "./js/export-file.js?v=202610260600";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610260600";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610260600";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610260600";
 
 const $ = (id) => document.getElementById(id);
 // しるしの候補：6列×3段の18個（どの端末でも6列にそろえる。style.css の .emojis）
@@ -86,6 +86,18 @@ const pending = new Map(); // 「習慣の id|日付」→ { id, date, text, tim
 // まだ送っていないチェックを見分ける名前（「習慣の id|日付」）
 const pendKey = (id, date) => `${id}|${date}`;
 let lastRead = 0;
+// くらぶボットから読んだ、型のある習慣の日ごとの数字（{ 習慣の id: { unit, days: { "YYYY-MM-DD": 95 } } }）。
+// 時間・距離・充電の％など（くらぶボットの「3つの型」）。端末には残さない（開くたびに読む）
+let botValues = {};
+
+// 数字を出す字にする（95 分 → 1時間35分・12.4 km・+20%）
+function valueText(value, unit) {
+  const v = Number(value) || 0;
+  if (unit === "分") return v >= 60 ? `${Math.floor(v / 60)}時間${v % 60 ? `${Math.round(v % 60)}分` : ""}` : `${Math.round(v)}分`;
+  if (unit === "%") return `${v > 0 ? "+" : ""}${v}%`;
+  if (unit === "km") return `${v}km`;
+  return `${v}${unit || ""}`;
+}
 
 // チェックをくらぶボットに送る予約をする（「元に戻す」を押せる5秒のあとに送る）
 function queueSend(h, date) {
@@ -161,8 +173,17 @@ async function readBotDays(force = false) {
     else if (res.error !== "off") say("くらぶボットのチェックを読めませんでした（電波のよい所で開きなおしてね）");
     return;
   }
+  const nextValues = {};
+  habits.forEach((h, i) => {
+    const days = res.values && res.values[i];
+    if (days && typeof days === "object" && Object.keys(days).length) nextValues[h.id] = { unit: String((res.units && res.units[i]) || ""), days };
+  });
+  const valuesChanged = JSON.stringify(nextValues) !== JSON.stringify(botValues);
+  botValues = nextValues;
   if (applyBotDays(state, habits, res.days)) {
     persist();
+    render();
+  } else if (valuesChanged) {
     render();
   }
   sendLinkedToBot(habits);
@@ -224,6 +245,7 @@ function habitHtml(h, today, week, tapHint = false) {
           <span class="habit-emoji" aria-hidden="true">${esc(h.emoji)}</span>
           <span class="habit-name"><b>${esc(h.name)}</b></span>
           <span class="habit-streak${n ? "" : " is-zero"}">${n ? `🔥${n}日` : "これから"}</span>
+          ${botValues[h.id] && botValues[h.id].days[today] !== undefined ? `<small class="habit-value" title="くらぶボットで記録した、きょうの合計">きょう ${esc(valueText(botValues[h.id].days[today], botValues[h.id].unit))}</small>` : ""}
           <button class="check${now.on ? " is-on" : ""}${ui.justDone === `${h.id}:${today}` ? " is-pop" : ""}" type="button" data-toggle="${h.id}" data-date="${today}" ${now.auto ? "disabled" : ""} aria-pressed="${now.on}" aria-label="${esc(h.name)} きょう${now.on ? "できた" : "まだ"}">${now.on ? "✓" : ""}${tapHint && !now.on ? '<span class="tap-hint" aria-hidden="true">👆</span>' : ""}</button>
           ${h.link || (lineLog && h.lineText) ? `<span class="habit-tags">${h.link ? `<a class="auto-tag is-link" href="${esc(LINKS[h.link].url)}" aria-label="${esc(LINKS[h.link].name)}（${esc(LINKS[h.link].what)}）を開く。記録した日は自動でチェック">${esc(LINKS[h.link].name)}連動 ›</a>` : ""}${lineLog && h.lineText ? '<small class="auto-tag bot-tag" title="チェックするとくらぶボットにも記録します">ボット連動</small>' : ""}</span>` : ""}
         </div>
