@@ -1,4 +1,6 @@
 // つづく：計算（画面に関係しない計算だけ）
+// 読まれるところ：app.js・js/card.js・js/linelog.js・js/long-press.js・js/store.js（テストは test/store.test.mjs）
+
 const WEEK = ["日", "月", "火", "水", "木", "金", "土"];
 
 // "YYYY-MM-DD" の形で、ほんとうにある日か（2月30日・13月などは false）
@@ -9,11 +11,14 @@ export function isDate(text) {
   return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d;
 }
 
+// 日時 → "YYYY-MM-DD"（この端末の時刻で）
 export function ymd(d = new Date()) {
+  // 2けたにそろえる
   const pad = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
+// "YYYY-MM-DD" の n 日あと（n が負なら前）を返す
 export function addDays(date, n) {
   const [y, m, d] = date.split("-").map(Number);
   return ymd(new Date(y, m - 1, d + n));
@@ -27,6 +32,7 @@ export function weekHeader(weekStart = 1) {
   });
 }
 
+// "YYYY-MM-DD" の曜日の字（"日" 〜 "土"）を返す
 export function weekday(date) {
   const [y, m, d] = date.split("-").map(Number);
   return WEEK[new Date(y, m - 1, d).getDay()];
@@ -100,6 +106,7 @@ export function level(count, total) {
 // 全部できた日が何日つづいているか（今日まだなら、昨日までで数える）
 export function fullStreak(sets, today) {
   if (!sets.length) return 0;
+  // その日にすべての習慣ができたか
   const all = (d) => doneCount(sets, d) === sets.length;
   let d = all(today) ? today : addDays(today, -1);
   let n = 0;

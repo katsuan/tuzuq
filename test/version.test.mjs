@@ -6,6 +6,7 @@ import assert from "node:assert/strict";
 import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 
+// リポジトリのフォルダでコマンドを動かし、出た文字を返す
 const sh = (cmd) => execSync(cmd, { cwd: new URL("..", import.meta.url), encoding: "utf8" }).trim();
 // このリポジトリのファイルの印だけを見る（Q キットの ui.css など、https:// で読む外のファイルの印は別）
 const versions = (text) => [...new Set([...text.replace(/https?:\/\/[^"'\s]*/g, "").matchAll(/\?v=(\d{8,})/g)].map((m) => m[1]))];

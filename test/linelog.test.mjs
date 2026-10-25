@@ -15,6 +15,7 @@ const store = await import("../js/store.js");
 
 const GAS = "https://script.google.com/macros/s/AKfyTEST_123/exec";
 const TOKEN = "head.payload.sign";
+// 決まった返事を返す偽物の fetch（送った中身は seen に入れる）
 const okFetch = (reply, seen) => async (url, opt) => {
   seen.push({ url, opt, body: JSON.parse(opt.body) });
   return { json: async () => reply };

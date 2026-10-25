@@ -1,15 +1,16 @@
 // つづく（TuZuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○を記録ボットにも入れる（js/linelog.js）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610251006";
-import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog, statusSections, withinBotDays } from "./js/linelog.js?v=202610251006";
-import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610251006";
-import { habitIdFromUrl } from "./js/link.js?v=202610251006";
-import { cardParams } from "./js/card.js?v=202610251006";
-import { dragSort } from "./js/drag-sort.js?v=202610251006";
-import { exportFile } from "./js/export-file.js?v=202610251006";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610251006";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610251006";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610251006";
+// 読まれるところ：index.html（画面の入口。部品は js/ から読む）
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610251110";
+import { cleanGasUrl, inLineApp, lineLogMessage, startLineLog, statusSections, withinBotDays } from "./js/linelog.js?v=202610251110";
+import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610251110";
+import { habitIdFromUrl } from "./js/link.js?v=202610251110";
+import { cardParams } from "./js/card.js?v=202610251110";
+import { dragSort } from "./js/drag-sort.js?v=202610251110";
+import { exportFile } from "./js/export-file.js?v=202610251110";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610251110";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610251110";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610251110";
 
 const $ = (id) => document.getElementById(id);
 // しるしの候補：6列×3段の18個（どの端末でも6列にそろえる。style.css の .emojis）
@@ -43,8 +44,10 @@ const ui = {
   order: null // きょうの○の並び（id の列）。押すたびに行が動かないよう、開いたとき・並べ方を変えたときだけ決めなおす
 };
 
+// 文字を HTML に入れられる形にする（& < > " ' を置きかえる）
 const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
+// いまの記録を端末に残す。残せなかったら知らせる
 function persist() {
   if (!save(state)) say("この端末に残せませんでした（プライベートブラウズでは、閉じると消えます）");
 }
@@ -52,6 +55,7 @@ function persist() {
 // 季節の絵文字をときどき文の後ろに（Q キットの season.js。まだ読めていなければ、そのまま）
 const cheer = (text) => (window.QSeason ? window.QSeason.decorate(text) : text);
 
+// 下に短い知らせを出す（undo があれば「元に戻す」ボタンつき）
 function say(text, undo) {
   if (window.LineShareUI?.toast) {
     window.LineShareUI.toast(text, undo ? { actionLabel: "元に戻す", onAction: undo } : {});
@@ -64,6 +68,7 @@ function say(text, undo) {
 
 // つないだツールの記録の日（描くたびに1回だけ読む。render のはじめに空にする）
 let linkedCache = {};
+// つないだツールの記録の日（Set）。同じ描き直しのあいだは覚えたものを返す
 const linkedOf = (link) => linkedCache[link] || (linkedCache[link] = linkedDays(link, state));
 
 // 習慣ごとの○の日（自分でつけた日＋つないだツールの記録の日＋記録ボットで記録した日）
@@ -78,19 +83,23 @@ let lineLog = null; // js/linelog.js の startLineLog の返事（つなげな�
 const inLine = !!LINE_LOG.liffId && inLineApp(); // つなぎ先の欄は、LINE の中で開いたときだけ出す
 const SEND_DELAY_MS = 5000; // ○のあと「元に戻す」を押せるあいだは送らない
 const pending = new Map(); // 「習慣の id|日付」→ { id, date, text, timer }（まだ送っていないチェック）
+// まだ送っていないチェックを見分ける名前（「習慣の id|日付」）
 const pendKey = (id, date) => `${id}|${date}`;
 let lastRead = 0;
 
+// チェックを記録ボットに送る予約をする（「元に戻す」を押せる5秒のあとに送る）
 function queueSend(h, date) {
   const key = pendKey(h.id, date);
   cancelSend(key);
   pending.set(key, { id: h.id, date, text: h.lineText, timer: setTimeout(() => sendNow(key), SEND_DELAY_MS) });
 }
+// 送る予約を取りやめる
 function cancelSend(key) {
   const p = pending.get(key);
   if (p) clearTimeout(p.timer);
   pending.delete(key);
 }
+// 予約したチェックをいま記録ボットに送り、結果を知らせる（keepalive は閉じるとき）
 async function sendNow(key, keepalive = false) {
   const p = pending.get(key);
   if (!p || !lineLog) return;
@@ -143,6 +152,7 @@ async function readBotDays(force = false) {
 // - 送る文を決めた、ツール連動の習慣だけ。今日から7日以内で、まだ記録ボットにない日を、1日ずつ
 // - うまく送れなかった日は、開いているあいだは送りなおさない（次に開いたときにまた試す）
 const linkedTried = new Set(); // 「習慣の id|日付」
+// しょくじ・キロっくで記録した日のうち、まだ記録ボットにない日を送る
 async function sendLinkedToBot(habits) {
   const today = ymd();
   for (const h of habits) {
@@ -178,6 +188,7 @@ function neverChecked() {
   return !Object.values(state.done || {}).some((d) => d && d.length) && !Object.values(state.bot || {}).some((d) => d && d.length);
 }
 
+// きょうの○の、習慣1つぶんの HTML（名前・続いた日数・きょうの丸・この1週間の丸）
 function habitHtml(h, today, week, tapHint = false) {
   const d = daysOf(h);
   const now = dotClass(h, d, today, today);
@@ -200,6 +211,7 @@ function habitHtml(h, today, week, tapHint = false) {
       </div>`;
 }
 
+// きょうの○（習慣の一覧・しぼりこみ・できた数・送るボタン）を描く
 function renderToday(today) {
   $("todayHeading").textContent = `きょうの○ ${label(today)}`;
   $("progress").classList.remove("is-all");
@@ -216,6 +228,7 @@ function renderToday(today) {
     return;
   }
   const week = lastDays(today, 7);
+  // その習慣がきょうできたか
   const isDone = (h) => daysOf(h).all.has(today);
   // 並び：習慣がふえた・へった・日がかわった・並べ方を変えたときだけ決めなおす
   const ids = state.habits.map((h) => h.id).join(",");
@@ -393,6 +406,7 @@ $("emojiCustom").addEventListener("focus", () => {
 });
 $("emojiCustom").addEventListener("keydown", (e) => e.key === "Enter" && openEmojiPicker(false));
 
+// 習慣をふやす・直す欄を空にもどす
 function clearForm() {
   $("nameError").hidden = true;
   $("name").value = "";
@@ -482,6 +496,7 @@ function renderWeekStart() {
   document.querySelectorAll("[data-week-start]").forEach((b) => b.setAttribute("aria-checked", String(Number(b.dataset.weekStart) === state.weekStart)));
 }
 
+// カレンダー（習慣ごと・「すべて」）と、この月のまとめを描く
 function renderCalendar(today) {
   renderWeekStart();
   if (!state.habits.length) {
@@ -617,6 +632,7 @@ $("weekStart").addEventListener("click", (e) => {
   persist();
   renderCalendar(ymd());
 });
+// カレンダーの月を n か月ずらして描きなおす
 function shiftMonth(n) {
   const [y, m] = ui.month.split("-").map(Number);
   ui.month = ymd(new Date(y, m - 1 + n, 1)).slice(0, 7);
@@ -704,6 +720,7 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("pagehide", flushSends);
 setInterval(() => ymd() !== shownDay && render(), 30000);
 
+// 画面をまるごと描きなおす（つないだツールの日を覚えてから）
 function render() {
   renderRemind();
   // つないだツールの記録から読んだ日を覚えておく（もとのツールが古い記録を消しても○が残る）
@@ -728,6 +745,7 @@ const BANNER_KEY = "tuzuq:lineBannerOff"; // この端末で閉じたか（設�
   } catch {
     off = false;
   }
+  // LINE 版の案内を出す・隠す（LINE 版の中では出さない）
   const show = (open) => {
     $("lineGuidePanel").hidden = inLineBrowser || !open;
   };
@@ -737,6 +755,7 @@ const BANNER_KEY = "tuzuq:lineBannerOff"; // この端末で閉じたか（設�
     const shown = window.LineShareLiff?.outsideHelp?.($("lineOutside"), { appUrl: () => OPEN_URL, canLogin: false });
     if (!shown) $("lineOutside").innerHTML = `<a class="ls-button line is-block" href="${esc(OPEN_URL)}">💬 LINE 版で開く</a>`;
   }
+  // 案内を閉じたことを、この端末に覚える・忘れる
   const remember = (value) => {
     try {
       if (value) localStorage.setItem(BANNER_KEY, "1");

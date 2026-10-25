@@ -3,6 +3,8 @@
 // つなぐ GAS の URL は、使う人がそれぞれ、つづくの設定に入れる（ここには置かない。秘密ではないが、人ごとにちがう）。
 // 空のあいだは、LINE の中で開いても今までどおり（端末の中だけ）。
 //   liffId：つづくの LIFF の ID（Q のプロバイダーの LINE ログインのチャネル。scope は openid と profile）
+// 読まれるところ：app.js・js/card.js・js/linelog.js・js/link.js（テストは test/linelog.test.mjs）
+
 export const LINE_LOG = {
   liffId: "2012187502-o87l8Esu"
 };

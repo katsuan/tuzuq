@@ -14,6 +14,7 @@ const { load, importJson, exportJson, linkedDays, MAX_HABITS, MAX_DAYS_PER_HABIT
 
 const XSS = '" onclick=alert(1) x="'; // qcheck-ok: W8 テストの見本の文字
 const ID = /^[a-z0-9]{4,24}$/;
+// 空の記録（store.js の blank と同じ形）
 const blank = () => ({ v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: "21:00", gasUrl: "", bot: {}, view: { sort: "mine", filter: "all" } });
 
 test("ボタンに入る id は英数字だけ（控えの id に記号が入っていても作りなおす）", () => {
@@ -311,6 +312,7 @@ test("orderToday：まだを先に・つづいている順・しぼりこみ（�
   const hs = [{ id: "a" }, { id: "b" }, { id: "c" }, { id: "d" }];
   const done = { a: true, c: true };
   const n = { a: 3, b: 0, c: 9, d: 3 };
+  // 見本の習慣を、その並べ方・しぼりこみで並べた id の列
   const run = (view) => store.orderToday(hs, view, (h) => done[h.id], (h) => n[h.id]);
   assert.deepEqual(run({}), ["a", "b", "c", "d"]);
   assert.deepEqual(run({ sort: "todo" }), ["b", "d", "a", "c"]);

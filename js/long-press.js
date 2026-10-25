@@ -1,6 +1,7 @@
 // つづく：前の日のつけ外しは長押し（誤って押さないように）。前の日ほど長く
 //   きょう 0（ふつうに押す）・きのう 0.5秒・2〜3日前 0.8秒・4〜7日前 1.2秒・それより前 1.5秒
-import { addDays } from "./stats.js?v=202610251006";
+// 読まれるところ：app.js（テストは test/store.test.mjs）
+import { addDays } from "./stats.js?v=202610251110";
 
 // 何日前か（きょうは 0。未来・形がちがうときも 0）
 export function daysAgo(date, today) {
@@ -27,6 +28,7 @@ export function holdMs(date, today) {
  */
 export function watchLongPress({ targetOf, dateOf, today, onFire, onShort }) {
   let hold = null; // { el, timer }
+  // 長押しを終える（fired が false なら、途中で離したので onShort）
   const stop = (fired) => {
     if (!hold) return;
     clearTimeout(hold.timer);

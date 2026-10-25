@@ -1,4 +1,7 @@
-// つづく：ファイルを書き出す（画面の部品）。共有できる端末は共有メニュー、ほかはダウンロード。共有メニューを出したら true
+// つづく：ファイルを書き出す（画面の部品）。共有できる端末は共有メニュー、ほかはダウンロード
+// 読まれるところ：app.js（控えの書き出し・カレンダーのお知らせの .ics）
+
+// file を共有メニューかダウンロードで渡す。共有メニューを出したら true、ダウンロードなら false
 export async function exportFile(file, shareTitle) {
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {

@@ -4,11 +4,13 @@
 // - つなぐ先は、使う人が自分で入れた自分の GAS の URL だけ（URL の ?〜 からは受けとらない。W5・W9）
 // - ブラウザで開いたとき・設定が空のときは何もしない（つづくは今までどおり端末の中だけ）
 // - 約束（何を送り、何が返るか）は docs/linelog-api.md
-import { LINE_LOG } from "./line-config.js?v=202610251006";
-import { addDays } from "./stats.js?v=202610251006";
+// 読まれるところ：app.js・js/store.js（テストは test/linelog.test.mjs・test/store.test.mjs）
+import { LINE_LOG } from "./line-config.js?v=202610251110";
+import { addDays } from "./stats.js?v=202610251110";
 
 // 記録ボットに入れられるのは、7日前まで（GAS の TUZUQ_BACK_DAYS_ と同じ）
 export const BOT_BACK_DAYS = 7;
+// その日のチェックを記録ボットに入れられるか（きょうから7日前まで）
 export function withinBotDays(date, today) {
   if (!date || date > today) return false;
   return addDays(today, -BOT_BACK_DAYS) <= date;
@@ -23,6 +25,7 @@ export const cleanGasUrl = (v) => (GAS.test(String(v ?? "").trim()) ? String(v).
 // LINE のアプリの中か（ブラウザでは LIFF の SDK も読まない）
 export const inLineApp = (ua = globalThis.navigator?.userAgent || "") => /\bLine\//i.test(ua);
 
+// LIFF の SDK を読みこむ（もう読んでいれば、そのまま）
 function loadSdk() {
   if (window.liff) return Promise.resolve();
   return new Promise((resolve, reject) => {
@@ -64,6 +67,7 @@ export async function startLineLog(gasUrl, config = LINE_LOG) {
  * 返事は { ok, ... } か { ok: false, error }（error：auth・off・bad・day・many・fail・net）
  */
 export function makeClient(gasUrl, getIdToken, fetchImpl = (...a) => fetch(...a)) {
+  // 記録ボットの GAS に1回送り、返事（{ ok, ... }）を返す。送れなければ { ok: false, error }
   async function post(body, keepalive = false) {
     const idToken = getIdToken();
     if (!idToken) return { ok: false, error: "auth" };
@@ -106,6 +110,7 @@ export function lineLogMessage(error) {
 // いまの設定の答えを、見出しと行の並びに（入口の GAS は sections、配布用シートの GAS は status だけ返す）
 export function statusSections(res) {
   if (!res || res.ok !== true) return null;
+  // 返事の文字を、300字までの文字にする
   const str = (v) => String(v ?? "").slice(0, 300);
   if (Array.isArray(res.sections)) {
     return res.sections

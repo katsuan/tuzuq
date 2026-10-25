@@ -4,9 +4,10 @@
 // done = { 習慣の id: ["YYYY-MM-DD", ...] }（○をつけた日）
 // bot = { 習慣の id: ["YYYY-MM-DD", ...] }（LINE の中で開いたときに、記録ボットから読んだ「記録した日」。日付だけ）
 // 消した習慣は、○の記録ごと控え（trash）に1つだけ残して「元に戻す」で戻せるようにする
+// 読まれるところ：app.js・js/card.js（テストは test/linelog.test.mjs・test/store.test.mjs）
 
-import { isDate } from "./stats.js?v=202610251006";
-import { cleanGasUrl } from "./linelog.js?v=202610251006";
+import { isDate } from "./stats.js?v=202610251110";
+import { cleanGasUrl } from "./linelog.js?v=202610251110";
 
 const KEY = "tuzuq:v1";
 const OLD_KEY = "tsuduq:v1"; // 前の名前
@@ -15,6 +16,7 @@ export const MAX_DAYS_PER_HABIT = 3700; // 10年ぶんくらい
 export const MAX_IMPORT_BYTES = 1024 * 1024; // 控えのファイルは 1MB まで
 // id は画面のボタンやリンク（?h=）にも入れるので、英数字だけ（ちがう形なら新しく作る）
 const ID = /^[a-z0-9]{4,24}$/;
+// 習慣の id の形（英数字 4〜24 字）か
 export const isHabitId = (v) => ID.test(String(v ?? ""));
 export const LINKS = {
   // url：自動の○のしるし（ピル）を押すと開く、そのツール（決まった自分のツールだけ。W5）
@@ -56,8 +58,10 @@ function blank() {
 // 前のよくある習慣の名前（ツールの名前入り）を、だれでも読める名前に（カードを受け取る人は、しょくじ・キロっくを知らない）
 // つないだ習慣で、名前が前の名前とまったく同じときだけ（自分で付けた名前は変えない）
 const OLD_IDEA_NAMES = { shoquji: { "しょくじを記録": "食事を記録" }, kiloq: { "筋トレ（キロっく）": "筋トレ" } };
+// 前のよくある習慣の名前なら、いまの名前にする（ほかは、そのまま）
 const friendlyName = (name, link) => (OLD_IDEA_NAMES[link] && OLD_IDEA_NAMES[link][name]) || name;
 
+// 習慣1つを正しい形にそろえる（id・名前・しるし・つなぎ・送る文・作った時刻）
 function cleanHabit(h) {
   return {
     id: isHabitId(h.id) ? String(h.id) : newId(),
@@ -99,10 +103,12 @@ function clean(raw) {
   return s;
 }
 
+// 新しい習慣の id を作る
 export function newId() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 }
 
+// 端末に残した記録を読み、正しい形にして返す（なければ空の記録）
 export function load() {
   try {
     // 前の名前（tsuduq:v1）で残した記録があれば、そのまま読む（次に保存するとき新しい名前で残る）
@@ -112,6 +118,7 @@ export function load() {
   }
 }
 
+// 記録を端末に残す。残せたら true
 export function save(state) {
   try {
     localStorage.setItem(KEY, JSON.stringify(state));
@@ -122,6 +129,7 @@ export function save(state) {
   }
 }
 
+// 習慣をふやし、ふやした習慣を返す
 export function addHabit(state, h) {
   const habit = cleanHabit({ ...h, id: newId(), at: Date.now() });
   state.habits.push(habit);
@@ -129,6 +137,7 @@ export function addHabit(state, h) {
   return habit;
 }
 
+// 習慣を直し、直した習慣を返す（なければ null）
 export function updateHabit(state, id, h) {
   const habit = state.habits.find((x) => x.id === id);
   if (!habit) return null;
@@ -148,6 +157,7 @@ export function removeHabit(state, id) {
   return { habit, days, bot, index: i };
 }
 
+// 消した習慣を、もとの場所に戻す（removeHabit の控えから）
 export function restoreHabit(state, trash) {
   if (!trash || state.habits.some((x) => x.id === trash.habit.id)) return;
   state.habits.splice(Math.min(trash.index, state.habits.length), 0, trash.habit);
@@ -155,6 +165,7 @@ export function restoreHabit(state, trash) {
   if (trash.bot && trash.bot.length) (state.bot = state.bot || {})[trash.habit.id] = trash.bot;
 }
 
+// 習慣を1つ上（dir=-1）・下（dir=1）に動かす
 export function moveHabit(state, id, dir) {
   const i = state.habits.findIndex((x) => x.id === id);
   const j = i + dir;
@@ -167,6 +178,7 @@ export function moveHabit(state, id, dir) {
 // filter：all＝すべて・todo＝まだ・done＝できた
 export const SORTS = ["mine", "todo", "streak"];
 export const FILTERS = ["all", "todo", "done"];
+// 並べ方・しぼりこみを、決まった値にそろえて返す
 export function cleanView(v) {
   const o = v && typeof v === "object" ? v : {};
   return { sort: SORTS.includes(o.sort) ? o.sort : "mine", filter: FILTERS.includes(o.filter) ? o.filter : "all" };
@@ -242,6 +254,7 @@ const num = (v) => {
   const n = Number(v);
   return Number.isFinite(n) && n > 0 ? Math.round(n * 10) / 10 : 0;
 };
+// キロっくの、その日のトレーニングの中身を短い文にして返す（なければ ""）
 export function kiloqNote(list, date) {
   if (!Array.isArray(list) || !isDate(date)) return "";
   const lines = [];
@@ -334,6 +347,7 @@ export function confirmBotDay(state, id, date) {
   state.done[id] = (state.done[id] || []).filter((d) => d !== date);
 }
 
+// 記録ボットから読んだ、その習慣の記録した日（Set）
 export const botDays = (state, id) => new Set((state.bot && state.bot[id]) || []);
 
 // 控え（書き出し・読みこみ）。読みこみは同じ習慣の○を足し、ほかの習慣は加える
@@ -341,6 +355,7 @@ export function exportJson(state) {
   return JSON.stringify({ app: "tuzuq", exportedAt: new Date().toISOString(), ...state }, null, 1);
 }
 
+// 控えのファイルを読みこみ、ふえた習慣の数を返す（同じ習慣は日を足す）
 export function importJson(state, text) {
   if (String(text).length > MAX_IMPORT_BYTES) throw new Error("too large");
   const incoming = clean(JSON.parse(text));

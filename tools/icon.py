@@ -36,6 +36,7 @@ def hand(tip, angle=45):
     a = math.radians(angle)
     ux, uy = math.cos(a), math.sin(a)  # 手首への向き
     wx, wy = uy, -ux  # 直角
+    # 手の向きにそった (x, y) を、絵の上の位置にする
     def at(x, y):
         return (tip[0] + y * ux + x * wx, tip[1] + y * uy + x * wy)
     return [
@@ -116,6 +117,7 @@ def z_arrow_logo(svg, index):
     return svg.replace("</svg>", line + arrow + "</svg>")
 
 
+# アイコン・ロゴ・OGP の画像をまとめて作る（python3 tools/icon.py で動かす）
 def main():
     BRAND.write_icons(ROOT, SHAPES)
     logo, ratio = BRAND.logo_svg("TZQ", SHAPES, C, RING_OUTER, "TZQ（つづく）")
