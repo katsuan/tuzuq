@@ -69,7 +69,7 @@ test("しょくじの記録から読む日付も、形を確かめる", () => {
   assert.equal(linkedDays("shoquji").size, 0);
 });
 
-test("しょくじが書く記録がある日の一覧（shoquji:days。食事記録ボットで入れた記録の日も入る）も読む。形がちがう日は捨てる", () => {
+test("しょくじが書く記録がある日の一覧（shoquji:days。くらぶボット（🍚 しょくじ）で入れた記録の日も入る）も読む。形がちがう日は捨てる", () => {
   mem.delete("shoquji:v1");
   mem.set("shoquji:days", JSON.stringify({ v: 1, days: ["2026-10-20", "2026-10-21", "<b>", 5, "2026-02-30"] }));
   assert.deepEqual([...linkedDays("shoquji")].sort(), ["2026-10-20", "2026-10-21"]);
@@ -207,7 +207,7 @@ test("お知らせの時刻は 21:00 が既定。形のちがう値は 21:00 に
   assert.equal(load().remindAt, "21:00");
 });
 
-test("記録ボットに送る文は60字まで。使わなくなった lineBot は読んだら捨てる。つなぎ先の URL は形を確かめる", async () => {
+test("くらぶボットに送る文は60字まで。使わなくなった lineBot は読んだら捨てる。つなぎ先の URL は形を確かめる", async () => {
   const { isHabitId } = await import("../js/store.js");
   mem.set("tuzuq:v1", JSON.stringify({ habits: [{ id: "lift0001", name: "筋トレ", lineText: "# workout" + "x".repeat(100) }], done: {}, lineBot: "@123abcde", gasUrl: "https://evil.example/exec" }));
   const s = load();
@@ -263,7 +263,7 @@ test("カレンダーの「すべて」：できた数・色の濃さ・全部�
   assert.equal(fullStreak([], "2026-10-24"), 0);
 });
 
-test("前の日ほど長押し（きょうは0）。記録ボットに入れられるのは7日前まで", async () => {
+test("前の日ほど長押し（きょうは0）。くらぶボットに入れられるのは7日前まで", async () => {
   const { daysAgo, holdMs } = await import("../js/long-press.js");
   const { withinBotDays } = await import("../js/linelog.js");
   assert.equal(daysAgo("2026-10-21", "2026-10-24"), 3);

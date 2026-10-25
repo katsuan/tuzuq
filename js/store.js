@@ -2,12 +2,12 @@
 // 習慣 1件 = { id, name, emoji, link, at }
 //   link：ほかの Q ツールの記録で自動で○をつける（"shoquji" … しょくじを記録した日）。なければ null
 // done = { 習慣の id: ["YYYY-MM-DD", ...] }（○をつけた日）
-// bot = { 習慣の id: ["YYYY-MM-DD", ...] }（LINE の中で開いたときに、記録ボットから読んだ「記録した日」。日付だけ）
+// bot = { 習慣の id: ["YYYY-MM-DD", ...] }（LINE の中で開いたときに、くらぶボットから読んだ「記録した日」。日付だけ）
 // 消した習慣は、○の記録ごと控え（trash）に1つだけ残して「元に戻す」で戻せるようにする
 // 読まれるところ：app.js・js/card.js（テストは test/linelog.test.mjs・test/store.test.mjs）
 
-import { isDate } from "./stats.js?v=202610251500";
-import { cleanGasUrl } from "./linelog.js?v=202610251500";
+import { isDate } from "./stats.js?v=202610252200";
+import { cleanGasUrl } from "./linelog.js?v=202610252200";
 
 const KEY = "tuzuq:v1";
 const OLD_KEY = "tsuduq:v1"; // 前の名前
@@ -49,7 +49,7 @@ const dayList = (list) => [...new Set(list.filter(isDate))].sort().slice(-MAX_DA
 // remindAt：カレンダーでお知らせする時刻（"HH:MM"。js/remind.js）
 export const REMIND_DEFAULT = "21:00";
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/;
-// gasUrl：LINE の中で開いたときに、○を記録する自分の GAS（記録ボット）の URL。秘密ではない（形は js/linelog.js の cleanGasUrl）
+// gasUrl：LINE の中で開いたときに、○を記録する自分の GAS（くらぶボット）の URL。秘密ではない（形は js/linelog.js の cleanGasUrl）
 // （前にあった lineBot（ボットの LINE の ID）は使わなくなったので、読んだら捨てる）
 function blank() {
   return { v: 1, habits: [], done: {}, weekStart: 1, auto: {}, remindAt: REMIND_DEFAULT, gasUrl: "", bot: {}, view: { sort: "mine", filter: "all" } };
@@ -68,7 +68,7 @@ function cleanHabit(h) {
     name: cut(friendlyName(String(h.name ?? "").trim(), h.link), 24),
     emoji: oneMark(h.emoji) || "✅",
     link: LINKS[h.link] ? h.link : null,
-    lineText: cut(h.lineText, 60), // 記録ボットに送る文（例：# workout）
+    lineText: cut(h.lineText, 60), // くらぶボットに送る文（例：# workout）
     at: Number(h.at) || Date.now()
   };
 }
@@ -222,7 +222,7 @@ function liveLinkedDays(link) {
   if (!def) return [];
   try {
     const raw = JSON.parse(localStorage.getItem(def.key) || "null");
-    // しょくじ：{ logs: [{ date }] }。LINE の中で食事記録ボットとつないでいるときは、ボットで入れた記録の日も
+    // しょくじ：{ logs: [{ date }] }。LINE の中でくらぶボット（🍚 しょくじ）とつないでいるときは、ボットで入れた記録の日も
     //   shoquji:days（{ v: 1, days: [日付…] }。しょくじが書く、端末の記録＋ボットの記録の日）に入っている
     if (link === "shoquji") {
       const own = Array.isArray(raw?.logs) ? raw.logs.map((l) => l && l.date) : [];
@@ -246,7 +246,7 @@ function shoqujiDays() {
   }
 }
 
-// キロっくの、その日のトレーニングの中身を短い文に（記録ボット → GitHub の本文の2行目から）。なければ ""
+// キロっくの、その日のトレーニングの中身を短い文に（くらぶボット → GitHub の本文の2行目から）。なければ ""
 //   例：メニュー：胸
 //       ベンチプレス 60kg×10×2・55kg×8
 //       総量 1,640kg
@@ -319,7 +319,7 @@ export function rememberLinked(state) {
   return changed;
 }
 
-// ---- 記録ボット（LINE の中で開いたとき。js/linelog.js） ----
+// ---- くらぶボット（LINE の中で開いたとき。js/linelog.js） ----
 // ボットに記録する習慣（送る文があるもの）
 export const botHabits = (state) => state.habits.filter((h) => h.lineText);
 
@@ -347,7 +347,7 @@ export function confirmBotDay(state, id, date) {
   state.done[id] = (state.done[id] || []).filter((d) => d !== date);
 }
 
-// 記録ボットから読んだ、その習慣の記録した日（Set）
+// くらぶボットから読んだ、その習慣の記録した日（Set）
 export const botDays = (state, id) => new Set((state.bot && state.bot[id]) || []);
 
 // 控え（書き出し・読みこみ）。読みこみは同じ習慣の○を足し、ほかの習慣は加える

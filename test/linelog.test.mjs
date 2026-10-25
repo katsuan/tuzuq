@@ -1,4 +1,4 @@
-// つづく：LINE の中（LIFF）で開いたときの、記録ボットとのつなぎのテスト（画面に触らない部分）
+// つづく：LINE の中（LIFF）で開いたときの、くらぶボットとのつなぎのテスト（画面に触らない部分）
 //   node --test test/
 import "./_botlink.mjs";
 import test from "node:test";

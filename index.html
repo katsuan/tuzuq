@@ -28,7 +28,7 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、つづくの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css?v=202610251000">
-<link rel="stylesheet" href="style.css?v=202610251500">
+<link rel="stylesheet" href="style.css?v=202610252200">
 </head>
 <body>
 <main class="ls-page ls-stack">
@@ -49,11 +49,11 @@
     <div id="todayTools" class="today-tools" hidden></div>
     <div id="habitList" class="habit-list"></div>
     <!-- ○の色の見本（自動の○がないときは、青だけ） -->
-    <p id="dotLegend" class="dot-legend" hidden><span class="nobr"><span class="lg-own">●</span> 自分でチェックした日</span><span id="legendAuto">　<span class="nobr"><span class="lg-auto">●</span> 記録ボット・ほかのツールで記録した日</span><span class="nobr">（外せない）</span></span></p>
+    <p id="dotLegend" class="dot-legend" hidden><span class="nobr"><span class="lg-own">●</span> 自分でチェックした日</span><span id="legendAuto">　<span class="nobr"><span class="lg-auto">●</span> くらぶボット・ほかのツールで記録した日</span><span class="nobr">（外せない）</span></span></p>
     <!-- LINE の中で開いたときだけ：記録の置き場所（ブラウザとは別）。一覧のじゃまをしないよう下に -->
     <p class="where-note" id="whereNote" hidden></p>
-    <!-- 記録ボットにつないでいる人が、LINE の中の LIFF ではない形（アプリ内のブラウザ）で開いたとき -->
-    <p class="where-note" id="reopenInLiff" hidden>💬 チェックを記録ボットに届けるには、<a href="https://liff.line.me/2012187502-o87l8Esu">LINE 版で開きなおす ›</a></p>
+    <!-- くらぶボットにつないでいる人が、LINE の中の LIFF ではない形（アプリ内のブラウザ）で開いたとき -->
+    <p class="where-note" id="reopenInLiff" hidden>💬 チェックをくらぶボットに届けるには、<a href="https://liff.line.me/2012187502-o87l8Esu">LINE 版で開きなおす ›</a></p>
     <div id="sendArea" class="send-area" hidden>
       <a id="sendBtn" class="ls-button is-block line is-oqrn" href="#">カードで送る</a>
     </div>
@@ -69,10 +69,10 @@
     <div id="lineOutside"></div>
     <!-- LINE で開く良さ（いつも出す。短く） -->
     <ul class="ls-hint line-merit">
-      <li>💾 自分の記録ボット（GAS）とつなぐと、チェックが自分の Google シートにも残ります。ブラウザだけの記録は、履歴を消したり機種を変えたりすると消えることがあります</li>
+      <li>💾 自分のくらぶボット（GAS）とつなぐと、チェックが自分の Google シートにも残ります。ブラウザだけの記録は、履歴を消したり機種を変えたりすると消えることがあります</li>
       <li>🔔 決めた時間に、まだの習慣を知らせます</li>
     </ul>
-    <p class="ls-hint">横にめくると、4コマで使い方がわかります（閉じても「⚙️ 記録ボットとつなぐ」からまた見られます）。</p>
+    <p class="ls-hint">横にめくると、4コマで使い方がわかります（閉じても「⚙️ くらぶボットとつなぐ」からまた見られます）。</p>
     <div class="line-guide" role="list" aria-label="4コマの使い方">
       <figure class="lg-panel" role="listitem">
         <div class="lg-phone" aria-hidden="true">
@@ -91,10 +91,10 @@
             <div class="lg-row"><span>💪 筋トレ</span><i class="is-done">✓</i></div>
             <div class="lg-row"><span>📖 読書</span><i class="is-pop">✓</i></div>
             <div class="lg-row"><span>💧 水を2L</span><i></i></div>
-            <div class="lg-toast">💬 記録ボットに入れました</div>
+            <div class="lg-toast">💬 くらぶボットに入れました</div>
           </div>
         </div>
-        <figcaption><b>2. 丸を押してチェック</b>できた習慣の丸を押すだけ。記録ボットとつないでいれば、そちらにも入ります（GitHub の草にも）</figcaption>
+        <figcaption><b>2. 丸を押してチェック</b>できた習慣の丸を押すだけ。くらぶボットとつないでいれば、そちらにも入ります（GitHub の草にも）</figcaption>
       </figure>
       <figure class="lg-panel" role="listitem">
         <div class="lg-phone" aria-hidden="true">
@@ -111,12 +111,12 @@
       </figure>
       <figure class="lg-panel" role="listitem">
         <div class="lg-phone" aria-hidden="true">
-          <div class="lg-top">‹ 記録ボット</div>
+          <div class="lg-top">‹ くらぶボット</div>
           <div class="lg-talk">
             <div class="lg-msg">🎉 きょうの習慣、ぜんぶできました 🌿<br><br>✅ # 💪workout（🔥5日）<br>✅ # 読書<br><br>今週：○○・○○</div>
           </div>
         </div>
-        <figcaption><b>4. 決めた時間にまとめが届く</b>自分の記録ボットがある人は、決めた時間（はじめは20時）に、きょうと今週のまとめが届きます（「# 通知」で時間を変えられます）</figcaption>
+        <figcaption><b>4. 決めた時間にまとめが届く</b>自分のくらぶボットがある人は、決めた時間（はじめは20時）に、きょうと今週のまとめが届きます（「# 通知」で時間を変えられます）</figcaption>
       </figure>
     </div>
     <p id="openInLineNote" class="ls-hint small">パソコンで見ているときは、スマホで同じリンク（https://liff.line.me/2012187502-o87l8Esu）を開いてね。</p>
@@ -149,7 +149,7 @@
           </select>
         </label>
         <label class="ls-field" id="lineTextField" hidden>
-          <span class="ls-label">記録ボットに送る文（例：# workout）</span>
+          <span class="ls-label">くらぶボットに送る文（例：# workout）</span>
           <input id="lineText" class="ls-input" maxlength="60" placeholder="例：# workout" autocomplete="off">
         </label>
         <div class="form-actions">
@@ -173,7 +173,7 @@
         <div id="calWeek" class="cal-week" aria-hidden="true"></div>
         <div id="calendar" class="calendar"></div>
         <div id="calStats" class="cal-stats"></div>
-        <p class="ls-hint small">日を押すとチェックをつけ外しできます（「🗓 すべて」では、その日のようすが出ます。全部できた日がいちばん濃い色）。オレンジの日は、つないだ記録（🍚 しょくじ＝食事の記録・🏋️ キロっく＝筋トレの記録・💬 記録ボット）で、自動でチェックされた日です。しょくじ・キロっくは、同じ版で開いたときだけ読めます（キロっくは LINE 版）。一度読んだ日は、もとの記録が消えても残ります。</p>
+        <p class="ls-hint small">日を押すとチェックをつけ外しできます（「🗓 すべて」では、その日のようすが出ます。全部できた日がいちばん濃い色）。オレンジの日は、つないだ記録（🍚 しょくじ＝食事の記録・🏋️ キロっく＝筋トレの記録・💬 くらぶボット）で、自動でチェックされた日です。しょくじ・キロっくは、同じ版で開いたときだけ読めます（キロっくは LINE 版）。一度読んだ日は、もとの記録が消えても残ります。</p>
         <div class="week-start">
           <span class="ls-hint small">週のはじまり</span>
           <div id="weekStart" class="ls-chips" role="radiogroup" aria-label="週のはじまり">
@@ -199,29 +199,29 @@
       </div>
     </details>
 
-    <!-- 記録ボットとつなぐ（くわしい人向け）：LINE 版で、自分の記録ボットとつなぐ設定 -->
+    <!-- くらぶボットとつなぐ（くわしい人向け）：LINE 版で、自分のくらぶボットとつなぐ設定 -->
     <details class="ls-fold" id="lineFold">
-      <summary><span class="ls-fold-icon" aria-hidden="true">⚙️</span>記録ボットとつなぐ（くわしい人向け）</summary>
+      <summary><span class="ls-fold-icon" aria-hidden="true">⚙️</span>くらぶボットとつなぐ（くわしい人向け）</summary>
       <div class="ls-fold-body">
-        <p id="lineLogNote" class="ls-hint" hidden>💬 送る文のある習慣は、きょうの丸を押すだけで記録ボットに入ります（トークに切りかえなくてよい）。ボットで記録した日にも○が出ます（黄色。つづくでは外せません）。習慣を直すと「送る文」を決められます。</p>
+        <p id="lineLogNote" class="ls-hint" hidden>💬 送る文のある習慣は、きょうの丸を押すだけでくらぶボットに入ります（トークに切りかえなくてよい）。ボットで記録した日にも○が出ます（黄色。つづくでは外せません）。習慣を直すと「送る文」を決められます。</p>
 
-        <!-- いまの設定（記録ボットにつながっているときだけ。トークの「# 設定」と同じ中身。見るだけ） -->
+        <!-- いまの設定（くらぶボットにつながっているときだけ。トークの「# 設定」と同じ中身。見るだけ） -->
         <div id="statusBox" class="status-box" hidden>
-          <button id="statusBtn" class="ls-button is-block" type="button">🔎 記録ボットのいまの設定を見る</button>
+          <button id="statusBtn" class="ls-button is-block" type="button">🔎 くらぶボットのいまの設定を見る</button>
           <div id="statusList" class="status-list" aria-live="polite"></div>
-          <p id="statusHint" class="ls-hint small" hidden>変えるときは、記録ボットのトークで「# 設定」と送り、下のボタンから。</p>
+          <p id="statusHint" class="ls-hint small" hidden>変えるときは、くらぶボットのトークで「# 設定」と送り、下のボタンから。</p>
         </div>
         <button class="ls-button is-block" type="button" data-show-line-guide>👀 使い方（4コマ）を見る</button>
         <div class="line-advanced">
           <div id="gasField" hidden>
             <label class="ls-field">
-              <span class="ls-label">チェックを記録する、自分の GAS の URL</span>
+              <span class="ls-label">くらぶボットの URL（チェックを記録する GAS）</span>
               <input id="gasUrl" class="ls-input" type="url" inputmode="url" maxlength="200" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" autocapitalize="off" spellcheck="false">
             </label>
             <p id="gasUrlError" class="ls-hint is-error" role="alert" hidden>GAS のウェブアプリの URL（…/exec）を入れてね</p>
-            <p class="ls-hint small">自分の記録ボット（LOgBOT の複製）の URL です。</p>
+            <p class="ls-hint small">くらぶボットの GAS エディタで <code>showWebhookUrl</code> を実行して出る ② の URL（合言葉なし）です。</p>
           </div>
-          <p class="ls-hint small">① <a href="https://docs.google.com/spreadsheets/d/152I6QzRRMm3SZ5E0s10ktpwc-Ib6kHI0C8eZgFYCRh0/copy" target="_blank" rel="noopener">配布用シートをコピーする</a>（Google にログインして「コピーを作成」）<br>② <a href="docs/linelog-setup.html" target="_blank" rel="noopener">そのあとの手順（全部で6手）</a>・<a href="privacy.html" target="_blank" rel="noopener">LINE の情報の使い方</a></p>
+          <p class="ls-hint small"><a href="https://katsuan.github.io/qlove-bot/docs/setup.html" target="_blank" rel="noopener">くらぶボットの作り方</a>（自分の LINE の公式アカウントと、配布用シートのコピー。30分くらい）・<a href="privacy.html" target="_blank" rel="noopener">LINE の情報の使い方</a></p>
         </div>
       </div>
     </details>
@@ -253,8 +253,8 @@
 <script src="https://katsuan.github.io/line-share/shared/liff.js" defer></script>
 <!-- ボットとつなぐ共通の部品（Q キット。window.QBotLink）。app.js より前に -->
 <script src="https://katsuan.github.io/line-share/shared/qlove-bot.js" defer></script>
-<script src="https://katsuan.github.io/line-share/shared/botlink.js?v=202610251500" defer></script>
-<script type="module" src="app.js?v=202610251500"></script>
+<script src="https://katsuan.github.io/line-share/shared/botlink.js?v=202610252200" defer></script>
+<script type="module" src="app.js?v=202610252200"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="tuzuq" defer></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>
 </body>

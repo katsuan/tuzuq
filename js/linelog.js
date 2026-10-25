@@ -1,16 +1,16 @@
-// LINE の中（LIFF）で開いたときだけ、記録ボット（LOgBOT）とつなぐ
+// LINE の中（LIFF）で開いたときだけ、くらぶボット（📝 記録。前の LOgBOT）とつなぐ
 // - ○を押した習慣（送る文があるもの）を、ボットに1件記録する。開いたときに、ボットで記録した日を読む
 // - ボットに送るのは LIFF の ID トークンだけ（だれかはボット側が LINE に確かめる）。トークンは端末に残さない（W7）
 // - つなぐ先は、使う人が自分で入れた自分の GAS の URL だけ（URL の ?〜 からは受けとらない。W5・W9）
 // - ブラウザで開いたとき・設定が空のときは何もしない（つづくは今までどおり端末の中だけ）
 // - 約束（何を送り、何が返るか）は docs/linelog-api.md
 // 読まれるところ：app.js・js/store.js（テストは test/linelog.test.mjs・test/store.test.mjs）
-import { LINE_LOG } from "./line-config.js?v=202610251500";
-import { addDays } from "./stats.js?v=202610251500";
+import { LINE_LOG } from "./line-config.js?v=202610252200";
+import { addDays } from "./stats.js?v=202610252200";
 
-// 記録ボットに入れられるのは、7日前まで（GAS の TUZUQ_BACK_DAYS_ と同じ）
+// くらぶボットに入れられるのは、7日前まで（GAS の TUZUQ_BACK_DAYS_ と同じ）
 export const BOT_BACK_DAYS = 7;
-// その日のチェックを記録ボットに入れられるか（きょうから7日前まで）
+// その日のチェックをくらぶボットに入れられるか（きょうから7日前まで）
 export function withinBotDays(date, today) {
   if (!date || date > today) return false;
   return addDays(today, -BOT_BACK_DAYS) <= date;
@@ -29,7 +29,7 @@ export const inLineApp = (ua) => (Q() ? Q().inLineApp(ua) : false);
 /**
  * つなげるときは { record, days, status } を、つなげないときは null を返す
  * - LINE のアプリの中で、LIFF として開き、ログインしているときだけ
- * - 自分で入れた URL（記録ボット）には前の形（app: "tuzuq"・op）で、くらぶボットにはくらぶボットの形で送る
+ * - 自分で入れた URL（くらぶボット）には前の形（app: "tuzuq"・op）で、くらぶボットにはくらぶボットの形で送る
  */
 export async function startLineLog(gasUrl, config = LINE_LOG) {
   const B = Q();
@@ -42,7 +42,7 @@ export async function startLineLog(gasUrl, config = LINE_LOG) {
 }
 
 /**
- * 記録ボットへの呼び出し（テストでは fetch と ID トークンを差しかえる）
+ * くらぶボットへの呼び出し（テストでは fetch と ID トークンを差しかえる）
  * 返事は { ok, ... } か { ok: false, error }（error：auth・off・bad・day・many・fail・net）
  */
 export function makeClient(gasUrl, getIdToken, fetchImpl, { legacy = true, liffId = LINE_LOG.liffId } = {}) {
@@ -66,12 +66,12 @@ export const sendBox = (opts) => (Q() ? Q().outbox("tuzuq:outbox", opts) : { put
 
 // 失敗したときに出す、やさしい言葉（E2：仕組みの言葉は出さない）
 export function lineLogMessage(error) {
-  if (error === "auth") return "記録ボットに入れられませんでした。LINE で、つづくを開きなおしてね";
-  if (error === "day") return "記録ボットに入れられるのは、きょうのチェックだけです（このチェックは、この端末に残っています）";
-  if (error === "off") return "記録ボットは、まだ準備中です（チェックはこの端末に残っています）";
+  if (error === "auth") return "くらぶボットに入れられませんでした。LINE で、つづくを開きなおしてね";
+  if (error === "day") return "くらぶボットに入れられるのは、きょうのチェックだけです（このチェックは、この端末に残っています）";
+  if (error === "off") return "くらぶボットは、まだ準備中です（チェックはこの端末に残っています）";
   if (error === "claim") return "つなぎ先の GAS に、持ち主の登録を受けつけました。10分以内に、GAS エディタで adoptTuzuqOwner を実行してね";
   if (error === "notyou") return "つなぎ先の GAS の持ち主ではありません。つなぎ先の URL を確かめてね";
-  return "記録ボットに入れられませんでした。チェックはこの端末に残っています";
+  return "くらぶボットに入れられませんでした。チェックはこの端末に残っています";
 }
 
 // いまの設定の答えを、見出しと行の並びに（入口の GAS は sections、配布用シートの GAS は status だけ返す）
