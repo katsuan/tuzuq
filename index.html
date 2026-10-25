@@ -27,8 +27,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、つづくの色に -->
-<link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css?v=202610251000">
-<link rel="stylesheet" href="style.css?v=202610252210">
+<link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css?v=202610260300">
+<link rel="stylesheet" href="style.css?v=202610260500">
 </head>
 <body>
 <main class="ls-page ls-stack">
@@ -128,16 +128,17 @@
       <summary><span class="ls-fold-icon" aria-hidden="true">➕</span><span id="editSummary">習慣をふやす・直す</span></summary>
       <div class="ls-fold-body">
         <p class="sub-title" id="formHeading">➕ 習慣をふやす</p>
-        <!-- [しるし][名前] を1行に。しるしを押すと、選べる絵文字とカスタムが開く（RoQga のエフェクトのアイコンと同じ形） -->
+        <!-- 入力枠の中の左にしるし [✅ 名前]（Q キットの ls-pickfield。ろくが・さくせん盤と同じ形）。しるしを押したとき・名前を入れているあいだは、
+             下に選べる絵文字（6列×3段）とカスタム（しっぽがしるしを指す） -->
         <div class="ls-field">
           <span class="ls-label" id="nameLabel">なにをつづける？</span>
-          <div class="name-line">
-            <button id="emojiBtn" class="ls-chip emoji-btn" type="button" aria-expanded="false" aria-controls="emojiPicker"><span id="emojiNow">✅</span></button>
-            <input id="name" class="ls-input" maxlength="24" placeholder="例：水を2L飲む" autocomplete="off" enterkeyhint="done" aria-labelledby="nameLabel">
+          <div id="nameField" class="ls-pickfield">
+            <button id="emojiBtn" class="ls-pickfield-btn" type="button" aria-controls="emojiPicker"><span id="emojiNow">✅</span></button>
+            <input id="name" maxlength="24" placeholder="例：水を2L飲む" autocomplete="off" enterkeyhint="done" aria-labelledby="nameLabel">
           </div>
-          <div id="emojiPicker" class="emoji-picker" hidden>
-            <div id="emojis" class="emojis" role="radiogroup" aria-label="しるし"></div>
-            <input id="emojiCustom" class="ls-input emoji-custom" maxlength="16" placeholder="✏️ カスタム（好きな絵文字を1つ）" autocomplete="off" enterkeyhint="done" aria-label="カスタムのしるし（好きな絵文字を1つ）">
+          <div id="emojiPicker" class="ls-picker" role="radiogroup" aria-label="しるし" style="--cols: 6" hidden>
+            <div id="emojis" class="emoji-items"></div>
+            <input id="emojiCustom" class="ls-picker-custom emoji-custom" maxlength="16" placeholder="✏️ カスタム（好きな絵文字を1つ）" autocomplete="off" enterkeyhint="done" aria-label="カスタムのしるし（好きな絵文字を1つ）">
           </div>
         </div>
         <p id="nameError" class="ls-hint is-error" role="alert" hidden>つづけたいことを入れてね</p>
@@ -249,12 +250,12 @@
 
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/week-start.js"></script>
-<script src="https://katsuan.github.io/line-share/shared/ui.js" defer></script>
+<script src="https://katsuan.github.io/line-share/shared/ui.js?v=202610260300" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/liff.js" defer></script>
 <!-- ボットとつなぐ共通の部品（Q キット。window.QBotLink）。app.js より前に -->
 <script src="https://katsuan.github.io/line-share/shared/qlove-bot.js" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/botlink.js?v=202610252200" defer></script>
-<script type="module" src="app.js?v=202610252210"></script>
+<script type="module" src="app.js?v=202610260500"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="tuzuq" defer></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>
 </body>

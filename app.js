@@ -1,16 +1,16 @@
 // つづく（TuZuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○をくらぶボットにも入れる（js/linelog.js）
 // 読まれるところ：index.html（画面の入口。部品は js/ から読む）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610252210";
-import { cleanGasUrl, inLineApp, lineLogMessage, sendBox, startLineLog, statusSections, withinBotDays } from "./js/linelog.js?v=202610252210";
-import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610252210";
-import { habitIdFromUrl } from "./js/link.js?v=202610252210";
-import { cardParams } from "./js/card.js?v=202610252210";
-import { dragSort } from "./js/drag-sort.js?v=202610252210";
-import { exportFile } from "./js/export-file.js?v=202610252210";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610252210";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610252210";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610252210";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610260500";
+import { cleanGasUrl, inLineApp, lineLogMessage, sendBox, startLineLog, statusSections, withinBotDays } from "./js/linelog.js?v=202610260500";
+import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610260500";
+import { habitIdFromUrl } from "./js/link.js?v=202610260500";
+import { cardParams } from "./js/card.js?v=202610260500";
+import { dragSort } from "./js/drag-sort.js?v=202610260500";
+import { exportFile } from "./js/export-file.js?v=202610260500";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610260500";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610260500";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610260500";
 
 const $ = (id) => document.getElementById(id);
 // しるしの候補：6列×3段の18個（どの端末でも6列にそろえる。style.css の .emojis）
@@ -342,9 +342,9 @@ function renderForm() {
   // [しるし][名前] のしるし。押すと選べる絵文字とカスタムが開く。カスタムで選んでいるときは、カスタムの欄が選んだ形
   $("emojiNow").textContent = ui.emoji;
   $("emojiBtn").setAttribute("aria-label", `しるしを選ぶ（いま：${ui.emoji}）`);
-  $("emojis").innerHTML = EMOJIS.map((e) => `<button class="ls-chip emoji" type="button" role="radio" aria-checked="${e === ui.emoji}" data-emoji="${e}">${e}</button>`).join("");
+  $("emojis").innerHTML = EMOJIS.map((e) => `<button class="ls-picker-item" type="button" role="radio" aria-checked="${e === ui.emoji}" data-emoji="${e}">${e}</button>`).join("");
   const custom = !EMOJIS.includes(ui.emoji);
-  $("emojiCustom").classList.toggle("is-on", custom);
+  $("emojiCustom").classList.toggle("is-selected", custom);
   if (custom && document.activeElement !== $("emojiCustom")) $("emojiCustom").value = ui.emoji;
   const used = new Set(state.habits.map((h) => h.name));
   $("ideas").innerHTML = ui.editing
@@ -381,18 +381,21 @@ function renderForm() {
   });
 })();
 
-// しるしを押すと開く（もう一度押すとたたむ）。選んだらたたむ（カスタムは打っているあいだ開いたまま）
+// しるしを押したとき・名前を入れているあいだは、選べる絵文字を出す（Q キットの pickField）。選んだらたたむ（名前・カスタムを入れているあいだは開いたまま）
+const emojiPick = window.LineShareUI?.pickField?.({ field: $("nameField"), button: $("emojiBtn"), input: $("name"), picker: $("emojiPicker") }) || null;
+// Q キットが古い・読めないときは、押して開く・たたむだけ
+if (!emojiPick) $("emojiBtn").addEventListener("click", () => ($("emojiPicker").hidden = !$("emojiPicker").hidden));
+// 選べる絵文字を開く・たたむ
 function openEmojiPicker(open) {
+  if (emojiPick) return open ? emojiPick.open() : emojiPick.close();
   $("emojiPicker").hidden = !open;
-  $("emojiBtn").setAttribute("aria-expanded", String(open));
 }
-$("emojiBtn").addEventListener("click", () => openEmojiPicker($("emojiPicker").hidden));
 $("emojis").addEventListener("click", (e) => {
   const b = e.target.closest("[data-emoji]");
   if (!b) return;
   ui.emoji = b.dataset.emoji;
   $("emojiCustom").value = "";
-  openEmojiPicker(false);
+  if (document.activeElement !== $("name")) openEmojiPicker(false);
   renderForm();
 });
 
