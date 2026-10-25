@@ -5,8 +5,8 @@
 // bot = { 習慣の id: ["YYYY-MM-DD", ...] }（LINE の中で開いたときに、記録ボットから読んだ「記録した日」。日付だけ）
 // 消した習慣は、○の記録ごと控え（trash）に1つだけ残して「元に戻す」で戻せるようにする
 
-import { isDate } from "./stats.js?v=202610250002";
-import { cleanGasUrl } from "./linelog.js?v=202610250002";
+import { isDate } from "./stats.js?v=202610251001";
+import { cleanGasUrl } from "./linelog.js?v=202610251001";
 
 const KEY = "tuzuq:v1";
 const OLD_KEY = "tsuduq:v1"; // 前の名前
