@@ -1,16 +1,16 @@
 // つづく（TuZuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○をくらぶボットにも入れる（js/linelog.js）
 // 読まれるところ：index.html（画面の入口。部品は js/ から読む）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610252200";
-import { cleanGasUrl, inLineApp, lineLogMessage, sendBox, startLineLog, statusSections, withinBotDays } from "./js/linelog.js?v=202610252200";
-import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610252200";
-import { habitIdFromUrl } from "./js/link.js?v=202610252200";
-import { cardParams } from "./js/card.js?v=202610252200";
-import { dragSort } from "./js/drag-sort.js?v=202610252200";
-import { exportFile } from "./js/export-file.js?v=202610252200";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610252200";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610252200";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610252200";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610252210";
+import { cleanGasUrl, inLineApp, lineLogMessage, sendBox, startLineLog, statusSections, withinBotDays } from "./js/linelog.js?v=202610252210";
+import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610252210";
+import { habitIdFromUrl } from "./js/link.js?v=202610252210";
+import { cardParams } from "./js/card.js?v=202610252210";
+import { dragSort } from "./js/drag-sort.js?v=202610252210";
+import { exportFile } from "./js/export-file.js?v=202610252210";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610252210";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610252210";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610252210";
 
 const $ = (id) => document.getElementById(id);
 // しるしの候補：6列×3段の18個（どの端末でも6列にそろえる。style.css の .emojis）
@@ -770,7 +770,7 @@ window.addEventListener("load", () =>
     [
       "できた習慣は、右の丸を押してチェック。下の7つの丸で、前の日もつけ外しできます",
       "記録はこのブラウザの中だけに残ります。ほかの端末へは「🔒 記録の控え」でうつせます",
-      "くらぶボットや GitHub は、つながなくても使えます（つなぐと、チェックが自分のシートにも残ります）"
+      "「カードで送る」で、きょうできたことを家族や友だちに送れます"
     ],
     document.querySelector("main > section.ls-panel")
   )

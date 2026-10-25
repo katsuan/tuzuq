@@ -96,6 +96,9 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .manage .name small { color: var(--ls-subtext); font-size: 11px; }
 .mini { width: 34px; height: 34px; border: 0; border-radius: 50%; background: none; color: var(--ls-subtext); font-size: 15px; cursor: pointer; }
 .mini:disabled { opacity: 0.3; cursor: default; }
+/* 見た目は 34px の丸のまま、押せる広さは 44px に（C3） */
+.mini { position: relative; }
+.mini::after { content: ""; position: absolute; inset: -5px; }
 .mini.del { color: #a39a8f; }
 .edit-hint { margin: -2px 0 0; color: var(--ls-subtext); font-size: 12px; text-align: right; }
 .sub-title { margin: 6px 0 0; padding-top: 10px; border-top: 1px dashed var(--ls-line); font-size: 14px; font-weight: 800; }
