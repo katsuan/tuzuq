@@ -3,7 +3,7 @@
 //   まとめて（.ics）：iPhone は開くと「すべてを追加」。時刻ちょうどのお知らせつき
 // どちらも予定の中に、つづくを開くリンクを入れる。止めるときはカレンダーの予定を消す
 // 読まれるところ：app.js（テストは test/remind.test.mjs）
-import { habitUrl } from "./link.js?v=202610261100"; // 予定から開くリンク（?h=習慣の id）
+import { habitUrl } from "./link.js?v=202610261900"; // 予定から開くリンク（?h=習慣の id）
 const MINUTES = 15; // 予定の長さ
 
 // 2けたにそろえる（7 → "07"）

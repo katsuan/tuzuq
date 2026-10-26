@@ -1,16 +1,16 @@
 // つづく（TuZuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○をくらぶボットにも入れる（js/linelog.js）
 // 読まれるところ：index.html（画面の入口。部品は js/ から読む）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610261100";
-import { cleanGasUrl, inLineApp, lineLogMessage, sendBox, startLineLog, statusSections, waitForBot, withinBotDays } from "./js/linelog.js?v=202610261100";
-import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610261100";
-import { habitIdFromUrl } from "./js/link.js?v=202610261100";
-import { cardParams } from "./js/card.js?v=202610261100";
-import { dragSort } from "./js/drag-sort.js?v=202610261100";
-import { exportFile } from "./js/export-file.js?v=202610261100";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610261100";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610261100";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610261100";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610261900";
+import { cleanGasUrl, inLineApp, lineLogMessage, sendBox, startLineLog, statusSections, waitForBot, withinBotDays } from "./js/linelog.js?v=202610261900";
+import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610261900";
+import { habitIdFromUrl } from "./js/link.js?v=202610261900";
+import { cardParams } from "./js/card.js?v=202610261900";
+import { dragSort } from "./js/drag-sort.js?v=202610261900";
+import { exportFile } from "./js/export-file.js?v=202610261900";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610261900";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610261900";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610261900";
 
 const $ = (id) => document.getElementById(id);
 // しるしの候補：6列×3段の18個（どの端末でも6列にそろえる。style.css の .emojis）
