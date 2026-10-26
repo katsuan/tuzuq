@@ -5,8 +5,8 @@
 // - ブラウザで開いたとき・設定が空のときは何もしない（つづくは今までどおり端末の中だけ）
 // - 約束（何を送り、何が返るか）は docs/linelog-api.md
 // 読まれるところ：app.js・js/store.js（テストは test/linelog.test.mjs・test/store.test.mjs）
-import { LINE_LOG } from "./line-config.js?v=202610260600";
-import { addDays } from "./stats.js?v=202610260600";
+import { LINE_LOG } from "./line-config.js?v=202610261100";
+import { addDays } from "./stats.js?v=202610261100";
 
 // くらぶボットに入れられるのは、7日前まで（GAS の TUZUQ_BACK_DAYS_ と同じ）
 export const BOT_BACK_DAYS = 7;
@@ -60,6 +60,10 @@ function ops(client) {
     status: () => client.call("status", {})
   };
 }
+
+// LINE 版で、くらぶボットにつなぐ人なのに、いまつながっていないとき（電波がない・起こしている途中）に押した○を、
+// 箱に入れて、つながったら送るか（送る文があり、7日前までの日だけ）
+export const waitForBot = ({ inLine, gasUrl, lineText, date, today }) => !!(inLine && gasUrl && lineText && withinBotDays(date, today));
 
 // 送れなかった○の箱（閉じるときに送ったもの・電波がなかったもの。次に開いたときに送りなおす。ID トークンは入れない）
 export const sendBox = (opts) => (Q() ? Q().outbox("tuzuq:outbox", opts) : { put() {}, drop() {}, all: () => [] });

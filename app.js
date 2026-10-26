@@ -1,16 +1,16 @@
 // つづく（TuZuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○をくらぶボットにも入れる（js/linelog.js）
 // 読まれるところ：index.html（画面の入口。部品は js/ から読む）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610260600";
-import { cleanGasUrl, inLineApp, lineLogMessage, sendBox, startLineLog, statusSections, withinBotDays } from "./js/linelog.js?v=202610260600";
-import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610260600";
-import { habitIdFromUrl } from "./js/link.js?v=202610260600";
-import { cardParams } from "./js/card.js?v=202610260600";
-import { dragSort } from "./js/drag-sort.js?v=202610260600";
-import { exportFile } from "./js/export-file.js?v=202610260600";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610260600";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610260600";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610260600";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610261100";
+import { cleanGasUrl, inLineApp, lineLogMessage, sendBox, startLineLog, statusSections, waitForBot, withinBotDays } from "./js/linelog.js?v=202610261100";
+import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610261100";
+import { habitIdFromUrl } from "./js/link.js?v=202610261100";
+import { cardParams } from "./js/card.js?v=202610261100";
+import { dragSort } from "./js/drag-sort.js?v=202610261100";
+import { exportFile } from "./js/export-file.js?v=202610261100";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610261100";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610261100";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610261100";
 
 const $ = (id) => document.getElementById(id);
 // しるしの候補：6列×3段の18個（どの端末でも6列にそろえる。style.css の .emojis）
@@ -80,6 +80,7 @@ function daysOf(h) {
 
 // ---- くらぶボット（LINE の中で開いたときだけ） ----
 let lineLog = null; // js/linelog.js の startLineLog の返事（つなげないときは null）
+let me = null; // 見出しの右の本人のアイコン（shared/line-me.js。ブラウザ版では null）
 const inLine = !!LINE_LOG.liffId && inLineApp(); // つなぎ先の欄は、LINE の中で開いたときだけ出す
 const SEND_DELAY_MS = 5000; // ○のあと「元に戻す」を押せるあいだは送らない
 const pending = new Map(); // 「習慣の id|日付」→ { id, date, text, timer }（まだ送っていないチェック）
@@ -121,6 +122,7 @@ async function sendNow(key, keepalive = false) {
   outbox.put(key, { text: p.text, date: p.date });
   const res = await lineLog.record(p.text, p.date, keepalive);
   if (res.ok || !RETRY_ERRORS.has(res.error)) outbox.drop(key);
+  me?.update();
   if (keepalive) return; // 閉じるところ。次に開いたときに読みなおす
   const h = state.habits.find((x) => x.id === id);
   if (res.ok) {
@@ -154,6 +156,7 @@ async function resendOutbox() {
     if (res.ok || !RETRY_ERRORS.has(res.error)) outbox.drop(id);
     if (!res.ok && RETRY_ERRORS.has(res.error)) break; // 電波がないあいだは、あとはまた次に
   }
+  me?.update();
 }
 // 閉じる・ほかのアプリに切りかえるときは、待っている○をすぐ送る
 function flushSends() {
@@ -638,7 +641,11 @@ function applyToggle(h, date) {
   const on = toggle(state, h.id, date);
   persist();
   if (on) ui.justDone = `${h.id}:${date}`;
-  if (!on) cancelSend(pendKey(h.id, date)); // 送る前に外したら、送らない
+  if (!on) {
+    cancelSend(pendKey(h.id, date)); // 送る前に外したら、送らない
+    outbox.drop(pendKey(h.id, date)); // 電波がなくて箱に入れていた分も
+    me?.update();
+  }
   render();
   if (!on) return;
   const n = streak(daysOf(h).all, today);
@@ -653,6 +660,12 @@ function applyToggle(h, date) {
       render();
     });
     return;
+  }
+  // LINE 版で、くらぶボットにつなぐ人なのに、いまつながっていない（電波がない・起こしている途中）：箱に入れて、つながったら送る
+  if (waitForBot({ inLine, gasUrl: state.gasUrl, lineText: h.lineText, date, today })) {
+    outbox.put(pendKey(h.id, date), { text: h.lineText, date });
+    me?.update();
+    return say(`${text}（つながったら、くらぶボットにも入れます）`);
   }
   if (date === today) say(text);
 }
@@ -816,9 +829,23 @@ function connectLineLog() {
     $("whereNote").innerHTML = "📱 この版の記録は、ブラウザ版とは<b>別</b>です。<br>「ボット連動」の札がある習慣は、チェックするとくらぶボットにも届きます。"; // qcheck-ok: W1 決まった文字だけ
     $("whereNote").hidden = false;
     render();
+    me?.update();
     resendOutbox().then(() => readBotDays(true));
   });
 }
+// ---- LINE 版の「わたし」：見出しの右に本人のアイコン。押すと、ログイン・くらぶボットとのつながり・まだ送っていない○（Q キットの shared/line-me.js） ----
+me = window.QLineMe?.mount({
+  liffId: LINE_LOG.liffId,
+  botName: "くらぶボット",
+  connected: () => !!lineLog,
+  pending: () => outbox.all().length,
+  // 電波がもどったとき・「いま送る」：つながっていれば箱の○を送り、まだならつなぎなおす（つなぐと箱の○も送る）
+  retry: () => (lineLog ? resendOutbox() : connectLineLog()),
+  onSettings: () => {
+    $("lineFold").open = true;
+    $("lineFold").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+});
 connectLineLog();
 
 // くらぶボットのいまの設定（見るだけ。字は textContent で入れる）

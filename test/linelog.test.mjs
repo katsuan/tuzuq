@@ -159,3 +159,23 @@ test("くらぶボットにつなぐときは、くらぶボットの形（app: 
   await c.record("# workout", "2026-10-25");
   assert.deepEqual(seen[0].body, { app: "qlove", v: 1, tool: "tuzuq", action: "record", liffId: LINE_LOG.liffId, idToken: TOKEN, text: "# workout", date: "2026-10-25" });
 });
+
+test("電波がない・つながっていないときの○：LINE 版でつなぐ人なら箱に入れ、つながったら送る（送る文がある・7日前まで）。ブラウザ版・つながない人は端末だけ", async () => {
+  const { waitForBot, sendBox } = await import("../js/linelog.js");
+  const base = { inLine: true, gasUrl: GAS, lineText: "# workout", date: "2026-10-26", today: "2026-10-26" };
+  assert.equal(waitForBot(base), true);
+  assert.equal(waitForBot({ ...base, inLine: false }), false, "ブラウザ版");
+  assert.equal(waitForBot({ ...base, gasUrl: "" }), false, "つながない人");
+  assert.equal(waitForBot({ ...base, lineText: "" }), false, "送る文がない");
+  assert.equal(waitForBot({ ...base, date: "2026-10-18" }), false, "8日前");
+  // 箱に入れて、電波がもどったら送る（送れたら消す）
+  const box = sendBox();
+  box.put("h1|2026-10-26", { text: "# workout", date: "2026-10-26" });
+  assert.equal(box.all().length, 1);
+  assert.doesNotMatch(String(globalThis.localStorage.getItem("tuzuq:outbox")), /idToken|head\.payload/);
+  const seen = [];
+  const c = makeClient(GAS, () => TOKEN, okFetch({ ok: true, added: true }, seen));
+  for (const { id, item } of box.all()) if ((await c.record(item.text, item.date)).ok) box.drop(id);
+  assert.equal(seen[0].body.text, "# workout");
+  assert.equal(box.all().length, 0);
+});
