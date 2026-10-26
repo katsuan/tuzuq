@@ -27,8 +27,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、つづくの色に -->
-<link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css?v=202610261900">
-<link rel="stylesheet" href="style.css?v=202610261900">
+<link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css?v=202610262000">
+<link rel="stylesheet" href="style.css?v=202610262000">
 </head>
 <body>
 <main class="ls-page ls-stack">
@@ -72,7 +72,7 @@
       <li>💾 自分のくらぶボット（GAS）とつなぐと、チェックが自分の Google シートにも残ります。ブラウザだけの記録は、履歴を消したり機種を変えたりすると消えることがあります</li>
       <li>🔔 決めた時間に、まだの習慣を知らせます</li>
     </ul>
-    <p class="ls-hint">横にめくると、4コマで使い方がわかります（閉じても「⚙️ くらぶボットとつなぐ」からまた見られます）。</p>
+    <p class="ls-hint">横にめくると、4コマで使い方がわかります（閉じても「🔗 くらぶボットとつなぐ」からまた見られます）。</p>
     <div class="line-guide" role="list" aria-label="4コマの使い方">
       <figure class="lg-panel" role="listitem">
         <div class="lg-phone" aria-hidden="true">
@@ -82,7 +82,7 @@
             <div class="lg-tap">👆</div>
           </div>
         </div>
-        <figcaption><b>1. リンクを押して開く</b>自分あてのトークにリンクを貼っておくと、押すだけで開けます。ブラウザ版とは別の記録なので、いまの記録は「🔒 記録の控え」でうつせます</figcaption>
+        <figcaption><b>1. リンクを押して開く</b>自分あてのトークにリンクを貼っておくと、押すだけで開けます。ブラウザ版とは別の記録なので、いまの記録は「⚙️ 設定」の記録の控えでうつせます</figcaption>
       </figure>
       <figure class="lg-panel" role="listitem">
         <div class="lg-phone" aria-hidden="true">
@@ -175,13 +175,6 @@
         <div id="calendar" class="calendar"></div>
         <div id="calStats" class="cal-stats"></div>
         <p class="ls-hint small">日を押すとチェックをつけ外しできます（「🗓 すべて」では、その日のようすが出ます。全部できた日がいちばん濃い色）。オレンジの日は、つないだ記録（🍚 しょくじ＝食事の記録・🏋️ キロっく＝筋トレの記録・💬 くらぶボット）で、自動でチェックされた日です。しょくじ・キロっくは、同じ版で開いたときだけ読めます（キロっくは LINE 版）。一度読んだ日は、もとの記録が消えても残ります。</p>
-        <div class="week-start">
-          <span class="ls-hint small">週のはじまり</span>
-          <div id="weekStart" class="ls-chips" role="radiogroup" aria-label="週のはじまり">
-            <button class="ls-chip is-small" type="button" role="radio" data-week-start="1">月曜</button>
-            <button class="ls-chip is-small" type="button" role="radio" data-week-start="0">日曜</button>
-          </div>
-        </div>
       </div>
     </details>
 
@@ -202,7 +195,7 @@
 
     <!-- くらぶボットとつなぐ（くわしい人向け）：LINE 版で、自分のくらぶボットとつなぐ設定 -->
     <details class="ls-fold" id="lineFold">
-      <summary><span class="ls-fold-icon" aria-hidden="true">⚙️</span>くらぶボットとつなぐ（くわしい人向け）</summary>
+      <summary><span class="ls-fold-icon" aria-hidden="true">🔗</span>くらぶボットとつなぐ（くわしい人向け）</summary>
       <div class="ls-fold-body">
         <p id="lineLogNote" class="ls-hint" hidden>💬 送る文のある習慣は、きょうの丸を押すだけでくらぶボットに入ります（トークに切りかえなくてよい）。ボットで記録した日にも○が出ます（黄色。つづくでは外せません）。習慣を直すと「送る文」を決められます。</p>
 
@@ -227,10 +220,17 @@
       </div>
     </details>
 
-    <!-- 記録の控え -->
+    <!-- ⚙️ 設定（Q のツールの決まり：設定はページの下のここに1つ。LINE 版はアイコンのシートの「⚙️ 設定」からも開く。q-oqrn の ux.md A7） -->
     <details class="ls-fold" id="settings">
-      <summary><span class="ls-fold-icon" aria-hidden="true">🔒</span>記録の控え</summary>
+      <summary><span class="ls-fold-icon" aria-hidden="true">⚙️</span>設定 <span class="ls-fold-meta">週のはじまり・記録の控え</span></summary>
       <div class="ls-fold-body">
+        <p class="sub-title">📅 週のはじまり</p>
+        <div id="weekStart" class="ls-chips" role="radiogroup" aria-label="週のはじまり">
+          <button class="ls-chip is-small" type="button" role="radio" data-week-start="1">月曜</button>
+          <button class="ls-chip is-small" type="button" role="radio" data-week-start="0">日曜</button>
+        </div>
+        <p class="ls-hint small">カレンダーと「今週」の区切り。ほかの Q のツールにもそろいます。</p>
+        <p class="sub-title">🔒 記録の控え</p>
         <p class="ls-hint">記録はこのブラウザの中だけにあります（LINE 版・ほかのブラウザ・ほかの端末では別々）。機種変更やブラウザのデータを消す前に、控えを書き出しておいてください。</p>
         <p class="ls-hint small">ほかの端末・ブラウザにうつすとき：ここで「⬇️ 控えを書き出す」→ うつす先のつづくで「⬆️ 控えを読みこむ」。</p>
         <div class="form-actions">
@@ -250,14 +250,14 @@
 
 <script src="https://katsuan.github.io/line-share/shared/oqrn.js"></script>
 <script src="https://katsuan.github.io/line-share/shared/week-start.js"></script>
-<script src="https://katsuan.github.io/line-share/shared/ui.js?v=202610261900" defer></script>
+<script src="https://katsuan.github.io/line-share/shared/ui.js?v=202610262000" defer></script>
 <script src="https://katsuan.github.io/line-share/shared/liff.js" defer></script>
 <!-- ボットとつなぐ共通の部品（Q キット。window.QBotLink）。app.js より前に -->
 <script src="https://katsuan.github.io/line-share/shared/qlove-bot.js" defer></script>
-<script src="https://katsuan.github.io/line-share/shared/botlink.js?v=202610261900" defer></script>
+<script src="https://katsuan.github.io/line-share/shared/botlink.js?v=202610262000" defer></script>
 <!-- LINE 版の「わたし」（本人のアイコン・まだ送っていない○の印。Q キット。window.QLineMe） -->
-<script src="https://katsuan.github.io/line-share/shared/line-me.js?v=202610261900" defer></script>
-<script type="module" src="app.js?v=202610261900"></script>
+<script src="https://katsuan.github.io/line-share/shared/line-me.js?v=202610262000" defer></script>
+<script type="module" src="app.js?v=202610262000"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="tuzuq" defer></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>
 </body>

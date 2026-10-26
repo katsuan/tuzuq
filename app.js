@@ -1,16 +1,16 @@
 // つづく（TuZuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○をくらぶボットにも入れる（js/linelog.js）
 // 読まれるところ：index.html（画面の入口。部品は js/ から読む）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610261900";
-import { cleanGasUrl, inLineApp, lineLogMessage, sendBox, startLineLog, statusSections, waitForBot, withinBotDays } from "./js/linelog.js?v=202610261900";
-import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610261900";
-import { habitIdFromUrl } from "./js/link.js?v=202610261900";
-import { cardParams } from "./js/card.js?v=202610261900";
-import { dragSort } from "./js/drag-sort.js?v=202610261900";
-import { exportFile } from "./js/export-file.js?v=202610261900";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610261900";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610261900";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610261900";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610262000";
+import { cleanGasUrl, inLineApp, lineLogMessage, sendBox, startLineLog, statusSections, waitForBot, withinBotDays } from "./js/linelog.js?v=202610262000";
+import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610262000";
+import { habitIdFromUrl } from "./js/link.js?v=202610262000";
+import { cardParams } from "./js/card.js?v=202610262000";
+import { dragSort } from "./js/drag-sort.js?v=202610262000";
+import { exportFile } from "./js/export-file.js?v=202610262000";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610262000";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610262000";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610262000";
 
 const $ = (id) => document.getElementById(id);
 // しるしの候補：6列×3段の18個（どの端末でも6列にそろえる。style.css の .emojis）
@@ -264,7 +264,7 @@ function renderToday(today) {
   if (!state.habits.length) {
     $("progress").textContent = "";
     // LINE の中で開いて習慣がないとき：ブラウザで使っていた記録は、ここには出ない（別のブラウザ）
-    const moved = inLineApp() ? '<br><small>ブラウザ版で使っていた記録は、ここには出ません。ブラウザ版で「🔒 記録の控え」を書き出して、ここで読みこむとうつせます</small>' : "";
+    const moved = inLineApp() ? '<br><small>ブラウザ版で使っていた記録は、ここには出ません。ブラウザ版の「⚙️ 設定」で控えを書き出して、ここで読みこむとうつせます</small>' : "";
     // qcheck-ok: W1 moved は決まった文字だけ（IDEAS も esc）
     $("habitList").innerHTML = `<div class="ls-empty"><span class="ls-empty-icon" aria-hidden="true">🌱</span>まずは、つづけたいことを1つ。<br>押すとふえます（自分で決めるなら下の「➕ 習慣をふやす」）${moved}</div>
       <div class="ls-chips start-ideas">${IDEAS.slice(0, 6).map(([e, n], i) => `<button class="ls-chip is-small" type="button" data-quick="${i}">${e} ${esc(n)}</button>`).join("")}</div>`;
@@ -798,7 +798,7 @@ window.QBotLink?.guide({
   key: "tuzuq:lineBannerOff", // この端末で閉じたか（設定なので端末に残してよい）
   openUrl: OPEN_URL,
   say,
-  closedText: "使い方の案内を閉じました（「⚙️ くらぶボットとつなぐ」からまた見られます）"
+  closedText: "使い方の案内を閉じました（「🔗 くらぶボットとつなぐ」からまた見られます）"
 });
 
 // 最初だけの使い方（Q キットの「💡 使い方」。「わかった」で消え、その端末では二度と出さない）
@@ -807,7 +807,7 @@ window.addEventListener("load", () =>
     "tuzuq",
     [
       "できた習慣は、右の丸を押してチェック。下の7つの丸で、前の日もつけ外しできます",
-      "記録はこのブラウザの中だけに残ります。ほかの端末へは「🔒 記録の控え」でうつせます",
+      "記録はこのブラウザの中だけに残ります。ほかの端末へは「⚙️ 設定」の記録の控えでうつせます",
       "「カードで送る」で、きょうできたことを家族や友だちに送れます"
     ],
     document.querySelector("main > section.ls-panel")
@@ -841,10 +841,9 @@ me = window.QLineMe?.mount({
   pending: () => outbox.all().length,
   // 電波がもどったとき・「いま送る」：つながっていれば箱の○を送り、まだならつなぎなおす（つなぐと箱の○も送る）
   retry: () => (lineLog ? resendOutbox() : connectLineLog()),
-  onSettings: () => {
-    $("lineFold").open = true;
-    $("lineFold").scrollIntoView({ behavior: "smooth", block: "start" });
-  }
+  onSettings: () => window.QLineMe.openFold("lineFold"),
+  // 「⚙️ 設定」：ページの下の設定の欄（週のはじまり・記録の控え。q-oqrn の ux.md A7）
+  onPrefs: () => window.QLineMe.openFold("settings")
 });
 connectLineLog();
 
