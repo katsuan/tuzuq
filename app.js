@@ -1,16 +1,16 @@
 // つづく（TuZuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○をくらぶボットにも入れる（js/linelog.js）
 // 読まれるところ：index.html（画面の入口。部品は js/ から読む）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610262000";
-import { cleanGasUrl, inLineApp, lineLogMessage, sendBox, startLineLog, statusSections, waitForBot, withinBotDays } from "./js/linelog.js?v=202610262000";
-import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610262000";
-import { habitIdFromUrl } from "./js/link.js?v=202610262000";
-import { cardParams } from "./js/card.js?v=202610262000";
-import { dragSort } from "./js/drag-sort.js?v=202610262000";
-import { exportFile } from "./js/export-file.js?v=202610262000";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610262000";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610262000";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610262000";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610271256";
+import { cleanGasUrl, inLineApp, lineLogMessage, sendBox, startLineLog, statusSections, waitForBot, withinBotDays } from "./js/linelog.js?v=202610271256";
+import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610271256";
+import { habitIdFromUrl } from "./js/link.js?v=202610271256";
+import { cardParams } from "./js/card.js?v=202610271256";
+import { dragSort } from "./js/drag-sort.js?v=202610271256";
+import { exportFile } from "./js/export-file.js?v=202610271256";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610271256";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610271256";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610271256";
 
 const $ = (id) => document.getElementById(id);
 // しるしの候補：6列×3段の18個（どの端末でも6列にそろえる。style.css の .emojis）
@@ -266,7 +266,7 @@ function renderToday(today) {
     // LINE の中で開いて習慣がないとき：ブラウザで使っていた記録は、ここには出ない（別のブラウザ）
     const moved = inLineApp() ? '<br><small>ブラウザ版で使っていた記録は、ここには出ません。ブラウザ版の「⚙️ 設定」で控えを書き出して、ここで読みこむとうつせます</small>' : "";
     // qcheck-ok: W1 moved は決まった文字だけ（IDEAS も esc）
-    $("habitList").innerHTML = `<div class="ls-empty"><span class="ls-empty-icon" aria-hidden="true">🌱</span>まずは、つづけたいことを1つ。<br>押すとふえます（自分で決めるなら下の「➕ 習慣をふやす」）${moved}</div>
+    $("habitList").innerHTML = `<div class="ls-empty"><span class="ls-empty-icon" aria-hidden="true">🌱</span>まずは、つづけたいことを1つ。<br>押すとふえます（自分で決めるなら下の「➕ 習慣をふやす・直す」）${moved}</div>
       <div class="ls-chips start-ideas">${IDEAS.slice(0, 6).map(([e, n], i) => `<button class="ls-chip is-small" type="button" data-quick="${i}">${e} ${esc(n)}</button>`).join("")}</div>`;
     $("sendArea").hidden = true;
     $("dotLegend").hidden = true;
@@ -806,7 +806,7 @@ window.addEventListener("load", () =>
   window.LineShareUI?.firstTip?.(
     "tuzuq",
     [
-      "できた習慣は、右の丸を押してチェック。下の7つの丸で、前の日もつけ外しできます",
+      "できた習慣は、右の丸を押してチェック。下の7つの丸は、長押しで前の日もつけ外しできます",
       "記録はこのブラウザの中だけに残ります。ほかの端末へは「⚙️ 設定」の記録の控えでうつせます",
       "「カードで送る」で、きょうできたことを家族や友だちに送れます"
     ],

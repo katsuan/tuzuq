@@ -19,3 +19,23 @@ test("小さな丸のボタンも、押せる広さは 44px 以上（34px ＋ �
   assert.match(css, /\.mini[^{]*\{[^}]*width: 34px/);
   assert.match(css, /\.mini::after[^{]*\{[^}]*inset: -5px/);
 });
+
+test("案内の文が「」で指す欄の名前は、画面の見出し（たたみ欄・小見出し）にある（見出しのはじめが同じ）", () => {
+  const html = read("index.html");
+  const titles = new Set(
+    [...html.matchAll(/<summary>[\s\S]*?<\/summary>|<p class="sub-title"[^>]*>[\s\S]*?<\/p>/g)].map((m) =>
+      m[0].replace(/<span class="ls-fold-meta">[\s\S]*?<\/span>/g, "").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim()
+    )
+  );
+  const norm = (t) => t.replace(/\s+/g, "");
+  const known = new Set([...titles].map(norm));
+  const text = read("app.js") + html.replace(/<!--[\s\S]*?-->/g, "");
+  const refs = [...text.matchAll(/「([➕📅🔔🔗⚙️🔒][^」]*)」/gu)].map((m) => m[1]);
+  assert.ok(refs.length >= 3, String(refs.length));
+  refs.forEach((r) => assert.ok([...known].some((t) => t.startsWith(norm(r))), `「${r}」という見出しがない（あるもの：${[...titles].join("・")}）`));
+});
+
+test("前の日のつけ外しは長押しだと、使い方とカレンダーのヒントに書いてある", () => {
+  assert.match(read("app.js"), /7つの丸は、長押しで前の日も/);
+  assert.match(read("index.html"), /前の日は長押しで/);
+});
