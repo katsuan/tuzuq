@@ -179,3 +179,84 @@ test("電波がない・つながっていないときの○：LINE 版でつな
   assert.equal(seen[0].body.text, "# workout");
   assert.equal(box.all().length, 0);
 });
+
+test("電波がない → もどる：箱の○は、電波がないあいだは残し、もどったら送って箱から出す", async () => {
+  const { sendBox, resendBox } = await import("../js/linelog.js");
+  const box = sendBox();
+  box.put("h1|2026-10-26", { text: "# workout", date: "2026-10-26" });
+  box.put("h2|2026-10-26", { text: "# 読書", date: "2026-10-26" });
+  let online = false;
+  const sent = [];
+  const record = async (text, date) => (online ? (sent.push(text), { ok: true, added: true, date }) : { ok: false, error: "net" });
+  assert.equal(await resendBox(box, record, { today: "2026-10-26" }), 0);
+  assert.equal(box.all().length, 2, "電波がないあいだは箱に残る");
+  online = true;
+  assert.equal(await resendBox(box, record, { today: "2026-10-26" }), 2);
+  assert.deepEqual(sent, ["# workout", "# 読書"]);
+  assert.equal(box.all().length, 0);
+  // 投げた（fetch が落ちた）ときも、止まらずに箱に残す
+  box.put("h3|2026-10-26", { text: "# 散歩", date: "2026-10-26" });
+  assert.equal(await resendBox(box, async () => { throw new Error("offline"); }, { today: "2026-10-26" }), 0);
+  assert.equal(box.all().length, 1);
+  box.drop("h3|2026-10-26");
+});
+
+test("2回送らない：つないだときと電波がもどったときが重なっても1回。いま送っている○はとばす", async () => {
+  const { sendBox, resendBox, oneAtATime } = await import("../js/linelog.js");
+  const box = sendBox();
+  box.put("h1|2026-10-26", { text: "# workout", date: "2026-10-26" });
+  box.put("h2|2026-10-26", { text: "# 読書", date: "2026-10-26" });
+  const sent = [];
+  const record = async (text) => (await new Promise((r) => setTimeout(r, 5)), sent.push(text), { ok: true, added: true });
+  const busy = new Set(["h2|2026-10-26"]); // h2 はいま、押したところから送っている
+  const run = oneAtATime(() => resendBox(box, record, { today: "2026-10-26", busy }));
+  const [a, b] = [run(), run()];
+  assert.equal(a, b, "重なったら同じ走りを返す");
+  await a;
+  assert.deepEqual(sent, ["# workout"], "h1 は1回だけ。送っている途中の h2 はとばす");
+  assert.equal(box.all().length, 1);
+  // 送り終わったら、次に呼べばまた走る
+  busy.clear();
+  await run();
+  assert.deepEqual(sent, ["# workout", "# 読書"]);
+  assert.equal(box.all().length, 0);
+});
+
+test("ログインしていない・つながっていないとき：くらぶボットにつなぐ人とわかれば箱に入れる。わからなければ端末だけ", async () => {
+  const { botUrlKnown, rememberBot, seenBot, waitForBot, waitText, BOT_SEEN_KEY } = await import("../js/linelog.js");
+  const QLOVE = "https://script.google.com/macros/s/AKfyQLOVE_TEST_1234567890/exec";
+  assert.equal(botUrlKnown({ gasUrl: GAS, qloveUrl: "", seen: "" }), GAS, "自分で入れたつなぎ先");
+  assert.equal(botUrlKnown({ gasUrl: "", qloveUrl: QLOVE, seen: "" }), "", "まだ一度もつながっていないくらぶボット");
+  rememberBot(QLOVE);
+  assert.equal(seenBot(), QLOVE);
+  assert.equal(botUrlKnown({ gasUrl: "", qloveUrl: QLOVE, seen: seenBot() }), QLOVE, "前につながったくらぶボット");
+  assert.equal(botUrlKnown({ gasUrl: "", qloveUrl: "", seen: seenBot() }), "", "くらぶボットの URL を消したら");
+  const base = { inLine: true, lineText: "# workout", date: "2026-10-26", today: "2026-10-26" };
+  assert.equal(waitForBot({ ...base, gasUrl: botUrlKnown({ gasUrl: "", qloveUrl: QLOVE, seen: seenBot() }) }), true);
+  assert.equal(waitForBot({ ...base, inLine: false, gasUrl: GAS }), false, "ブラウザ版（ログインなし）は端末だけ");
+  rememberBot("");
+  assert.equal(globalThis.localStorage.getItem(BOT_SEEN_KEY), null);
+  // 残せない端末でも止まらない
+  const broken = { getItem() { throw new Error("no"); }, setItem() { throw new Error("no"); }, removeItem() { throw new Error("no"); } };
+  rememberBot(QLOVE, broken);
+  assert.equal(seenBot(broken), "");
+  // 画面の1行
+  assert.equal(waitText(0), "");
+  assert.equal(waitText(3), "📮 3件 まだ送っていません（つながったら送ります）");
+});
+
+test("ログインしていない・電波がないときも、チェックは端末に残る（残せない端末でもエラーで止まらない）", () => {
+  const s = store.load();
+  const h = store.addHabit(s, { name: "読書" });
+  assert.equal(store.toggle(s, h.id, "2026-10-26"), true);
+  assert.equal(store.save(s), true);
+  assert.deepEqual(store.load().done[h.id], ["2026-10-26"]);
+  const keep = globalThis.localStorage;
+  globalThis.localStorage = { getItem() { throw new Error("no"); }, setItem() { throw new Error("no"); }, removeItem() { throw new Error("no"); } };
+  try {
+    assert.equal(store.save(s), false);
+    assert.equal(store.load().habits.length, 0);
+  } finally {
+    globalThis.localStorage = keep;
+  }
+});

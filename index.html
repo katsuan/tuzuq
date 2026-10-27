@@ -28,13 +28,15 @@
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;800&display=swap" rel="stylesheet">
 <!-- Q キット（おくるんの共通部品）。色と字は style.css の :root で、つづくの色に -->
 <link rel="stylesheet" href="https://katsuan.github.io/line-share/shared/ui.css?v=202610262000">
-<link rel="stylesheet" href="style.css?v=202610271256">
+<link rel="stylesheet" href="style.css?v=202610280743">
 </head>
 <body>
 <main class="ls-page ls-stack">
   <header class="ls-brand">
     <h1 class="ls-brand-name"><img class="ls-brand-icon" src="icon.svg" alt="" width="30" height="30">つづく</h1>
     <img class="ls-brand-logo" src="logo.svg" alt="TZQ（つづく）" width="58" height="28">
+    <!-- LINE 版でログインしていないとき：右のアイコン（Q キットの line-me.js）の下に出す -->
+    <span id="localChip" class="local-chip" hidden>📱 この端末に保存中</span>
   </header>
   <p class="ls-brand-copy">きょうのできたが、あしたにつづく</p>
   <p class="ls-hint lead" id="lead">できた日に丸を押すだけの、習慣カレンダー。</p>
@@ -52,6 +54,8 @@
     <p id="dotLegend" class="dot-legend" hidden><span class="nobr"><span class="lg-own">●</span> 自分でチェックした日</span><span id="legendAuto">　<span class="nobr"><span class="lg-auto">●</span> くらぶボット・ほかのツールで記録した日</span><span class="nobr">（外せない）</span></span></p>
     <!-- LINE の中で開いたときだけ：記録の置き場所（ブラウザとは別）。一覧のじゃまをしないよう下に -->
     <p class="where-note" id="whereNote" hidden></p>
+    <!-- LINE 版で、くらぶボットにまだ送っていない○があるときだけ -->
+    <p class="send-wait" id="sendWait" role="status" hidden></p>
     <!-- くらぶボットにつないでいる人が、LINE の中の LIFF ではない形（アプリ内のブラウザ）で開いたとき -->
     <p class="where-note" id="reopenInLiff" hidden>💬 チェックをくらぶボットに届けるには、<a href="https://liff.line.me/2012187502-o87l8Esu">LINE 版で開きなおす ›</a></p>
     <div id="sendArea" class="send-area" hidden>
@@ -257,7 +261,7 @@
 <script src="https://katsuan.github.io/line-share/shared/botlink.js?v=202610262000" defer></script>
 <!-- LINE 版の「わたし」（本人のアイコン・まだ送っていない○の印。Q キット。window.QLineMe） -->
 <script src="https://katsuan.github.io/line-share/shared/line-me.js?v=202610262000" defer></script>
-<script type="module" src="app.js?v=202610271256"></script>
+<script type="module" src="app.js?v=202610280743"></script>
 <script src="https://katsuan.github.io/line-share/shared/tool-share.js" data-tool="tuzuq" defer></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("./sw.js").catch(() => {});</script>
 </body>

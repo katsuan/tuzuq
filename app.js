@@ -1,16 +1,16 @@
 // つづく（TuZuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○をくらぶボットにも入れる（js/linelog.js）
 // 読まれるところ：index.html（画面の入口。部品は js/ から読む）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610271256";
-import { cleanGasUrl, inLineApp, lineLogMessage, sendBox, startLineLog, statusSections, waitForBot, withinBotDays } from "./js/linelog.js?v=202610271256";
-import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610271256";
-import { habitIdFromUrl } from "./js/link.js?v=202610271256";
-import { cardParams } from "./js/card.js?v=202610271256";
-import { dragSort } from "./js/drag-sort.js?v=202610271256";
-import { exportFile } from "./js/export-file.js?v=202610271256";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610271256";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610271256";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610271256";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610280743";
+import { botUrlKnown, cleanGasUrl, inLineApp, lineLogMessage, oneAtATime, rememberBot, resendBox, RETRY_ERRORS, seenBot, sendBox, startLineLog, statusSections, waitForBot, waitText, withinBotDays } from "./js/linelog.js?v=202610280743";
+import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610280743";
+import { habitIdFromUrl } from "./js/link.js?v=202610280743";
+import { cardParams } from "./js/card.js?v=202610280743";
+import { dragSort } from "./js/drag-sort.js?v=202610280743";
+import { exportFile } from "./js/export-file.js?v=202610280743";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610280743";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610280743";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610280743";
 
 const $ = (id) => document.getElementById(id);
 // しるしの候補：6列×3段の18個（どの端末でも6列にそろえる。style.css の .emojis）
@@ -84,6 +84,7 @@ let me = null; // 見出しの右の本人のアイコン（shared/line-me.js。
 const inLine = !!LINE_LOG.liffId && inLineApp(); // つなぎ先の欄は、LINE の中で開いたときだけ出す
 const SEND_DELAY_MS = 5000; // ○のあと「元に戻す」を押せるあいだは送らない
 const pending = new Map(); // 「習慣の id|日付」→ { id, date, text, timer }（まだ送っていないチェック）
+const sending = new Set(); // いまくらぶボットに送っているチェック（「習慣の id|日付」。同じものを2回送らない）
 // まだ送っていないチェックを見分ける名前（「習慣の id|日付」）
 const pendKey = (id, date) => `${id}|${date}`;
 let lastRead = 0;
@@ -120,9 +121,12 @@ async function sendNow(key, keepalive = false) {
   const id = p.id;
   // 送れたとわかるまで箱に入れておく（閉じるときに送った分・電波がなかった分は、次に開いたときに送りなおす）
   outbox.put(key, { text: p.text, date: p.date });
-  const res = await lineLog.record(p.text, p.date, keepalive);
+  if (sending.has(key)) return; // 箱から送りなおしている途中（それで入る）
+  sending.add(key);
+  const res = await lineLog.record(p.text, p.date, keepalive).catch(() => ({ ok: false, error: "net" }));
+  sending.delete(key);
   if (res.ok || !RETRY_ERRORS.has(res.error)) outbox.drop(key);
-  me?.update();
+  showWaiting();
   if (keepalive) return; // 閉じるところ。次に開いたときに読みなおす
   const h = state.habits.find((x) => x.id === id);
   if (res.ok) {
@@ -142,20 +146,19 @@ async function sendNow(key, keepalive = false) {
 }
 // 送れなかった○の箱（js/linelog.js の sendBox。Q キットの shared/botlink.js の outbox）
 const outbox = sendBox();
-const RETRY_ERRORS = new Set(["net", "fail"]); // 送りなおせば入るかもしれない失敗
-// 前に送れなかった○を送りなおす（つないだとき。7日前までの分だけ。だめならまた次に）
-async function resendOutbox() {
-  if (!lineLog) return;
-  const today = ymd();
-  for (const { id, item } of outbox.all()) {
-    if (!item || !withinBotDays(item.date, today) || !item.text) {
-      outbox.drop(id);
-      continue;
-    }
-    const res = await lineLog.record(item.text, item.date);
-    if (res.ok || !RETRY_ERRORS.has(res.error)) outbox.drop(id);
-    if (!res.ok && RETRY_ERRORS.has(res.error)) break; // 電波がないあいだは、あとはまた次に
-  }
+// 前に送れなかった○を送りなおす（つないだとき・電波がもどったとき。7日前までの分だけ。だめならまた次に）
+// 2つが重なっても1回だけ走らせ、いま送っている○はとばす（js/linelog.js の resendBox・oneAtATime）
+const resendOutbox = oneAtATime(async () => {
+  if (lineLog) await resendBox(outbox, lineLog.record, { today: ymd(), busy: sending });
+  showWaiting();
+});
+// くらぶボットにつなぐ人とわかるときの URL（自分で入れたつなぎ先か、前につながったくらぶボット。js/linelog.js の botUrlKnown）
+const botUrl = () => botUrlKnown({ gasUrl: state.gasUrl, qloveUrl: window.QloveBotLink?.get?.() || "", seen: seenBot() });
+// まだ送っていない○の数を、一覧の下の小さな1行と、見出しの右のアイコンの印に出す
+function showWaiting() {
+  const n = inLine && botUrl() ? outbox.all().length : 0;
+  $("sendWait").textContent = waitText(n);
+  $("sendWait").hidden = !n;
   me?.update();
 }
 // 閉じる・ほかのアプリに切りかえるときは、待っている○をすぐ送る
@@ -644,7 +647,7 @@ function applyToggle(h, date) {
   if (!on) {
     cancelSend(pendKey(h.id, date)); // 送る前に外したら、送らない
     outbox.drop(pendKey(h.id, date)); // 電波がなくて箱に入れていた分も
-    me?.update();
+    showWaiting();
   }
   render();
   if (!on) return;
@@ -662,9 +665,9 @@ function applyToggle(h, date) {
     return;
   }
   // LINE 版で、くらぶボットにつなぐ人なのに、いまつながっていない（電波がない・起こしている途中）：箱に入れて、つながったら送る
-  if (waitForBot({ inLine, gasUrl: state.gasUrl, lineText: h.lineText, date, today })) {
+  if (waitForBot({ inLine, gasUrl: botUrl(), lineText: h.lineText, date, today })) {
     outbox.put(pendKey(h.id, date), { text: h.lineText, date });
-    me?.update();
+    showWaiting();
     return say(`${text}（つながったら、くらぶボットにも入れます）`);
   }
   if (date === today) say(text);
@@ -825,12 +828,18 @@ function connectLineLog() {
     // つながらないときは、前につながっていたときだけ描きなおす（開いたときの「その習慣を光らせる」を消さないように）
     if (!client) return had && render();
     lineLog = client;
+    // くらぶボット（自分で入れたつなぎ先ではない）につながったら、その URL を覚える（次に電波がないときも、○を箱に入れられるように）
+    if (!state.gasUrl) rememberBot(window.QloveBotLink?.get?.() || "");
     $("statusBox").hidden = false;
     $("whereNote").innerHTML = "📱 この版の記録は、ブラウザ版とは<b>別</b>です。<br>「ボット連動」の札がある習慣は、チェックするとくらぶボットにも届きます。"; // qcheck-ok: W1 決まった文字だけ
     $("whereNote").hidden = false;
     render();
-    me?.update();
+    showWaiting();
     resendOutbox().then(() => readBotDays(true));
+  }).catch(() => {
+    // LIFF を起こせない・ログインできない：チェックはこの端末に残る。箱の○は、つながったら送る
+    lineLog = null;
+    showWaiting();
   });
 }
 // ---- LINE 版の「わたし」：見出しの右に本人のアイコン。押すと、ログイン・くらぶボットとのつながり・まだ送っていない○（Q キットの shared/line-me.js） ----
@@ -845,7 +854,19 @@ me = window.QLineMe?.mount({
   // 「⚙️ 設定」：ページの下の設定の欄（週のはじまり・記録の控え。q-oqrn の ux.md A7）
   onPrefs: () => window.QLineMe.openFold("settings")
 });
+watchLoginChip();
+showWaiting();
 connectLineLog();
+
+// ログインしていないときは、見出しの右のアイコンの下に「この端末に保存中」（アイコンのふちが変わるのに合わせて出し入れする）
+function watchLoginChip() {
+  const button = me && document.querySelector(".ls-brand .qme-button");
+  if (!button) return;
+  const chip = $("localChip");
+  const draw = () => (chip.hidden = !!me.status().loggedIn);
+  new MutationObserver(draw).observe(button, { attributes: true, attributeFilter: ["class"] });
+  draw();
+}
 
 // くらぶボットのいまの設定（見るだけ。字は textContent で入れる）
 $("statusBtn").addEventListener("click", async () => {

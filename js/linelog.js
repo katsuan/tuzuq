@@ -5,8 +5,8 @@
 // - ブラウザで開いたとき・設定が空のときは何もしない（つづくは今までどおり端末の中だけ）
 // - 約束（何を送り、何が返るか）は docs/linelog-api.md
 // 読まれるところ：app.js・js/store.js（テストは test/linelog.test.mjs・test/store.test.mjs）
-import { LINE_LOG } from "./line-config.js?v=202610271256";
-import { addDays } from "./stats.js?v=202610271256";
+import { LINE_LOG } from "./line-config.js?v=202610280743";
+import { addDays } from "./stats.js?v=202610280743";
 
 // くらぶボットに入れられるのは、7日前まで（GAS の TUZUQ_BACK_DAYS_ と同じ）
 export const BOT_BACK_DAYS = 7;
@@ -61,9 +61,78 @@ function ops(client) {
   };
 }
 
-// LINE 版で、くらぶボットにつなぐ人なのに、いまつながっていないとき（電波がない・起こしている途中）に押した○を、
-// 箱に入れて、つながったら送るか（送る文があり、7日前までの日だけ）
+// LINE 版で、くらぶボットにつなぐ人なのに、いまつながっていないとき（電波がない・ログインできない・起こしている途中）に押した○を、
+// 箱に入れて、つながったら送るか（送る文があり、7日前までの日だけ）。gasUrl は botUrlKnown の答え
 export const waitForBot = ({ inLine, gasUrl, lineText, date, today }) => !!(inLine && gasUrl && lineText && withinBotDays(date, today));
+
+// 前につながったくらぶボットの URL を覚えておく場所（URL だけ。ID トークンは入れない）
+export const BOT_SEEN_KEY = "tuzuq:bot";
+// つながったくらぶボットの URL を覚える（残せない端末では何もしない）
+export function rememberBot(url, storage = globalThis.localStorage) {
+  try {
+    if (url) storage.setItem(BOT_SEEN_KEY, url);
+    else storage.removeItem(BOT_SEEN_KEY);
+  } catch {
+    // 残せなくても、つないでいるあいだは送れる
+  }
+}
+// 覚えているくらぶボットの URL（なければ ""）
+export function seenBot(storage = globalThis.localStorage) {
+  try {
+    return String(storage.getItem(BOT_SEEN_KEY) || "");
+  } catch {
+    return "";
+  }
+}
+/**
+ * つながっていなくても、くらぶボットにつなぐ人とわかるときの URL（わからなければ ""）
+ * - 自分で入れたつなぎ先があれば、それ
+ * - なければ、前につながったくらぶボットの URL が、いまも入っているときだけ（くらぶボットに「つづく」の機能があるとわかっている）
+ */
+export const botUrlKnown = ({ gasUrl, qloveUrl, seen }) => gasUrl || (qloveUrl && qloveUrl === seen ? qloveUrl : "");
+
+/**
+ * 箱の○を、古い順に送りなおす。送れたもの・送っても入らないものは箱から出す
+ * - 電波がない（net・fail）ときは、そこで止めて、あとはまた次に
+ * - 7日より前になったもの・中身がこわれたものは、送らずに出す
+ * - いま送っている○（busy）はとばす。送るあいだは busy に入れる（同じ○を2回送らない）
+ * 返すのは、送れた数
+ */
+export async function resendBox(box, record, { today, busy = new Set() }) {
+  let sent = 0;
+  for (const { id, item } of box.all()) {
+    if (busy.has(id)) continue;
+    if (!item || !item.text || !withinBotDays(item.date, today)) {
+      box.drop(id);
+      continue;
+    }
+    busy.add(id);
+    let res;
+    try {
+      res = await record(item.text, item.date);
+    } catch {
+      res = { ok: false, error: "net" };
+    } finally {
+      busy.delete(id);
+    }
+    const again = !res?.ok && RETRY_ERRORS.has(res?.error);
+    if (!again) box.drop(id);
+    if (again) break;
+    if (res.ok) sent++;
+  }
+  return sent;
+}
+// 送りなおせば入るかもしれない失敗（電波がない・ボットが答えない）
+export const RETRY_ERRORS = new Set(["net", "fail"]);
+
+// 走っているあいだにまた呼ばれたら、走っているものの答えを返す（電波がもどったときと、つないだときが重なっても1回だけ）
+export function oneAtATime(fn) {
+  let run = null;
+  return () => (run ||= Promise.resolve().then(fn).finally(() => (run = null)));
+}
+
+// まだ送っていない○があるときの、小さな1行（0件なら ""）
+export const waitText = (n) => (n > 0 ? `📮 ${n}件 まだ送っていません（つながったら送ります）` : "");
 
 // 送れなかった○の箱（閉じるときに送ったもの・電波がなかったもの。次に開いたときに送りなおす。ID トークンは入れない）
 export const sendBox = (opts) => (Q() ? Q().outbox("tuzuq:outbox", opts) : { put() {}, drop() {}, all: () => [] });

@@ -137,6 +137,7 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
   :root[data-ls-dark="auto"] html, :root[data-ls-dark="auto"] body { background: radial-gradient(circle at top right, rgba(47, 128, 216, 0.18), transparent 40%), var(--ls-bg); }
   :root[data-ls-dark="auto"] .auto-tag { background: rgba(236, 138, 22, 0.2); color: #ffc070; }
   :root[data-ls-dark="auto"] .check { color: #fff; }
+  :root[data-ls-dark="auto"] .send-wait { color: #ffc070; }
 }
 
 /* カレンダーでお知らせ */
@@ -184,6 +185,15 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .dot-legend .lg-auto { color: var(--auto); }
 .line-guide-close { min-height: 44px; padding: 0 6px; border: 0; background: none; color: var(--ls-subtext); font-size: 13px; font-weight: 700; cursor: pointer; }
 .where-note[hidden] { display: none; }
+
+/* LINE 版で、くらぶボットにまだ送っていない○があるときの1行（小さく） */
+.send-wait { margin: 6px 2px 0; color: #9a5200; font-size: 12px; line-height: 1.6; }
+.send-wait[hidden] { display: none; }
+
+/* LINE 版でログインしていないとき：見出しの右のアイコンの下に「この端末に保存中」（見出しの高さは変えない） */
+.ls-brand { position: relative; }
+.local-chip { position: absolute; top: 100%; right: -4px; z-index: 1; margin-top: -2px; padding: 1px 7px; border-radius: 999px; background: var(--ls-surface-sub); color: var(--ls-subtext); font-size: 11px; font-weight: 700; line-height: 1.6; white-space: nowrap; pointer-events: none; }
+.local-chip[hidden] { display: none; }
 
 /* 前の日の長押し：押しつづけると丸が満ちていく（--hold の長さで） */
 .dot, .cell, .check { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
