@@ -95,7 +95,7 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 /* 見た目は 34px の丸のまま、押せる広さは 44px に（C3） */
 .mini { position: relative; }
 .mini::after { content: ""; position: absolute; inset: -5px; }
-.mini.del { color: #a39a8f; }
+.mini.del { color: var(--ls-subtext); }
 .edit-hint { margin: -2px 0 0; color: var(--ls-subtext); font-size: 12px; text-align: right; }
 .sub-title { margin: 6px 0 0; padding-top: 10px; border-top: 1px dashed var(--ls-line); font-size: 14px; font-weight: 800; }
 .sub-title:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
@@ -232,3 +232,9 @@ p, li, figcaption, small, .ls-hint, .ls-empty, .ls-tip li { line-break: strict; 
 .status-sec { padding: 8px 12px; border: 1.5px solid var(--ls-line); border-radius: 12px; }
 .status-sec b { display: block; margin-bottom: 2px; font-size: 14px; }
 .status-sec p { margin: 0; color: var(--ls-subtext); font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
+
+/* キーボードで動かしているときの枠（Q キットの部品と同じ。指やマウスで押したときは出ない。入力欄は欄の色で見える） */
+:where(button, a[href], summary, [tabindex]):focus-visible { outline: 2px solid var(--ls-text); outline-offset: 2px; }
+/* 文字だけのボタン（「すべて消す」など）：見た目はそのまま、押せる所を上下に広げる（44px めやす） */
+.link { position: relative; }
+.link::after { content: ""; position: absolute; inset: -6px -4px; }
