@@ -1,16 +1,16 @@
 // つづく（TuZuQ）：画面の操作。記録はこの端末の中だけ（js/store.js）、計算は js/stats.js
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○をくらぶボットにも入れる（js/linelog.js）
 // 読まれるところ：index.html（画面の入口。部品は js/ から読む）
-import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610280743";
-import { botUrlKnown, cleanGasUrl, inLineApp, lineLogMessage, oneAtATime, rememberBot, resendBox, RETRY_ERRORS, seenBot, sendBox, startLineLog, statusSections, waitForBot, waitText, withinBotDays } from "./js/linelog.js?v=202610280743";
-import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610280743";
-import { habitIdFromUrl } from "./js/link.js?v=202610280743";
-import { cardParams } from "./js/card.js?v=202610280743";
-import { dragSort } from "./js/drag-sort.js?v=202610280743";
-import { exportFile } from "./js/export-file.js?v=202610280743";
-import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610280743";
-import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610280743";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610280743";
+import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202610291710";
+import { botUrlKnown, cleanGasUrl, inLineApp, lineLogMessage, oneAtATime, rememberBot, resendBox, RETRY_ERRORS, seenBot, sendBox, startLineLog, statusSections, waitForBot, waitText, withinBotDays } from "./js/linelog.js?v=202610291710";
+import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202610291710";
+import { habitIdFromUrl } from "./js/link.js?v=202610291710";
+import { cardParams } from "./js/card.js?v=202610291710";
+import { dragSort } from "./js/drag-sort.js?v=202610291710";
+import { exportFile } from "./js/export-file.js?v=202610291710";
+import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202610291710";
+import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202610291710";
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202610291710";
 
 const $ = (id) => document.getElementById(id);
 // しるしの候補：6列×3段の18個（どの端末でも6列にそろえる。style.css の .emojis）
@@ -259,22 +259,44 @@ function habitHtml(h, today, week, tapHint = false) {
       </div>`;
 }
 
-// きょうの○（習慣の一覧・しぼりこみ・できた数・送るボタン）を描く
+// 習慣がまだないときの「きょうの○」：はじめの一歩の案内と、押すとふえる見本
+function renderTodayEmpty() {
+  $("progress").textContent = "";
+  // LINE の中で開いて習慣がないとき：ブラウザで使っていた記録は、ここには出ない（別のブラウザ）
+  const moved = inLineApp() ? '<br><small>ブラウザ版で使っていた記録は、ここには出ません。ブラウザ版の「⚙️ 設定」で控えを書き出して、ここで読みこむとうつせます</small>' : "";
+  // qcheck-ok: W1 moved は決まった文字だけ（IDEAS も esc）
+  $("habitList").innerHTML = `<div class="ls-empty"><span class="ls-empty-icon" aria-hidden="true">🌱</span>まずは、つづけたいことを1つ。<br>押すとふえます（自分で決めるなら下の「➕ 習慣をふやす・直す」）${moved}</div>
+    <div class="ls-chips start-ideas">${IDEAS.slice(0, 6).map(([e, n], i) => `<button class="ls-chip is-small" type="button" data-quick="${i}">${e} ${esc(n)}</button>`).join("")}</div>`;
+  $("sendArea").hidden = true;
+  $("dotLegend").hidden = true;
+}
+
+// しぼりこみ（すべて・まだ・できた）と並べ方の部品（決まった文字と数だけ）
+function todayToolsHtml(v, total, todo) {
+  const filters = [
+    ["all", `すべて ${total}`],
+    ["todo", `まだ ${todo}`],
+    ["done", `できた ${total - todo}`]
+  ];
+  const sorts = [
+    ["mine", "いつもの順"],
+    ["todo", "まだを先に"],
+    ["streak", "🔥 つづいている順"]
+  ];
+  return `<div class="ls-chips today-filter" role="group" aria-label="しぼりこみ">${filters
+    .map(([k, t]) => `<button class="ls-chip is-small" type="button" data-filter="${k}" aria-pressed="${(v.filter || "all") === k}">${t}</button>`)
+    .join("")}</div>
+    <label class="today-sort"><span class="sr-only">並べ方</span><select id="todaySort">${sorts
+      .map(([k, t]) => `<option value="${k}"${(v.sort || "mine") === k ? " selected" : ""}>${t}</option>`)
+      .join("")}</select></label>`;
+}
+
+// きょうの○（習慣の一覧・しぼりこみ・できた数・送るボタン・○の色の見本）を描く
 function renderToday(today) {
   $("todayHeading").textContent = `きょうの○ ${label(today)}`;
   $("progress").classList.remove("is-all");
   $("todayTools").hidden = state.habits.length < 2; // しぼりこみ・並べ方は2つから（0こにしたときも消す）
-  if (!state.habits.length) {
-    $("progress").textContent = "";
-    // LINE の中で開いて習慣がないとき：ブラウザで使っていた記録は、ここには出ない（別のブラウザ）
-    const moved = inLineApp() ? '<br><small>ブラウザ版で使っていた記録は、ここには出ません。ブラウザ版の「⚙️ 設定」で控えを書き出して、ここで読みこむとうつせます</small>' : "";
-    // qcheck-ok: W1 moved は決まった文字だけ（IDEAS も esc）
-    $("habitList").innerHTML = `<div class="ls-empty"><span class="ls-empty-icon" aria-hidden="true">🌱</span>まずは、つづけたいことを1つ。<br>押すとふえます（自分で決めるなら下の「➕ 習慣をふやす・直す」）${moved}</div>
-      <div class="ls-chips start-ideas">${IDEAS.slice(0, 6).map(([e, n], i) => `<button class="ls-chip is-small" type="button" data-quick="${i}">${e} ${esc(n)}</button>`).join("")}</div>`;
-    $("sendArea").hidden = true;
-    $("dotLegend").hidden = true;
-    return;
-  }
+  if (!state.habits.length) return renderTodayEmpty();
   const week = lastDays(today, 7);
   // その習慣がきょうできたか
   const isDone = (h) => daysOf(h).all.has(today);
@@ -285,28 +307,14 @@ function renderToday(today) {
   }
   const shown = ui.order.list.map((id) => state.habits.find((h) => h.id === id)).filter(Boolean);
   const v = state.view || {};
-  const todoCount = state.habits.filter((h) => !isDone(h)).length;
-  const toolsHtml = `<div class="ls-chips today-filter" role="group" aria-label="しぼりこみ">${[
-    ["all", `すべて ${state.habits.length}`],
-    ["todo", `まだ ${todoCount}`],
-    ["done", `できた ${state.habits.length - todoCount}`]
-  ]
-    .map(([k, t]) => `<button class="ls-chip is-small" type="button" data-filter="${k}" aria-pressed="${(v.filter || "all") === k}">${t}</button>`)
-    .join("")}</div>
-    <label class="today-sort"><span class="sr-only">並べ方</span><select id="todaySort">${[
-      ["mine", "いつもの順"],
-      ["todo", "まだを先に"],
-      ["streak", "🔥 つづいている順"]
-    ]
-      .map(([k, t]) => `<option value="${k}"${(v.sort || "mine") === k ? " selected" : ""}>${t}</option>`)
-      .join("")}</select></label>`;
-  $("todayTools").innerHTML = toolsHtml; // qcheck-ok: W1 決まった文字と数だけ
+  const total = state.habits.length;
+  const todo = state.habits.filter((h) => !isDone(h)).length;
+  $("todayTools").innerHTML = todayToolsHtml(v, total, todo); // qcheck-ok: W1 決まった文字と数だけ
   $("habitList").innerHTML = shown.length
     ? shown.map((h, i) => habitHtml(h, today, week, i === 0 && neverChecked())).join("")
     : `<div class="ls-empty">${v.filter === "todo" ? "🎉 まだの習慣はありません" : "まだ、できた習慣はありません"}<br><button class="ls-chip is-small" type="button" data-filter="all">すべてを見る</button></div>`;
-  const doneToday = state.habits.length - todoCount;
-  $("progress").innerHTML = `<b>${doneToday}</b> / ${state.habits.length}`; // qcheck-ok: W1 数だけ
-  $("progress").classList.toggle("is-all", doneToday === state.habits.length);
+  $("progress").innerHTML = `<b>${total - todo}</b> / ${total}`; // qcheck-ok: W1 数だけ
+  $("progress").classList.toggle("is-all", todo === 0);
   ui.justDone = null;
   $("sendArea").hidden = false;
   $("sendBtn").href = cardUrl(today);

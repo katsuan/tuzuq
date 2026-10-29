@@ -5,8 +5,8 @@
 // - ブラウザで開いたとき・設定が空のときは何もしない（つづくは今までどおり端末の中だけ）
 // - 約束（何を送り、何が返るか）は docs/linelog-api.md
 // 読まれるところ：app.js・js/store.js（テストは test/linelog.test.mjs・test/store.test.mjs）
-import { LINE_LOG } from "./line-config.js?v=202610280743";
-import { addDays } from "./stats.js?v=202610280743";
+import { LINE_LOG } from "./line-config.js?v=202610291710";
+import { addDays } from "./stats.js?v=202610291710";
 
 // くらぶボットに入れられるのは、7日前まで（GAS の TUZUQ_BACK_DAYS_ と同じ）
 export const BOT_BACK_DAYS = 7;
