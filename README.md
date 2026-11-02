@@ -73,4 +73,4 @@
 
 ## 直したら（読みこみの印）
 
-`app.js`・`style.css`・`js/*.js` を変えたら、`index.html`・`app.js`・`js/*.js` の `?v=…` を、すべて同じ新しい値（例：`202610242029`）にする。変え忘れると、ブラウザが古い部品と新しい部品をまぜて読み、画面がまるごと出なくなる（`test/version.test.mjs` が落ちて気づける）。
+公開は GitHub Actions（`.github/workflows/pages.yml`。中身は Q 共通の line-share の `q-pages.yml`）。push すると、テストと check-code が通ったときだけ Pages に出す。読みこむ JS・CSS の `?v=` は公開のときに付くので、手で付けなくてよい。`?v=` がファイルごとにちがうと、ブラウザが古い部品と新しい部品をまぜて読み、画面がまるごと出なくなるので、公開の写しでは全部同じ新しい番号にそろう（repo の中の番号は、そろっていれば古いままでよい。`test/version.test.mjs`）。
