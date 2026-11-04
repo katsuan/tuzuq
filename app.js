@@ -292,7 +292,7 @@ function todayToolsHtml(v, total, todo) {
   return `<div class="ls-chips today-filter" role="group" aria-label="しぼりこみ">${filters
     .map(([k, t]) => `<button class="ls-chip is-small" type="button" data-filter="${k}" aria-pressed="${(v.filter || "all") === k}">${t}</button>`)
     .join("")}</div>
-    <label class="today-sort"><span class="sr-only">並べ方</span><select id="todaySort">${sorts
+    <label class="today-sort"><span class="ls-sr-only">並べ方</span><select id="todaySort">${sorts
       .map(([k, t]) => `<option value="${k}"${(v.sort || "mine") === k ? " selected" : ""}>${t}</option>`)
       .join("")}</select></label>`;
 }
@@ -300,7 +300,6 @@ function todayToolsHtml(v, total, todo) {
 // きょうの○（習慣の一覧・しぼりこみ・できた数・送るボタン・○の色の見本）を描く
 function renderToday(today) {
   $("todayHeading").textContent = `きょうの○ ${label(today)}`;
-  $("progress").classList.remove("is-all");
   $("todayTools").hidden = state.habits.length < 2; // しぼりこみ・並べ方は2つから（0こにしたときも消す）
   if (!state.habits.length) return renderTodayEmpty();
   const week = lastDays(today, 7);
@@ -320,7 +319,6 @@ function renderToday(today) {
     ? shown.map((h, i) => habitHtml(h, today, week, i === 0 && neverChecked())).join("")
     : `<div class="ls-empty">${v.filter === "todo" ? "🎉 まだの習慣はありません" : "まだ、できた習慣はありません"}<br><button class="ls-chip is-small" type="button" data-filter="all">すべてを見る</button></div>`;
   $("progress").innerHTML = `<b>${total - todo}</b> / ${total}`; // qcheck-ok: W1 数だけ
-  $("progress").classList.toggle("is-all", todo === 0);
   ui.justDone = null;
   $("sendArea").hidden = false;
   $("sendBtn").href = cardUrl(today);

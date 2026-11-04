@@ -17,11 +17,8 @@
   --auto: #ec8a16; /* しょくじの黄色（自動の○） */
 }
 
-html { background: var(--ls-bg); }
-body {
-  background: var(--ls-bg); /* 背景は平らな1色（グラデーションにしない） */
-  -webkit-font-smoothing: antialiased;
-}
+/* 背景は平らな1色（--ls-bg。html・body に塗るのは Q キット） */
+body { -webkit-font-smoothing: antialiased; }
 .ls-page { padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
 .lead { margin-top: -8px; }
 .small { font-size: 12px; }
@@ -32,13 +29,13 @@ body {
 
 /* 習慣 1つ：上の行（しるし・名前・続いた日数・きょうの○）と、下の行（この1週間の○） */
 .habit-list { display: grid; gap: 8px; }
-.habit { display: grid; gap: 8px; padding: 8px 8px 8px 16px; border: 1.5px solid var(--ls-line); border-radius: 16px; background: var(--ls-surface, #fff); transition: border-color 0.2s, background 0.2s; }
+.habit { display: grid; gap: 8px; padding: 8px 8px 8px 16px; border: 1.5px solid var(--ls-line); border-radius: 16px; background: var(--ls-surface); transition: border-color 0.2s, background 0.2s; }
 .habit.is-done { border-color: var(--ls-line-strong); background: var(--ls-surface-sub); }
 .habit-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 8px; }
 .habit-emoji { font-size: 24px; line-height: 1; }
 .habit-name { display: grid; min-width: 0; }
 .habit-name b { overflow: hidden; font-size: 16px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
-.auto-tag { justify-self: start; margin-top: 4px; padding: 0 8px; border-radius: 999px; background: #fff0d6; color: #b35f00; font-size: 11px; font-weight: 700; }
+.auto-tag { justify-self: start; padding: 0 8px; border-radius: 999px; background: #fff0d6; color: #b35f00; font-size: 11px; font-weight: 700; white-space: nowrap; }
 /* 押すとつないだツールが開くピル。見た目は小さいまま、押せる広さは上下に広げる（C3） */
 .auto-tag.is-link { position: relative; text-decoration: none; cursor: pointer; }
 .auto-tag.is-link::after { content: ""; position: absolute; inset: -12px -6px; }
@@ -57,11 +54,11 @@ body {
 /* 曜日の行と丸の行をそろえる（subgrid）：曜日と「きょう」は同じ高さ、丸はまん中。下にそろえると、小さい丸の列の上に大きなすき間ができた */
 .dots { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)) minmax(0, 1.6fr); grid-template-rows: auto auto; align-items: end; column-gap: 4px; row-gap: 4px; }
 .dot { display: grid; grid-row: span 2; grid-template-rows: subgrid; justify-items: center; align-items: center; gap: 4px; padding: 4px 0; border: 0; background: none; color: var(--ls-subtext); font-size: 11px; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.dot i { display: grid; place-items: center; width: 26px; height: 26px; border: 1.5px solid var(--ls-line-strong); border-radius: 50%; color: #fff; font-size: 14px; font-style: normal; font-weight: 800; }
+.dot i { display: grid; place-items: center; width: 26px; height: 26px; border: 1.5px solid var(--ls-line-strong); border-radius: 50%; color: #fff; }
 .dot.is-on i { border-color: var(--ls-accent); background: var(--ls-accent); }
 .dot.is-auto i { border-color: var(--auto); background: var(--auto); }
 .dot.is-today span { color: var(--ls-text); font-size: 12px; font-weight: 800; }
-.dot.is-today i { width: 44px; height: 44px; border: 2px solid var(--ls-accent); font-size: 22px; }
+.dot.is-today i { width: 44px; height: 44px; border: 2px solid var(--ls-accent); }
 /* できた日のしるし：Q キットの線アイコン（check）を白で */
 .dot.is-today.is-on i::before, .dot.is-today.is-auto i::before { content: ""; width: 24px; height: 24px; background: currentColor; -webkit-mask: var(--ls-i-check) center / contain no-repeat; mask: var(--ls-i-check) center / contain no-repeat; }
 /* 最初だけの「押してね」：きょうの丸のそばに指 */
@@ -82,7 +79,9 @@ body {
 .emoji-items { display: contents; }
 .emoji-custom { grid-column: 1 / -1; margin-top: 4px; }
 .emoji-custom::placeholder { font-size: 13px; }
-select.ls-input { -webkit-appearance: none; appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ls-subtext) 50%), linear-gradient(135deg, var(--ls-subtext) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 32px; }
+/* 選ぶ欄（select）の下向きの印：2本の斜めの線で描く */
+select.ls-input, .today-sort select { -webkit-appearance: none; appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ls-subtext) 50%), linear-gradient(135deg, var(--ls-subtext) 50%, transparent 50%); background-size: 5px 5px; background-repeat: no-repeat; }
+select.ls-input { background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; padding-right: 32px; }
 .form-actions { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; }
 .manage-list { display: grid; gap: 8px; }
 .manage { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto auto; align-items: center; gap: 4px; padding: 4px; border: 1.5px solid var(--ls-line); border-radius: 12px; }
@@ -92,14 +91,12 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .manage.is-editing { border-color: var(--ls-text); background: var(--ls-surface-sub); }
 .manage .name { overflow: hidden; padding: 6px 0; border: 0; background: none; color: inherit; font-size: 15px; font-weight: 700; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 .manage .name small { color: var(--ls-subtext); font-size: 11px; }
-.mini { width: 34px; height: 34px; border: 0; border-radius: 50%; background: none; color: var(--ls-subtext); font-size: 15px; cursor: pointer; }
+/* 見た目は 34px の丸のまま、押せる広さは 44px に（C3） */
+.mini { position: relative; width: 34px; height: 34px; border: 0; border-radius: 50%; background: none; color: var(--ls-subtext); font-size: 15px; cursor: pointer; }
+.mini::after { content: ""; position: absolute; inset: -5px; }
 .mini:disabled { opacity: 0.3; cursor: default; }
 .mini .ls-icon { width: 20px; height: 20px; vertical-align: middle; }
 .mini .ls-icon.is-up { transform: rotate(180deg); } /* 上へ：キットに上向きがないので、下向きをまわす */
-/* 見た目は 34px の丸のまま、押せる広さは 44px に（C3） */
-.mini { position: relative; }
-.mini::after { content: ""; position: absolute; inset: -5px; }
-.mini.del { color: var(--ls-subtext); }
 .edit-hint { margin: 0; color: var(--ls-subtext); font-size: 12px; }
 .sub-title { margin: 8px 0 0; padding-top: 16px; border-top: 1px solid var(--ls-line); font-size: 14px; font-weight: 800; }
 .sub-title:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
@@ -116,7 +113,7 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .cell.is-on { background: var(--ls-accent); color: #fff; }
 .cell.is-auto { background: var(--auto); color: #fff; }
 .cell.is-today { border-color: var(--ls-accent); }
-/* 「🗓 すべて」：できた習慣の数で濃さを変える（4＝全部） */
+/* 「すべて」：できた習慣の数で濃さを変える（4＝全部） */
 .cell.lv-1 { background: color-mix(in srgb, var(--ls-accent) 22%, transparent); }
 .cell.lv-2 { background: color-mix(in srgb, var(--ls-accent) 45%, transparent); }
 .cell.lv-3 { background: color-mix(in srgb, var(--ls-accent) 70%, transparent); color: #fff; }
@@ -131,14 +128,15 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 
 .file-btn { position: relative; overflow: hidden; }
 .file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-.link { justify-self: start; padding: 4px 0; border: 0; background: none; color: var(--ls-subtext); font-size: 13px; text-decoration: underline; cursor: pointer; }
-.link.danger { color: var(--ls-danger, #d9534f); }
+/* 文字だけのボタン（「すべて消す」など）：見た目はそのまま、押せる所を上下に広げる（44px めやす） */
+.link { position: relative; justify-self: start; padding: 4px 0; border: 0; background: none; color: var(--ls-subtext); font-size: 13px; text-decoration: underline; cursor: pointer; }
+.link::after { content: ""; position: absolute; inset: -6px -4px; }
+.link.danger { color: var(--ls-danger); }
 .status { min-height: 1.2em; margin: 0; color: var(--ls-text); font-size: 14px; font-weight: 700; }
 .status:empty { display: none; }
 
 @media (prefers-color-scheme: dark) {
   :root[data-ls-dark="auto"] { --ls-accent-ink: #8cc0ff; }
-  :root[data-ls-dark="auto"] html, :root[data-ls-dark="auto"] body { background: var(--ls-bg); }
   :root[data-ls-dark="auto"] .auto-tag { background: rgba(236, 138, 22, 0.2); color: #ffc070; }
 }
 
@@ -182,41 +180,34 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 
 /* ○の色の見本 */
 .dot-legend { margin: 8px 0 0; color: var(--ls-subtext); font-size: 12px; line-height: 1.7; }
-.dot-legend[hidden] { display: none; }
 .dot-legend .lg-own { color: var(--ls-accent); }
 .dot-legend .lg-auto { color: var(--auto); }
 .line-guide-close { min-height: 44px; padding: 0 8px; border: 0; background: none; color: var(--ls-subtext); font-size: 13px; font-weight: 700; cursor: pointer; }
-.where-note[hidden] { display: none; }
 
 /* LINE 版で、くらぶボットにまだ送っていない○があるときの1行（小さく） */
 .send-wait { margin: 8px 0 0; color: var(--ls-text); font-size: 12px; font-weight: 700; line-height: 1.6; }
-.send-wait[hidden] { display: none; }
 
 /* LINE 版でログインしていないとき：見出しの右のアイコンの下に「この端末に保存中」（見出しの高さは変えない） */
 .ls-brand { position: relative; }
 .local-chip { position: absolute; top: 100%; right: -4px; z-index: 1; margin-top: -4px; padding: 0 8px; border-radius: 999px; background: var(--ls-surface-sub); color: var(--ls-subtext); font-size: 11px; font-weight: 700; line-height: 1.6; white-space: nowrap; pointer-events: none; }
-.local-chip[hidden] { display: none; }
 
 /* 前の日の長押し：押しつづけると丸が満ちていく（--hold の長さで） */
-.dot, .cell { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
-.dot, .cell { position: relative; }
+.dot, .cell { position: relative; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
 .dot.is-holding::after, .cell.is-holding::after { content: ""; position: absolute; inset: 0; margin: auto; width: 34px; height: 34px; border-radius: 50%; background: color-mix(in srgb, var(--ls-accent) 35%, transparent); transform: scale(0.2); animation: hold-fill var(--hold, 800ms) linear forwards; pointer-events: none; }
 @keyframes hold-fill { to { transform: scale(1.15); } }
 @media (prefers-reduced-motion: reduce) { .dot.is-holding::after, .cell.is-holding::after { animation: none; transform: scale(1); } }
 
-/* 日本語の折り返し：文節の切れ目で（Chrome・Android の LINE）。行末に1〜2字だけ残らないように */
-/* text-wrap は折り返しの有無まで変えてしまう（nowrap の札が折り返す）ので、見た目だけの text-wrap-style にする */
-p, li, figcaption, small, .ls-hint, .ls-empty, .ls-tip li { line-break: strict; } /* text-wrap: pretty は Safari で段落ぜんぶを早めに折り、右に余白ができるので使わない */ /* 文節で折る（auto-phrase）と右に大きな余白ができるので、説明の文には使わない */
+/* 日本語の折り返し：行頭に「。」「ー」などが来ないように（line-break: strict）
+ * - text-wrap: pretty は Safari で段落ぜんぶを早めに折り、右に余白ができるので使わない
+ * - 文節で折る（word-break: auto-phrase）も右に大きな余白ができるので、説明の文には使わない */
+p, li, figcaption, small, .ls-hint, .ls-empty, .ls-tip li { line-break: strict; }
 /* 切れると読みにくいひとかたまり（色の見本など）は、まとめて次の行へ */
 .nobr { display: inline-block; }
 
-/* 習慣の札（🍚 自動 ›・💬 ボット）：短く1行（押せる広さは ::after で広げているので、はみ出しを切らない） */
-.auto-tag { white-space: nowrap; }
-/* 札（🍚 自動 ›・💬 ボット）は1行に並べる */
+/* 札（しょくじ連動 ›・ボット連動）は1行に並べる */
 .habit-tags { display: flex; flex-wrap: wrap; grid-column: 2 / 4; gap: 4px; align-items: center; min-width: 0; }
 .habit-top:has(.habit-tags) { row-gap: 4px; }
 .habit-top:has(.habit-tags) .habit-emoji { grid-row: span 2; }
-.habit-tags .auto-tag { margin-top: 0; }
 /* いまの習慣：つないだツール・送る文は、名前の下の短い1行に */
 .manage .name .manage-sub { display: block; margin-top: 4px; overflow: hidden; color: var(--ls-subtext); font-size: 12px; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
 
@@ -224,9 +215,8 @@ p, li, figcaption, small, .ls-hint, .ls-empty, .ls-tip li { line-break: strict; 
 .today-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 8px; }
 .today-filter { gap: 4px; }
 /* えらんでいるものは、色ではなく濃さで（濃い字の色で塗る） */
-.today-filter .ls-chip[aria-pressed="true"] { border-color: var(--ls-text); background: var(--ls-text); color: var(--ls-surface, #fff); }
-.today-sort select { -webkit-appearance: none; appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ls-subtext) 50%), linear-gradient(135deg, var(--ls-subtext) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; min-height: 40px; padding: 4px 32px 4px 16px; border: 1.5px solid var(--ls-line); border-radius: 999px; background-color: var(--ls-surface, #fff); color: inherit; font-size: 16px; font-weight: 700; }
-.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.today-filter .ls-chip[aria-pressed="true"] { border-color: var(--ls-text); background: var(--ls-text); color: var(--ls-surface); }
+.today-sort select { background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; min-height: 40px; padding: 4px 32px 4px 16px; border: 1.5px solid var(--ls-line); border-radius: 999px; background-color: var(--ls-surface); color: inherit; font-size: 16px; font-weight: 700; }
 .line-merit { display: grid; gap: 4px; margin: 0 0 8px; padding-left: 0; list-style: none; }
 
 /* 記録ボットのいまの設定（見るだけ） */
@@ -238,9 +228,6 @@ p, li, figcaption, small, .ls-hint, .ls-empty, .ls-tip li { line-break: strict; 
 
 /* キーボードで動かしているときの枠（Q キットの部品と同じ。指やマウスで押したときは出ない。入力欄は欄の色で見える） */
 :where(button, a[href], summary, [tabindex]):focus-visible { outline: 2px solid var(--ls-text); outline-offset: 2px; }
-/* 文字だけのボタン（「すべて消す」など）：見た目はそのまま、押せる所を上下に広げる（44px めやす） */
-.link { position: relative; }
-.link::after { content: ""; position: absolute; inset: -6px -4px; }
 
 /* 設定の「控えを書き出す」「控えを読みこむ」：せまい幅でボタンの字が2行にならないよう、たてに並べる */
 #settings .form-actions { grid-auto-flow: row; }
