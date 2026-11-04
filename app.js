@@ -2,8 +2,9 @@
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○をくらぶボットにも入れる（js/linelog.js）
 // 読まれるところ：index.html（画面の入口。部品は js/ から読む）
 import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202611012034";
-import { botUrlKnown, cleanGasUrl, inLineApp, lineLogMessage, oneAtATime, rememberBot, resendBox, seenBot, sendBox, startLineLog, statusSections, valueText, waitForBot, waitText, withinBotDays } from "./js/linelog.js?v=202611012034";
+import { botUrlKnown, cleanGasUrl, inLineApp, lineLogMessage, oneAtATime, rememberBot, resendBox, seenBot, sendBox, startLineLog, statusSections, waitForBot, waitText, withinBotDays } from "./js/linelog.js?v=202611012034";
 import { sendKey, sendQueue } from "./js/send-queue.js?v=202611012034";
+import { dotClass, esc, habitHtml, lsIcon, manageHtml, todayToolsHtml } from "./js/view.js?v=202611012034";
 import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202611012034";
 import { habitIdFromUrl } from "./js/link.js?v=202611012034";
 import { cardParams } from "./js/card.js?v=202611012034";
@@ -11,10 +12,7 @@ import { dragSort } from "./js/drag-sort.js?v=202611012034";
 import { exportFile } from "./js/export-file.js?v=202611012034";
 import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202611012034";
 import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202611012034";
-import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202611012034";
-
-// Q キットの線アイコン（ui.css の ls-icon）。ボタンの印は「線アイコン＋する言葉」（q-oqrn docs/ux.md G3・L4）
-const lsIcon = (name, cls = "") => `<span class="ls-icon${cls ? ` ${cls}` : ""}" data-icon="${name}" aria-hidden="true"></span>`;
+import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, ymd } from "./js/stats.js?v=202611012034";
 
 const $ = (id) => document.getElementById(id);
 // しるしの候補：6列×3段の18個（どの端末でも6列にそろえる。style.css の .emojis）
@@ -47,9 +45,6 @@ const ui = {
   focus: null, // カレンダーの予定から開いて、光らせている習慣の id
   order: null // きょうの○の並び（id の列）。押すたびに行が動かないよう、開いたとき・並べ方を変えたときだけ決めなおす
 };
-
-// 文字を HTML に入れられる形にする（& < > " ' を置きかえる）
-const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
 // いまの記録を端末に残す。残せなかったら知らせる
 function persist() {
@@ -195,44 +190,10 @@ async function sendLinkedToBot(habits) {
   }
 }
 
-// ○のボタンの見た目（is-on・is-auto・is-today・is-pop）
-function dotClass(h, d, date, today) {
-  const on = d.all.has(date);
-  const auto = !d.own.has(date) && d.auto.has(date);
-  return { on, auto, cls: `${on ? " is-on" : ""}${auto ? " is-auto" : ""}${date === today ? " is-today" : ""}${ui.justDone === `${h.id}:${date}` ? " is-pop" : ""}` };
-}
-
 // ---- きょうの○ ----
 // まだ一度も○をつけていない人にだけ、1つ目の習慣の丸に「👆 押してね」の指を出す（1回押したら二度と出ない）
 function neverChecked() {
   return !Object.values(state.done || {}).some((d) => d && d.length) && !Object.values(state.bot || {}).some((d) => d && d.length);
-}
-
-// きょうの○の、習慣1つぶんの HTML（名前・続いた日数・きょうの丸・この1週間の丸）
-function habitHtml(h, today, week, tapHint = false) {
-  const d = daysOf(h);
-  const now = dotClass(h, d, today, today);
-  const n = streak(d.all, today);
-  const dots = week
-    .map((date) => {
-      const x = dotClass(h, d, date, today);
-      // きょうの丸（いちばん右・大きめ）：押すだけでつけ外し。前の日は長押し
-      const isToday = date === today;
-      const name = isToday ? `${esc(h.name)} きょう${x.on ? "できた" : "まだ"}` : `${label(date)} ${x.on ? "○あり" : "○なし"}`;
-      const hint = isToday && tapHint && !x.on ? '<span class="tap-hint" aria-hidden="true">👆</span>' : "";
-      return `<button class="dot${x.cls}" type="button" data-toggle="${h.id}" data-date="${date}" ${x.auto ? "disabled" : ""} aria-pressed="${x.on}" aria-label="${name}"><span>${isToday ? "きょう" : weekday(date)}</span><i></i>${hint}</button>`;
-    })
-    .join("");
-  return `<div class="habit${now.on ? " is-done" : ""}${ui.focus === h.id ? " is-focus" : ""}" data-habit="${h.id}">
-        <div class="habit-top">
-          <span class="habit-emoji" aria-hidden="true">${esc(h.emoji)}</span>
-          <span class="habit-name"><b>${esc(h.name)}</b></span>
-          <span class="habit-streak${n ? "" : " is-zero"}">${n ? `🔥${n}日` : "これから"}</span>
-          ${botValues[h.id] && botValues[h.id].days[today] !== undefined ? `<small class="habit-value" title="くらぶボットで記録した、きょうの合計">きょう ${esc(valueText(botValues[h.id].days[today], botValues[h.id].unit))}</small>` : ""}
-          ${h.link || (lineLog && h.lineText) ? `<span class="habit-tags">${h.link ? `<a class="auto-tag is-link" href="${esc(LINKS[h.link].url)}" aria-label="${esc(LINKS[h.link].name)}（${esc(LINKS[h.link].what)}）を開く。記録した日は自動でチェック">${esc(LINKS[h.link].name)}連動 ›</a>` : ""}${lineLog && h.lineText ? '<small class="auto-tag bot-tag" title="チェックするとくらぶボットにも記録します">ボット連動</small>' : ""}</span>` : ""}
-        </div>
-        <div class="dots" aria-label="この1週間">${dots}</div>
-      </div>`;
 }
 
 // 習慣がまだないときの「きょうの○」：はじめの一歩の案内と、押すとふえる見本
@@ -245,26 +206,6 @@ function renderTodayEmpty() {
     <div class="ls-chips start-ideas">${IDEAS.slice(0, 6).map(([e, n], i) => `<button class="ls-chip is-small" type="button" data-quick="${i}">${e} ${esc(n)}</button>`).join("")}</div>`;
   $("sendArea").hidden = true;
   $("dotLegend").hidden = true;
-}
-
-// しぼりこみ（すべて・まだ・できた）と並べ方の部品（決まった文字と数だけ）
-function todayToolsHtml(v, total, todo) {
-  const filters = [
-    ["all", `すべて ${total}`],
-    ["todo", `まだ ${todo}`],
-    ["done", `できた ${total - todo}`]
-  ];
-  const sorts = [
-    ["mine", "いつもの順"],
-    ["todo", "まだを先に"],
-    ["streak", "🔥 つづいている順"]
-  ];
-  return `<div class="ls-chips today-filter" role="group" aria-label="しぼりこみ">${filters
-    .map(([k, t]) => `<button class="ls-chip is-small" type="button" data-filter="${k}" aria-pressed="${(v.filter || "all") === k}">${t}</button>`)
-    .join("")}</div>
-    <label class="today-sort"><span class="ls-sr-only">並べ方</span><select id="todaySort">${sorts
-      .map(([k, t]) => `<option value="${k}"${(v.sort || "mine") === k ? " selected" : ""}>${t}</option>`)
-      .join("")}</select></label>`;
 }
 
 // きょうの○（習慣の一覧・しぼりこみ・できた数・送るボタン・○の色の見本）を描く
@@ -286,7 +227,7 @@ function renderToday(today) {
   const todo = state.habits.filter((h) => !isDone(h)).length;
   $("todayTools").innerHTML = todayToolsHtml(v, total, todo); // qcheck-ok: W1 決まった文字と数だけ
   $("habitList").innerHTML = shown.length
-    ? shown.map((h, i) => habitHtml(h, today, week, i === 0 && neverChecked())).join("")
+    ? shown.map((h, i) => habitHtml(h, { d: daysOf(h), today, week, tapHint: i === 0 && neverChecked(), pop: ui.justDone, focus: ui.focus, value: botValues[h.id], bot: !!(lineLog && h.lineText) })).join("")
     : `<div class="ls-empty">${v.filter === "todo" ? "🎉 まだの習慣はありません" : "まだ、できた習慣はありません"}<br><button class="ls-chip is-small" type="button" data-filter="all">すべてを見る</button></div>`;
   $("progress").innerHTML = `<b>${total - todo}</b> / ${total}`; // qcheck-ok: W1 数だけ
   ui.justDone = null;
@@ -367,21 +308,7 @@ function renderForm() {
   $("cancelEdit").hidden = !ui.editing;
   $("saveBtn").disabled = !ui.editing && state.habits.length >= MAX_HABITS;
 
-  $("manageList").innerHTML = state.habits.length
-    ? `<p class="sub-title">📋 いまの習慣（${state.habits.length} / ${MAX_HABITS}）</p>` +
-      state.habits
-        .map(
-          (h, i) => `<div class="manage${h.id === ui.editing ? " is-editing" : ""}" data-row="${h.id}">
-          <span class="grip" data-grip="${h.id}" title="引っぱって並べ替え" aria-hidden="true">⠿</span>
-          <button class="name" type="button" data-edit="${h.id}" aria-label="${esc(h.name)} を直す">${esc(h.emoji)} ${esc(h.name)}${h.link ? `<small class="manage-sub">${esc(LINKS[h.link].label.split(" ")[0])} ${esc(LINKS[h.link].name)}と連動</small>` : ""}${h.lineText ? `<small class="manage-sub">💬 ${esc(h.lineText)}</small>` : ""}</button>
-          <button class="mini" type="button" data-move="${h.id}" data-dir="-1" ${i === 0 ? "disabled" : ""} aria-label="上へ">${lsIcon("down", "is-up")}</button>
-          <button class="mini" type="button" data-move="${h.id}" data-dir="1" ${i === state.habits.length - 1 ? "disabled" : ""} aria-label="下へ">${lsIcon("down")}</button>
-          <button class="mini del" type="button" data-del="${h.id}" aria-label="${esc(h.name)} を消す">${lsIcon("delete")}</button>
-        </div>`
-        )
-        .join("") +
-      '<p class="edit-hint">名前を押すと直せます。⠿ を引っぱると並べ替え</p>'
-    : "";
+  $("manageList").innerHTML = manageHtml(state.habits, ui.editing);
 }
 
 (function fillLinks() {
@@ -561,7 +488,7 @@ function renderCalendar(today) {
   $("calendar").innerHTML = cells
     .map((date) => {
       if (!date) return '<span class="cell is-blank"></span>';
-      const x = dotClass(h, d, date, today);
+      const x = dotClass(h, d, date, today, ui.justDone);
       return `<button class="cell${x.cls}" type="button" data-cal-day="${date}" ${date > today || x.auto ? "disabled" : ""} aria-pressed="${x.on}" aria-label="${label(date)}">${Number(date.slice(8))}</button>`;
     })
     .join("");
