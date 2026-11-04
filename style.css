@@ -54,8 +54,9 @@ body {
 
 /* この1週間：曜日と小さな○ */
 /* いちばん右が「きょう」。きょうの列だけ少し広く、丸も大きく（押すのはここ1か所） */
-.dots { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)) minmax(0, 1.6fr); align-items: end; gap: 4px; }
-.dot { display: grid; justify-items: center; gap: 4px; padding: 4px 0; border: 0; background: none; color: var(--ls-subtext); font-size: 11px; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+/* 曜日の行と丸の行をそろえる（subgrid）：曜日と「きょう」は同じ高さ、丸はまん中。下にそろえると、小さい丸の列の上に大きなすき間ができた */
+.dots { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)) minmax(0, 1.6fr); grid-template-rows: auto auto; align-items: end; column-gap: 4px; row-gap: 4px; }
+.dot { display: grid; grid-row: span 2; grid-template-rows: subgrid; justify-items: center; align-items: center; gap: 4px; padding: 4px 0; border: 0; background: none; color: var(--ls-subtext); font-size: 11px; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .dot i { display: grid; place-items: center; width: 26px; height: 26px; border: 1.5px solid var(--ls-line-strong); border-radius: 50%; color: #fff; font-size: 14px; font-style: normal; font-weight: 800; }
 .dot.is-on i { border-color: var(--ls-accent); background: var(--ls-accent); }
 .dot.is-auto i { border-color: var(--auto); background: var(--auto); }
