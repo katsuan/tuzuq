@@ -14,13 +14,12 @@
   --ls-shadow: 0 10px 28px rgba(30, 80, 140, 0.1);
   --ls-font: "M PLUS Rounded 1c", "Hiragino Maru Gothic ProN", system-ui, sans-serif;
 
-  --fire: #f0742b;
   --auto: #ec8a16; /* しょくじの黄色（自動の○） */
 }
 
 html { background: var(--ls-bg); }
 body {
-  background: radial-gradient(circle at top right, #cfe4ff, transparent 40%), var(--ls-bg);
+  background: var(--ls-bg); /* 背景は平らな1色（グラデーションにしない） */
   -webkit-font-smoothing: antialiased;
 }
 .ls-page { padding-bottom: calc(32px + env(safe-area-inset-bottom)); }
@@ -29,24 +28,23 @@ body {
 
 .today-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .progress { color: var(--ls-subtext); font-size: 14px; font-weight: 800; white-space: nowrap; }
-.progress b { color: var(--ls-accent-ink); font-size: 22px; }
-.progress.is-all b { color: var(--fire); }
+.progress b { color: var(--ls-text); font-size: 20px; }
 
 /* 習慣 1つ：上の行（しるし・名前・続いた日数・きょうの○）と、下の行（この1週間の○） */
-.habit-list { display: grid; gap: 10px; }
-.habit { display: grid; gap: 8px; padding: 10px 10px 10px 12px; border: 1.5px solid var(--ls-line); border-radius: 16px; background: var(--ls-surface, #fff); transition: border-color 0.2s, background 0.2s; }
+.habit-list { display: grid; gap: 8px; }
+.habit { display: grid; gap: 8px; padding: 8px 8px 8px 16px; border: 1.5px solid var(--ls-line); border-radius: 16px; background: var(--ls-surface, #fff); transition: border-color 0.2s, background 0.2s; }
 .habit.is-done { border-color: var(--ls-line-strong); background: var(--ls-surface-sub); }
 .habit-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 8px; }
 .habit-emoji { font-size: 24px; line-height: 1; }
 .habit-name { display: grid; min-width: 0; }
 .habit-name b { overflow: hidden; font-size: 16px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
-.auto-tag { justify-self: start; margin-top: 2px; padding: 1px 7px; border-radius: 999px; background: #fff0d6; color: #b35f00; font-size: 11px; font-weight: 700; }
+.auto-tag { justify-self: start; margin-top: 4px; padding: 0 8px; border: 1px solid var(--ls-line-strong); border-radius: 999px; color: var(--ls-subtext); font-size: 11px; font-weight: 700; }
 /* 押すとつないだツールが開くピル。見た目は小さいまま、押せる広さは上下に広げる（C3） */
 .auto-tag.is-link { position: relative; text-decoration: none; cursor: pointer; }
 .auto-tag.is-link::after { content: ""; position: absolute; inset: -12px -6px; }
 .auto-tag.is-link:active { filter: brightness(0.95); }
-.habit-streak { color: var(--fire); font-size: 14px; font-weight: 800; white-space: nowrap; }
-.habit-streak.is-zero { color: var(--ls-subtext); font-size: 12px; }
+.habit-streak { color: var(--ls-text); font-size: 14px; font-weight: 800; white-space: nowrap; }
+.habit-streak.is-zero { color: var(--ls-subtext); font-size: 12px; font-weight: 700; }
 /* くらぶボットで記録した、きょうの合計（時間・距離・充電の％など） */
 .habit-value { color: var(--ls-subtext); font-size: 12px; font-weight: 700; white-space: nowrap; }
 
@@ -58,22 +56,24 @@ body {
 .check:has(.tap-hint) { animation: tap-ring 1.6s ease-in-out infinite; }
 @keyframes tap-ring { 0%, 40%, 100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 0 6px var(--ls-accent-soft); } }
 @media (prefers-reduced-motion: reduce) { .tap-hint, .check:has(.tap-hint) { animation: none; } }
-.check.is-on { border: 0; background: var(--ls-accent); box-shadow: 0 4px 12px rgba(47, 128, 216, 0.35); }
-.check:disabled.is-on { background: var(--auto); box-shadow: 0 4px 12px rgba(236, 138, 22, 0.3); cursor: default; }
+.check.is-on { border: 0; background: var(--ls-accent); }
+.check:disabled.is-on { background: var(--auto); cursor: default; }
 .is-pop { animation: pop 0.45s cubic-bezier(0.3, 1.6, 0.6, 1); }
 @keyframes pop { 0% { transform: scale(0.6); } 100% { transform: scale(1); } }
 
 /* この1週間：曜日と小さな○ */
 .dots { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
-.dot { display: grid; justify-items: center; gap: 2px; padding: 2px 0; border: 0; background: none; color: var(--ls-subtext); font-size: 11px; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.dot { display: grid; justify-items: center; gap: 4px; padding: 4px 0; border: 0; background: none; color: var(--ls-subtext); font-size: 11px; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .dot i { display: grid; place-items: center; width: 26px; height: 26px; border: 1.5px solid var(--ls-line-strong); border-radius: 50%; color: #fff; font-size: 14px; font-style: normal; font-weight: 800; }
 .dot.is-on i { border-color: var(--ls-accent); background: var(--ls-accent); }
 .dot.is-auto i { border-color: var(--auto); background: var(--auto); }
-.dot.is-today span { color: var(--ls-accent-ink); font-weight: 800; }
+.dot.is-today span { color: var(--ls-text); font-weight: 800; }
 .dot:disabled { cursor: default; }
-.start-ideas { justify-content: center; }
+.start-ideas { justify-content: start; }
+/* 習慣がないとき・しぼりこんで空のとき：文は左そろえ（Q キットの ls-empty は中央なので、つづくでは左に） */
+.habit-list .ls-empty, .cal-stats .ls-empty { justify-items: start; padding: 16px 0; text-align: left; }
 
-.send-area { display: grid; gap: 6px; }
+.send-area { display: grid; gap: 8px; }
 
 /* 習慣をふやす・直す */
 /* しるしの選択肢（Q キットの ls-picker の中）：絵文字は6列×3段、カスタムはその下に横いっぱい */
@@ -82,12 +82,12 @@ body {
 .emoji-custom::placeholder { font-size: 13px; }
 select.ls-input { -webkit-appearance: none; appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ls-subtext) 50%), linear-gradient(135deg, var(--ls-subtext) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 32px; }
 .form-actions { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; }
-.manage-list { display: grid; gap: 6px; }
-.manage { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto auto; align-items: center; gap: 4px; padding: 4px 4px 4px 2px; border: 1.5px solid var(--ls-line); border-radius: 12px; }
+.manage-list { display: grid; gap: 8px; }
+.manage { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto auto; align-items: center; gap: 4px; padding: 4px; border: 1.5px solid var(--ls-line); border-radius: 12px; }
 .manage .grip { display: grid; place-items: center; width: 28px; min-height: 40px; color: var(--ls-subtext); font-size: 18px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
-.manage.is-dragging { position: relative; z-index: 1; border-color: var(--ls-accent); background: var(--ls-accent-soft); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25); }
+.manage.is-dragging { position: relative; z-index: 1; border-color: var(--ls-text); background: var(--ls-surface-sub); }
 .manage.is-dragging .grip { cursor: grabbing; }
-.manage.is-editing { border-color: var(--ls-accent); background: var(--ls-accent-soft); }
+.manage.is-editing { border-color: var(--ls-text); background: var(--ls-surface-sub); }
 .manage .name { overflow: hidden; padding: 6px 0; border: 0; background: none; color: inherit; font-size: 15px; font-weight: 700; text-align: left; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 .manage .name small { color: var(--ls-subtext); font-size: 11px; }
 .mini { width: 34px; height: 34px; border: 0; border-radius: 50%; background: none; color: var(--ls-subtext); font-size: 15px; cursor: pointer; }
@@ -96,8 +96,8 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .mini { position: relative; }
 .mini::after { content: ""; position: absolute; inset: -5px; }
 .mini.del { color: var(--ls-subtext); }
-.edit-hint { margin: -2px 0 0; color: var(--ls-subtext); font-size: 12px; text-align: right; }
-.sub-title { margin: 6px 0 0; padding-top: 10px; border-top: 1px dashed var(--ls-line); font-size: 14px; font-weight: 800; }
+.edit-hint { margin: 0; color: var(--ls-subtext); font-size: 12px; }
+.sub-title { margin: 8px 0 0; padding-top: 16px; border-top: 1px solid var(--ls-line); font-size: 14px; font-weight: 800; }
 .sub-title:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
 
 /* カレンダー */
@@ -119,30 +119,28 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .cell.lv-4 { background: var(--ls-accent); color: #fff; }
 .cell:disabled:not(.is-auto) { color: var(--ls-line-strong); cursor: default; }
 .cal-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.cal-stats > div { display: grid; justify-items: center; gap: 1px; padding: 8px 4px; border-radius: 12px; background: var(--ls-surface-sub); }
+.cal-stats > div { display: grid; justify-items: start; gap: 4px; padding: 8px; border-radius: 8px; background: var(--ls-surface-sub); }
 .cal-stats .ls-empty { grid-column: 1 / -1; }
 .cal-stats span, .cal-stats em { color: var(--ls-subtext); font-size: 11px; font-style: normal; font-weight: 700; }
-.cal-stats b { color: var(--ls-accent-ink); font-size: 24px; font-weight: 800; }
+.cal-stats b { color: var(--ls-text); font-size: 20px; font-weight: 800; }
 .cal-stats b small { font-size: 12px; }
 
 .file-btn { position: relative; overflow: hidden; }
 .file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .link { justify-self: start; padding: 4px 0; border: 0; background: none; color: var(--ls-subtext); font-size: 13px; text-decoration: underline; cursor: pointer; }
 .link.danger { color: var(--ls-danger, #d9534f); }
-.status { min-height: 1.2em; margin: 0; color: var(--ls-accent-ink); font-size: 14px; font-weight: 700; }
+.status { min-height: 1.2em; margin: 0; color: var(--ls-text); font-size: 14px; font-weight: 700; }
 .status:empty { display: none; }
 
 @media (prefers-color-scheme: dark) {
   :root[data-ls-dark="auto"] { --ls-accent-ink: #8cc0ff; }
-  :root[data-ls-dark="auto"] html, :root[data-ls-dark="auto"] body { background: radial-gradient(circle at top right, rgba(47, 128, 216, 0.18), transparent 40%), var(--ls-bg); }
-  :root[data-ls-dark="auto"] .auto-tag { background: rgba(236, 138, 22, 0.2); color: #ffc070; }
+  :root[data-ls-dark="auto"] html, :root[data-ls-dark="auto"] body { background: var(--ls-bg); }
   :root[data-ls-dark="auto"] .check { color: #fff; }
-  :root[data-ls-dark="auto"] .send-wait { color: #ffc070; }
 }
 
 /* カレンダーでお知らせ */
 .remind-time { max-width: 180px; }
-.remind-row { grid-template-columns: minmax(0, 1fr) auto; padding: 6px 6px 6px 12px; }
+.remind-row { grid-template-columns: minmax(0, 1fr) auto; padding: 8px 8px 8px 16px; }
 .remind-row .name { overflow: hidden; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .remind-row .ls-chip { text-decoration: none; }
 
@@ -152,7 +150,7 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 @media (prefers-reduced-motion: reduce) { .habit.is-focus { animation: none; } }
 
 /* ---- LINE で使う：4コマ（LINE の画面に似せた絵。暗い表示でも明るいまま） ---- */
-.line-guide { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 72%); gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 2px 10px; -webkit-overflow-scrolling: touch; }
+.line-guide { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(200px, 72%); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 4px 8px; -webkit-overflow-scrolling: touch; }
 .lg-panel { margin: 0; scroll-snap-align: start; display: grid; gap: 8px; align-content: start; }
 .lg-panel figcaption { color: var(--ls-subtext); font-size: 13px; line-height: 1.5; }
 .lg-panel figcaption b { display: block; color: var(--ls-text); font-size: 14px; }
@@ -175,24 +173,24 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .lg-card-btn { padding: 7px; border-top: 1px solid #e3e8f1; color: #2f80d8; font-weight: 700; text-align: center; }
 
 /* 記録の置き場所の注意（ブラウザごと・端末ごとに別々） */
-.where-note { margin: 8px 0 0; padding: 8px 12px; border-radius: 12px; background: var(--ls-surface-sub); color: var(--ls-subtext); font-size: 13px; line-height: 1.55; }
+.where-note { margin: 8px 0 0; padding: 8px 16px; border-radius: 8px; background: var(--ls-surface-sub); color: var(--ls-subtext); font-size: 13px; line-height: 1.55; }
 .where-note b { color: var(--ls-text); }
 
 /* ○の色の見本 */
-.dot-legend { margin: 8px 2px 0; color: var(--ls-subtext); font-size: 12px; line-height: 1.7; }
+.dot-legend { margin: 8px 0 0; color: var(--ls-subtext); font-size: 12px; line-height: 1.7; }
 .dot-legend[hidden] { display: none; }
 .dot-legend .lg-own { color: var(--ls-accent); }
 .dot-legend .lg-auto { color: var(--auto); }
-.line-guide-close { min-height: 44px; padding: 0 6px; border: 0; background: none; color: var(--ls-subtext); font-size: 13px; font-weight: 700; cursor: pointer; }
+.line-guide-close { min-height: 44px; padding: 0 8px; border: 0; background: none; color: var(--ls-subtext); font-size: 13px; font-weight: 700; cursor: pointer; }
 .where-note[hidden] { display: none; }
 
 /* LINE 版で、くらぶボットにまだ送っていない○があるときの1行（小さく） */
-.send-wait { margin: 6px 2px 0; color: #9a5200; font-size: 12px; line-height: 1.6; }
+.send-wait { margin: 8px 0 0; color: var(--ls-text); font-size: 12px; font-weight: 700; line-height: 1.6; }
 .send-wait[hidden] { display: none; }
 
 /* LINE 版でログインしていないとき：見出しの右のアイコンの下に「この端末に保存中」（見出しの高さは変えない） */
 .ls-brand { position: relative; }
-.local-chip { position: absolute; top: 100%; right: -4px; z-index: 1; margin-top: -2px; padding: 1px 7px; border-radius: 999px; background: var(--ls-surface-sub); color: var(--ls-subtext); font-size: 11px; font-weight: 700; line-height: 1.6; white-space: nowrap; pointer-events: none; }
+.local-chip { position: absolute; top: 100%; right: -4px; z-index: 1; margin-top: -4px; padding: 0 8px; border-radius: 999px; background: var(--ls-surface-sub); color: var(--ls-subtext); font-size: 11px; font-weight: 700; line-height: 1.6; white-space: nowrap; pointer-events: none; }
 .local-chip[hidden] { display: none; }
 
 /* 前の日の長押し：押しつづけると丸が満ちていく（--hold の長さで） */
@@ -212,25 +210,26 @@ p, li, figcaption, small, .ls-hint, .ls-empty, .ls-tip li { line-break: strict; 
 .auto-tag { white-space: nowrap; }
 /* 札（🍚 自動 ›・💬 ボット）は1行に並べる */
 .habit-tags { display: flex; flex-wrap: wrap; grid-column: 2 / 4; gap: 4px; align-items: center; min-width: 0; }
-.habit-top:has(.habit-tags) { row-gap: 3px; }
+.habit-top:has(.habit-tags) { row-gap: 4px; }
 .habit-top:has(.habit-tags) .habit-emoji, .habit-top:has(.habit-tags) .check { grid-row: span 2; }
 .habit-tags .auto-tag { margin-top: 0; }
 /* いまの習慣：つないだツール・送る文は、名前の下の短い1行に */
-.manage .name .manage-sub { display: block; margin-top: 2px; overflow: hidden; color: var(--ls-subtext); font-size: 12px; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
+.manage .name .manage-sub { display: block; margin-top: 4px; overflow: hidden; color: var(--ls-subtext); font-size: 12px; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
 
 /* きょうの○の並べ方・しぼりこみ */
-.today-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin: -2px 0 8px; }
+.today-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 8px; }
 .today-filter { gap: 4px; }
-.today-filter .ls-chip[aria-pressed="true"] { border-color: var(--ls-accent); background: var(--ls-accent); color: #fff; }
-.today-sort select { -webkit-appearance: none; appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ls-subtext) 50%), linear-gradient(135deg, var(--ls-subtext) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; min-height: 34px; padding: 4px 28px 4px 10px; border: 1.5px solid var(--ls-line); border-radius: 999px; background-color: var(--ls-surface, #fff); color: inherit; font-size: 16px; font-weight: 700; }
+/* えらんでいるものは、色ではなく濃さで（濃い字の色で塗る） */
+.today-filter .ls-chip[aria-pressed="true"] { border-color: var(--ls-text); background: var(--ls-text); color: var(--ls-surface, #fff); }
+.today-sort select { -webkit-appearance: none; appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--ls-subtext) 50%), linear-gradient(135deg, var(--ls-subtext) 50%, transparent 50%); background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%; background-size: 5px 5px; background-repeat: no-repeat; min-height: 40px; padding: 4px 32px 4px 16px; border: 1.5px solid var(--ls-line); border-radius: 999px; background-color: var(--ls-surface, #fff); color: inherit; font-size: 16px; font-weight: 700; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .line-merit { display: grid; gap: 4px; margin: 0 0 8px; padding-left: 0; list-style: none; }
 
 /* 記録ボットのいまの設定（見るだけ） */
-.status-box { display: grid; gap: 8px; margin-bottom: 10px; }
+.status-box { display: grid; gap: 8px; margin-bottom: 8px; }
 .status-list { display: grid; gap: 8px; }
-.status-sec { padding: 8px 12px; border: 1.5px solid var(--ls-line); border-radius: 12px; }
-.status-sec b { display: block; margin-bottom: 2px; font-size: 14px; }
+.status-sec { padding: 8px 16px; border: 1.5px solid var(--ls-line); border-radius: 8px; }
+.status-sec b { display: block; margin-bottom: 4px; font-size: 14px; }
 .status-sec p { margin: 0; color: var(--ls-subtext); font-size: 13px; line-height: 1.6; overflow-wrap: anywhere; }
 
 /* キーボードで動かしているときの枠（Q キットの部品と同じ。指やマウスで押したときは出ない。入力欄は欄の色で見える） */

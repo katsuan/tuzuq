@@ -387,6 +387,8 @@ function renderForm() {
     ? ""
     : IDEAS.map(([e, n], i) => (used.has(n) ? "" : `<button class="ls-chip is-small" type="button" data-idea="${i}">${e} ${esc(n)}</button>`)).join("");
   $("formHeading").textContent = ui.editing ? "✏️ 習慣を直す" : "➕ 習慣をふやす";
+  // ふやすときは、たたみ欄の名前（習慣をふやす・直す）と同じなので見出しを出さない。直すときだけ出す
+  $("formHeading").hidden = !ui.editing;
   $("saveBtn").textContent = ui.editing ? "✏️ 直す" : "＋ ふやす";
   $("cancelEdit").hidden = !ui.editing;
   $("saveBtn").disabled = !ui.editing && state.habits.length >= MAX_HABITS;
