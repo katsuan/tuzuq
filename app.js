@@ -243,7 +243,11 @@ function habitHtml(h, today, week, tapHint = false) {
   const dots = week
     .map((date) => {
       const x = dotClass(h, d, date, today);
-      return `<button class="dot${x.cls}" type="button" data-toggle="${h.id}" data-date="${date}" ${x.auto ? "disabled" : ""} aria-pressed="${x.on}" aria-label="${label(date)} ${x.on ? "○あり" : "○なし"}"><span>${weekday(date)}</span><i></i></button>`;
+      // きょうの丸（いちばん右・大きめ）：押すだけでつけ外し。前の日は長押し
+      const isToday = date === today;
+      const name = isToday ? `${esc(h.name)} きょう${x.on ? "できた" : "まだ"}` : `${label(date)} ${x.on ? "○あり" : "○なし"}`;
+      const hint = isToday && tapHint && !x.on ? '<span class="tap-hint" aria-hidden="true">👆</span>' : "";
+      return `<button class="dot${x.cls}" type="button" data-toggle="${h.id}" data-date="${date}" ${x.auto ? "disabled" : ""} aria-pressed="${x.on}" aria-label="${name}"><span>${isToday ? "きょう" : weekday(date)}</span><i></i>${hint}</button>`;
     })
     .join("");
   return `<div class="habit${now.on ? " is-done" : ""}${ui.focus === h.id ? " is-focus" : ""}" data-habit="${h.id}">
@@ -252,7 +256,6 @@ function habitHtml(h, today, week, tapHint = false) {
           <span class="habit-name"><b>${esc(h.name)}</b></span>
           <span class="habit-streak${n ? "" : " is-zero"}">${n ? `🔥${n}日` : "これから"}</span>
           ${botValues[h.id] && botValues[h.id].days[today] !== undefined ? `<small class="habit-value" title="くらぶボットで記録した、きょうの合計">きょう ${esc(valueText(botValues[h.id].days[today], botValues[h.id].unit))}</small>` : ""}
-          <button class="check${now.on ? " is-on" : ""}${ui.justDone === `${h.id}:${today}` ? " is-pop" : ""}" type="button" data-toggle="${h.id}" data-date="${today}" ${now.auto ? "disabled" : ""} aria-pressed="${now.on}" aria-label="${esc(h.name)} きょう${now.on ? "できた" : "まだ"}">${now.on ? "✓" : ""}${tapHint && !now.on ? '<span class="tap-hint" aria-hidden="true">👆</span>' : ""}</button>
           ${h.link || (lineLog && h.lineText) ? `<span class="habit-tags">${h.link ? `<a class="auto-tag is-link" href="${esc(LINKS[h.link].url)}" aria-label="${esc(LINKS[h.link].name)}（${esc(LINKS[h.link].what)}）を開く。記録した日は自動でチェック">${esc(LINKS[h.link].name)}連動 ›</a>` : ""}${lineLog && h.lineText ? '<small class="auto-tag bot-tag" title="チェックするとくらぶボットにも記録します">ボット連動</small>' : ""}</span>` : ""}
         </div>
         <div class="dots" aria-label="この1週間">${dots}</div>
@@ -347,7 +350,7 @@ $("habitList").addEventListener("click", (e) => {
     addHabit(state, { name, emoji, link });
     persist();
     render();
-    say(`🌱 「${name}」をふやしました。できたら右の丸を押してね`);
+    say(`🌱 「${name}」をふやしました。できたら「きょう」の丸を押してね`);
     return;
   }
   const b = e.target.closest("[data-toggle]");
@@ -819,7 +822,7 @@ window.addEventListener("load", () =>
   window.LineShareUI?.firstTip?.(
     "tuzuq",
     [
-      "できた習慣は、右の丸を押してチェック。下の7つの丸は、長押しで前の日もつけ外しできます",
+      "できた習慣は、いちばん右の大きな丸（きょう）を押してチェック。7つの丸は、長押しで前の日もつけ外しできます",
       "記録はこのブラウザの中だけに残ります。ほかの端末へは「⚙️ 設定」の記録の控えでうつせます",
       "「カードでおくるん」で、きょうできたことを家族や友だちに送れます"
     ],
@@ -940,5 +943,5 @@ $("gasUrl").addEventListener("change", () => {
     ui.focus = null;
     document.querySelector(`.habit[data-habit="${h.id}"]`)?.classList.remove("is-focus");
   }, 2600);
-  if (!daysOf(h).all.has(ymd())) say(`「${h.name}」できたら、右の丸を押してね`);
+  if (!daysOf(h).all.has(ymd())) say(`「${h.name}」できたら、「きょう」の丸を押してね`);
 })();

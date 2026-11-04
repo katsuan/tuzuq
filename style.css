@@ -48,26 +48,27 @@ body {
 /* くらぶボットで記録した、きょうの合計（時間・距離・充電の％など） */
 .habit-value { color: var(--ls-subtext); font-size: 12px; font-weight: 700; white-space: nowrap; }
 
-/* きょうの○：大きな丸のボタン */
-.check { display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 2.5px dashed var(--ls-line-strong); border-radius: 50%; background: transparent; color: #fff; font-size: 26px; font-weight: 800; line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-.check { position: relative; }
-.tap-hint { position: absolute; right: -6px; bottom: -14px; font-size: 26px; pointer-events: none; animation: tap-hint 1.6s ease-in-out infinite; }
-@keyframes tap-hint { 0%, 100% { transform: translate(6px, 8px); opacity: 0.85; } 45% { transform: translate(0, 0) scale(0.92); opacity: 1; } 55% { transform: translate(0, 0) scale(0.92); } }
-.check:has(.tap-hint) { animation: tap-ring 1.6s ease-in-out infinite; }
-@keyframes tap-ring { 0%, 40%, 100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 0 6px var(--ls-accent-soft); } }
-@media (prefers-reduced-motion: reduce) { .tap-hint, .check:has(.tap-hint) { animation: none; } }
-.check.is-on { border: 0; background: var(--ls-accent); }
-.check:disabled.is-on { background: var(--auto); cursor: default; }
-.is-pop { animation: pop 0.45s cubic-bezier(0.3, 1.6, 0.6, 1); }
+/* 「やった」の小さな動き（きょうの丸を押したとき） */
+.is-pop i { animation: pop 0.45s cubic-bezier(0.3, 1.6, 0.6, 1); }
 @keyframes pop { 0% { transform: scale(0.6); } 100% { transform: scale(1); } }
 
 /* この1週間：曜日と小さな○ */
-.dots { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+/* いちばん右が「きょう」。きょうの列だけ少し広く、丸も大きく（押すのはここ1か所） */
+.dots { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)) minmax(0, 1.6fr); align-items: end; gap: 4px; }
 .dot { display: grid; justify-items: center; gap: 4px; padding: 4px 0; border: 0; background: none; color: var(--ls-subtext); font-size: 11px; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .dot i { display: grid; place-items: center; width: 26px; height: 26px; border: 1.5px solid var(--ls-line-strong); border-radius: 50%; color: #fff; font-size: 14px; font-style: normal; font-weight: 800; }
 .dot.is-on i { border-color: var(--ls-accent); background: var(--ls-accent); }
 .dot.is-auto i { border-color: var(--auto); background: var(--auto); }
-.dot.is-today span { color: var(--ls-text); font-weight: 800; }
+.dot.is-today span { color: var(--ls-text); font-size: 12px; font-weight: 800; }
+.dot.is-today i { width: 44px; height: 44px; border: 2px solid var(--ls-accent); font-size: 22px; }
+.dot.is-today.is-on i::before { content: "✓"; }
+.dot.is-today.is-auto i::before { content: "✓"; }
+/* 最初だけの「押してね」：きょうの丸のそばに指 */
+.tap-hint { position: absolute; right: -2px; bottom: -10px; font-size: 24px; pointer-events: none; animation: tap-hint 1.6s ease-in-out infinite; }
+@keyframes tap-hint { 0%, 100% { transform: translate(6px, 8px); opacity: 0.85; } 45% { transform: translate(0, 0) scale(0.92); opacity: 1; } 55% { transform: translate(0, 0) scale(0.92); } }
+.dot:has(.tap-hint) i { animation: tap-ring 1.6s ease-in-out infinite; }
+@keyframes tap-ring { 0%, 40%, 100% { box-shadow: 0 0 0 0 transparent; } 50% { box-shadow: 0 0 0 6px var(--ls-accent-soft); } }
+@media (prefers-reduced-motion: reduce) { .tap-hint, .dot:has(.tap-hint) i, .is-pop i { animation: none; } }
 .dot:disabled { cursor: default; }
 .start-ideas { justify-content: start; }
 /* 習慣がないとき・しぼりこんで空のとき：文は左そろえ（Q キットの ls-empty は中央なので、つづくでは左に） */
@@ -136,7 +137,6 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
   :root[data-ls-dark="auto"] { --ls-accent-ink: #8cc0ff; }
   :root[data-ls-dark="auto"] html, :root[data-ls-dark="auto"] body { background: var(--ls-bg); }
   :root[data-ls-dark="auto"] .auto-tag { background: rgba(236, 138, 22, 0.2); color: #ffc070; }
-  :root[data-ls-dark="auto"] .check { color: #fff; }
 }
 
 /* カレンダーでお知らせ */
@@ -195,7 +195,7 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .local-chip[hidden] { display: none; }
 
 /* 前の日の長押し：押しつづけると丸が満ちていく（--hold の長さで） */
-.dot, .cell, .check { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+.dot, .cell { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
 .dot, .cell { position: relative; }
 .dot.is-holding::after, .cell.is-holding::after { content: ""; position: absolute; inset: 0; margin: auto; width: 34px; height: 34px; border-radius: 50%; background: color-mix(in srgb, var(--ls-accent) 35%, transparent); transform: scale(0.2); animation: hold-fill var(--hold, 800ms) linear forwards; pointer-events: none; }
 @keyframes hold-fill { to { transform: scale(1.15); } }
@@ -212,7 +212,7 @@ p, li, figcaption, small, .ls-hint, .ls-empty, .ls-tip li { line-break: strict; 
 /* 札（🍚 自動 ›・💬 ボット）は1行に並べる */
 .habit-tags { display: flex; flex-wrap: wrap; grid-column: 2 / 4; gap: 4px; align-items: center; min-width: 0; }
 .habit-top:has(.habit-tags) { row-gap: 4px; }
-.habit-top:has(.habit-tags) .habit-emoji, .habit-top:has(.habit-tags) .check { grid-row: span 2; }
+.habit-top:has(.habit-tags) .habit-emoji { grid-row: span 2; }
 .habit-tags .auto-tag { margin-top: 0; }
 /* いまの習慣：つないだツール・送る文は、名前の下の短い1行に */
 .manage .name .manage-sub { display: block; margin-top: 4px; overflow: hidden; color: var(--ls-subtext); font-size: 12px; font-weight: 700; white-space: nowrap; text-overflow: ellipsis; }
