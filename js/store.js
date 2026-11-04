@@ -4,7 +4,7 @@
 // done = { 習慣の id: ["YYYY-MM-DD", ...] }（○をつけた日）
 // bot = { 習慣の id: ["YYYY-MM-DD", ...] }（LINE の中で開いたときに、くらぶボットから読んだ「記録した日」。日付だけ）
 // 消した習慣は、○の記録ごと控え（trash）に1つだけ残して「元に戻す」で戻せるようにする
-// 読まれるところ：app.js・js/card.js（テストは test/linelog.test.mjs・test/store.test.mjs）
+// 読まれるところ：app.js・js/card.js・js/view.js（テストは test/linelog.test.mjs・test/store.test.mjs）
 
 import { isDate } from "./stats.js?v=202611012034";
 import { cleanGasUrl } from "./linelog.js?v=202611012034";

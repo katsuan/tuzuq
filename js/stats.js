@@ -1,5 +1,5 @@
 // つづく：計算（画面に関係しない計算だけ）
-// 読まれるところ：app.js・js/card.js・js/linelog.js・js/long-press.js・js/store.js（テストは test/store.test.mjs）
+// 読まれるところ：app.js・js/card.js・js/linelog.js・js/long-press.js・js/store.js・js/view.js（テストは test/store.test.mjs・test/view.test.mjs）
 
 const WEEK = ["日", "月", "火", "水", "木", "金", "土"];
 

@@ -3,8 +3,8 @@
 // - ボットに送るのは LIFF の ID トークンだけ（だれかはボット側が LINE に確かめる）。トークンは端末に残さない（W7）
 // - つなぐ先は、使う人が自分で入れた自分の GAS の URL だけ（URL の ?〜 からは受けとらない。W5・W9）
 // - ブラウザで開いたとき・設定が空のときは何もしない（つづくは今までどおり端末の中だけ）
-// - 約束（何を送り、何が返るか）は docs/linelog-api.md
-// 読まれるところ：app.js・js/store.js（テストは test/linelog.test.mjs・test/store.test.mjs）
+// - 約束（何を送り、何が返るか）は docs/linelog-setup.html の「受け口の約束」
+// 読まれるところ：app.js・js/store.js・js/send-queue.js・js/view.js（テストは test/linelog.test.mjs・test/store.test.mjs・test/send-queue.test.mjs）
 import { LINE_LOG } from "./line-config.js?v=202611012034";
 import { addDays } from "./stats.js?v=202611012034";
 
