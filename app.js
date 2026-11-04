@@ -12,6 +12,9 @@ import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202611012034";
 import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202611012034";
 import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, weekday, ymd } from "./js/stats.js?v=202611012034";
 
+// Q キットの線アイコン（ui.css の ls-icon）。ボタンの印は「線アイコン＋する言葉」（q-oqrn docs/ux.md G3・L4）
+const lsIcon = (name, cls = "") => `<span class="ls-icon${cls ? ` ${cls}` : ""}" data-icon="${name}" aria-hidden="true"></span>`;
+
 const $ = (id) => document.getElementById(id);
 // しるしの候補：6列×3段の18個（どの端末でも6列にそろえる。style.css の .emojis）
 const EMOJIS = ["✅", "💧", "🚶", "🏃", "📖", "🧘", "🦷", "💊", "📓", "🛏️", "☀️", "🥗", "🎹", "📚", "🌱", "🧹", "💪", "🍚"];
@@ -392,7 +395,7 @@ function renderForm() {
   $("formHeading").textContent = ui.editing ? "✏️ 習慣を直す" : "➕ 習慣をふやす";
   // ふやすときは、たたみ欄の名前（習慣をふやす・直す）と同じなので見出しを出さない。直すときだけ出す
   $("formHeading").hidden = !ui.editing;
-  $("saveBtn").textContent = ui.editing ? "✏️ 直す" : "＋ ふやす";
+  $("saveBtn").innerHTML = ui.editing ? `${lsIcon("edit")}直す` : `${lsIcon("add")}ふやす`; // qcheck-ok: W1 決まった文字とアイコンだけ
   $("cancelEdit").hidden = !ui.editing;
   $("saveBtn").disabled = !ui.editing && state.habits.length >= MAX_HABITS;
 
@@ -403,9 +406,9 @@ function renderForm() {
           (h, i) => `<div class="manage${h.id === ui.editing ? " is-editing" : ""}" data-row="${h.id}">
           <span class="grip" data-grip="${h.id}" title="引っぱって並べ替え" aria-hidden="true">⠿</span>
           <button class="name" type="button" data-edit="${h.id}" aria-label="${esc(h.name)} を直す">${esc(h.emoji)} ${esc(h.name)}${h.link ? `<small class="manage-sub">${esc(LINKS[h.link].label.split(" ")[0])} ${esc(LINKS[h.link].name)}と連動</small>` : ""}${h.lineText ? `<small class="manage-sub">💬 ${esc(h.lineText)}</small>` : ""}</button>
-          <button class="mini" type="button" data-move="${h.id}" data-dir="-1" ${i === 0 ? "disabled" : ""} aria-label="上へ">↑</button>
-          <button class="mini" type="button" data-move="${h.id}" data-dir="1" ${i === state.habits.length - 1 ? "disabled" : ""} aria-label="下へ">↓</button>
-          <button class="mini del" type="button" data-del="${h.id}" aria-label="${esc(h.name)} を消す">✕</button>
+          <button class="mini" type="button" data-move="${h.id}" data-dir="-1" ${i === 0 ? "disabled" : ""} aria-label="上へ">${lsIcon("down", "is-up")}</button>
+          <button class="mini" type="button" data-move="${h.id}" data-dir="1" ${i === state.habits.length - 1 ? "disabled" : ""} aria-label="下へ">${lsIcon("down")}</button>
+          <button class="mini del" type="button" data-del="${h.id}" aria-label="${esc(h.name)} を消す">${lsIcon("delete")}</button>
         </div>`
         )
         .join("") +
@@ -570,10 +573,10 @@ function renderCalendar(today) {
     $("monthLabel").textContent = "";
     return;
   }
-  // 先頭の「🗓 すべて」は、習慣を重ねて見る（ui.cal = "all"）
+  // 先頭の「すべて」は、習慣を重ねて見る（ui.cal = "all"）
   if (ui.cal !== "all" && !state.habits.some((h) => h.id === ui.cal)) ui.cal = state.habits[0].id;
   $("calHabits").innerHTML =
-    `<button class="ls-chip is-small" type="button" aria-pressed="${ui.cal === "all"}" data-cal="all">🗓 すべて</button>` +
+    `<button class="ls-chip is-small" type="button" aria-pressed="${ui.cal === "all"}" data-cal="all">${lsIcon("calendar")}すべて</button>` +
     state.habits
       .map((x) => `<button class="ls-chip is-small" type="button" aria-pressed="${x.id === ui.cal}" data-cal="${x.id}">${esc(x.emoji)} ${esc(x.name)}</button>`)
       .join("");
@@ -603,7 +606,7 @@ function renderCalendar(today) {
     <div><span>いちばん</span><b>${best(d.all)}<small>日</small></b><em>つづいた</em></div>`;
 }
 
-// 「🗓 すべて」：日ごとに、できた習慣の数を色の濃さで（全部できた日がいちばん濃い）。日を押すと、その日のようす
+// 「すべて」：日ごとに、できた習慣の数を色の濃さで（全部できた日がいちばん濃い）。日を押すと、その日のようす
 function renderCalendarAll(cells, today) {
   const sets = state.habits.map((h) => daysOf(h).all);
   const n = sets.length;
@@ -632,7 +635,7 @@ $("calHabits").addEventListener("click", (e) => {
   renderCalendar(ymd());
 });
 $("calendar").addEventListener("click", (e) => {
-  // 「🗓 すべて」の日：その日のようすを知らせる
+  // 「すべて」の日：その日のようすを知らせる
   const all = e.target.closest("[data-cal-all]");
   if (all) {
     if (all.disabled) return;
@@ -889,7 +892,7 @@ $("statusBtn").addEventListener("click", async () => {
   btn.textContent = "読みこみ中…";
   const sections = statusSections(await lineLog.status());
   btn.disabled = false;
-  btn.textContent = "🔎 くらぶボットのいまの設定を見る";
+  btn.innerHTML = `${lsIcon("search")}くらぶボットのいまの設定を見る`; // qcheck-ok: W1 決まった文字とアイコンだけ
   const list = $("statusList");
   list.replaceChildren();
   if (!sections) {

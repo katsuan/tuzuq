@@ -61,8 +61,8 @@ body {
 .dot.is-auto i { border-color: var(--auto); background: var(--auto); }
 .dot.is-today span { color: var(--ls-text); font-size: 12px; font-weight: 800; }
 .dot.is-today i { width: 44px; height: 44px; border: 2px solid var(--ls-accent); font-size: 22px; }
-.dot.is-today.is-on i::before { content: "✓"; }
-.dot.is-today.is-auto i::before { content: "✓"; }
+/* できた日のしるし：Q キットの線アイコン（check）を白で */
+.dot.is-today.is-on i::before, .dot.is-today.is-auto i::before { content: ""; width: 24px; height: 24px; background: currentColor; -webkit-mask: var(--ls-i-check) center / contain no-repeat; mask: var(--ls-i-check) center / contain no-repeat; }
 /* 最初だけの「押してね」：きょうの丸のそばに指 */
 .tap-hint { position: absolute; right: -2px; bottom: -10px; font-size: 24px; pointer-events: none; animation: tap-hint 1.6s ease-in-out infinite; }
 @keyframes tap-hint { 0%, 100% { transform: translate(6px, 8px); opacity: 0.85; } 45% { transform: translate(0, 0) scale(0.92); opacity: 1; } 55% { transform: translate(0, 0) scale(0.92); } }
@@ -93,6 +93,8 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 .manage .name small { color: var(--ls-subtext); font-size: 11px; }
 .mini { width: 34px; height: 34px; border: 0; border-radius: 50%; background: none; color: var(--ls-subtext); font-size: 15px; cursor: pointer; }
 .mini:disabled { opacity: 0.3; cursor: default; }
+.mini .ls-icon { width: 20px; height: 20px; vertical-align: middle; }
+.mini .ls-icon.is-up { transform: rotate(180deg); } /* 上へ：キットに上向きがないので、下向きをまわす */
 /* 見た目は 34px の丸のまま、押せる広さは 44px に（C3） */
 .mini { position: relative; }
 .mini::after { content: ""; position: absolute; inset: -5px; }
@@ -238,3 +240,6 @@ p, li, figcaption, small, .ls-hint, .ls-empty, .ls-tip li { line-break: strict; 
 /* 文字だけのボタン（「すべて消す」など）：見た目はそのまま、押せる所を上下に広げる（44px めやす） */
 .link { position: relative; }
 .link::after { content: ""; position: absolute; inset: -6px -4px; }
+
+/* 設定の「控えを書き出す」「控えを読みこむ」：せまい幅でボタンの字が2行にならないよう、たてに並べる */
+#settings .form-actions { grid-auto-flow: row; }

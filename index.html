@@ -67,7 +67,7 @@
   <section class="ls-panel" id="lineGuidePanel" aria-labelledby="lineGuideTitle">
     <div class="today-head">
       <h2 id="lineGuideTitle" class="ls-panel-title">📱 LINE 版で使う</h2>
-      <button class="line-guide-close" type="button" data-close-line-guide aria-label="使い方の案内を閉じる">✕ 閉じる</button>
+      <button class="line-guide-close" type="button" data-close-line-guide aria-label="使い方の案内を閉じる"><span class="ls-icon" data-icon="close" aria-hidden="true"></span>閉じる</button>
     </div>
     <!-- 「LINEで開く」は、おくるん（Q キット）の共通の案内（LineShareLiff.outsideHelp） -->
     <div id="lineOutside"></div>
@@ -158,7 +158,7 @@
           <input id="lineText" class="ls-input" maxlength="60" placeholder="例：# workout" autocomplete="off">
         </label>
         <div class="form-actions">
-          <button id="saveBtn" class="ls-button is-primary is-block" type="button">＋ ふやす</button>
+          <button id="saveBtn" class="ls-button is-primary is-block" type="button"><span class="ls-icon" data-icon="add" aria-hidden="true"></span>ふやす</button>
           <button id="cancelEdit" class="ls-button is-block" type="button" hidden>やめる</button>
         </div>
         <div id="manageList" class="manage-list"></div>
@@ -171,14 +171,14 @@
       <div class="ls-fold-body">
         <div id="calHabits" class="ls-chips" aria-label="習慣をえらぶ"></div>
         <div class="cal-nav">
-          <button id="prevMonth" class="ls-icon-button" type="button" aria-label="前の月">‹</button>
+          <button id="prevMonth" class="ls-icon-button" type="button" aria-label="前の月"><span class="ls-icon" data-icon="back" aria-hidden="true"></span></button>
           <b id="monthLabel"></b>
-          <button id="nextMonth" class="ls-icon-button" type="button" aria-label="次の月">›</button>
+          <button id="nextMonth" class="ls-icon-button" type="button" aria-label="次の月"><span class="ls-icon" data-icon="next" aria-hidden="true"></span></button>
         </div>
         <div id="calWeek" class="cal-week" aria-hidden="true"></div>
         <div id="calendar" class="calendar"></div>
         <div id="calStats" class="cal-stats"></div>
-        <p class="ls-hint small">日を押すとチェックをつけ外しできます（前の日は長押しで。「🗓 すべて」では、その日のようすが出ます。全部できた日がいちばん濃い色）。オレンジの日は、つないだ記録（🍚 しょくじ＝食事の記録・🏋️ キロっく＝筋トレの記録・💬 くらぶボット）で、自動でチェックされた日です。しょくじ・キロっくは、同じ版で開いたときだけ読めます（キロっくは LINE 版）。一度読んだ日は、もとの記録が消えても残ります。</p>
+        <p class="ls-hint small">日を押すとチェックをつけ外しできます（前の日は長押しで。「すべて」では、その日のようすが出ます。全部できた日がいちばん濃い色）。オレンジの日は、つないだ記録（🍚 しょくじ＝食事の記録・🏋️ キロっく＝筋トレの記録・💬 くらぶボット）で、自動でチェックされた日です。しょくじ・キロっくは、同じ版で開いたときだけ読めます（キロっくは LINE 版）。一度読んだ日は、もとの記録が消えても残ります。</p>
       </div>
     </details>
 
@@ -192,7 +192,7 @@
           <input id="remindAt" class="ls-input" type="time" step="300">
         </label>
         <div id="remindList" class="manage-list"></div>
-        <button id="remindIcs" class="ls-button is-block" type="button">📥 まとめてカレンダーに入れる</button>
+        <button id="remindIcs" class="ls-button is-block" type="button"><span class="ls-icon" data-icon="calendar" aria-hidden="true"></span>まとめてカレンダーに入れる</button>
         <p class="ls-hint small">iPhone はファイルを開いて「すべてを追加」。1つずつ入れるときは「Google」（毎日くり返す予定として入ります）。止めるときは、カレンダーの予定を消します。</p>
       </div>
     </details>
@@ -205,11 +205,11 @@
 
         <!-- いまの設定（くらぶボットにつながっているときだけ。トークの「# 設定」と同じ中身。見るだけ） -->
         <div id="statusBox" class="status-box" hidden>
-          <button id="statusBtn" class="ls-button is-block" type="button">🔎 くらぶボットのいまの設定を見る</button>
+          <button id="statusBtn" class="ls-button is-block" type="button"><span class="ls-icon" data-icon="search" aria-hidden="true"></span>くらぶボットのいまの設定を見る</button>
           <div id="statusList" class="status-list" aria-live="polite"></div>
           <p id="statusHint" class="ls-hint small" hidden>変えるときは、くらぶボットのトークで「# 設定」と送り、返ってくるカードのボタンから。</p>
         </div>
-        <button class="ls-button is-block" type="button" data-show-line-guide>👀 使い方（4コマ）を見る</button>
+        <button class="ls-button is-block" type="button" data-show-line-guide><span class="ls-icon" data-icon="view" aria-hidden="true"></span>使い方（4コマ）を見る</button>
         <div class="line-advanced">
           <div id="gasField" hidden>
             <label class="ls-field">
@@ -236,10 +236,10 @@
         <p class="ls-hint small">カレンダーと「今週」の区切り。ほかの Q のツールにもそろいます。</p>
         <p class="sub-title">🔒 記録の控え</p>
         <p class="ls-hint">記録はこのブラウザの中だけにあります（LINE 版・ほかのブラウザ・ほかの端末では別々）。機種変更やブラウザのデータを消す前に、控えを書き出しておいてください。</p>
-        <p class="ls-hint small">ほかの端末・ブラウザにうつすとき：ここで「⬇️ 控えを書き出す」→ うつす先のつづくで「⬆️ 控えを読みこむ」。</p>
+        <p class="ls-hint small">ほかの端末・ブラウザにうつすとき：ここで「控えを書き出す」→ うつす先のつづくで「控えを読みこむ」。</p>
         <div class="form-actions">
-          <button id="exportBtn" class="ls-button is-block" type="button">⬇️ 控えを書き出す</button>
-          <label class="ls-button is-block file-btn">⬆️ 控えを読みこむ<input id="importFile" type="file" accept="application/json,.json"></label>
+          <button id="exportBtn" class="ls-button is-block" type="button"><span class="ls-icon" data-icon="save" aria-hidden="true"></span>控えを書き出す</button>
+          <label class="ls-button is-block file-btn"><span class="ls-icon" data-icon="inbox" aria-hidden="true"></span>控えを読みこむ<input id="importFile" type="file" accept="application/json,.json"></label>
         </div>
         <button id="resetBtn" class="link danger" type="button">記録をすべて消す</button>
       </div>
