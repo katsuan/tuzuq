@@ -38,7 +38,7 @@ body {
 .habit-emoji { font-size: 24px; line-height: 1; }
 .habit-name { display: grid; min-width: 0; }
 .habit-name b { overflow: hidden; font-size: 16px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
-.auto-tag { justify-self: start; margin-top: 4px; padding: 0 8px; border: 1px solid var(--ls-line-strong); border-radius: 999px; color: var(--ls-subtext); font-size: 11px; font-weight: 700; }
+.auto-tag { justify-self: start; margin-top: 4px; padding: 0 8px; border-radius: 999px; background: #fff0d6; color: #b35f00; font-size: 11px; font-weight: 700; }
 /* 押すとつないだツールが開くピル。見た目は小さいまま、押せる広さは上下に広げる（C3） */
 .auto-tag.is-link { position: relative; text-decoration: none; cursor: pointer; }
 .auto-tag.is-link::after { content: ""; position: absolute; inset: -12px -6px; }
@@ -135,6 +135,7 @@ select.ls-input { -webkit-appearance: none; appearance: none; background-image: 
 @media (prefers-color-scheme: dark) {
   :root[data-ls-dark="auto"] { --ls-accent-ink: #8cc0ff; }
   :root[data-ls-dark="auto"] html, :root[data-ls-dark="auto"] body { background: var(--ls-bg); }
+  :root[data-ls-dark="auto"] .auto-tag { background: rgba(236, 138, 22, 0.2); color: #ffc070; }
   :root[data-ls-dark="auto"] .check { color: #fff; }
 }
 
