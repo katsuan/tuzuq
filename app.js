@@ -2,7 +2,8 @@
 // LINE の中（LIFF）で開いたときだけ、送る文のある習慣の○をくらぶボットにも入れる（js/linelog.js）
 // 読まれるところ：index.html（画面の入口。部品は js/ から読む）
 import { LINKS, MAX_HABITS, MAX_IMPORT_BYTES, oneMark, addHabit, isHabitId, applyBotDays, botDays, botHabits, confirmBotDay, rememberLinked, exportJson, importJson, linkedDays, linkedNote, load, moveHabit, moveHabitTo, orderToday, removeHabit, reset, restoreHabit, save, toggle, updateHabit } from "./js/store.js?v=202611012034";
-import { botUrlKnown, cleanGasUrl, inLineApp, lineLogMessage, oneAtATime, rememberBot, resendBox, RETRY_ERRORS, seenBot, sendBox, startLineLog, statusSections, waitForBot, waitText, withinBotDays } from "./js/linelog.js?v=202611012034";
+import { botUrlKnown, cleanGasUrl, inLineApp, lineLogMessage, oneAtATime, rememberBot, resendBox, seenBot, sendBox, startLineLog, statusSections, valueText, waitForBot, waitText, withinBotDays } from "./js/linelog.js?v=202611012034";
+import { sendKey, sendQueue } from "./js/send-queue.js?v=202611012034";
 import { daysAgo, holdMs, watchLongPress } from "./js/long-press.js?v=202611012034";
 import { habitIdFromUrl } from "./js/link.js?v=202611012034";
 import { cardParams } from "./js/card.js?v=202611012034";
@@ -86,51 +87,26 @@ let lineLog = null; // js/linelog.js の startLineLog の返事（つなげな�
 let me = null; // 見出しの右の本人のアイコン（shared/line-me.js。ブラウザ版では null）
 const inLine = !!LINE_LOG.liffId && inLineApp(); // つなぎ先の欄は、LINE の中で開いたときだけ出す
 const SEND_DELAY_MS = 5000; // ○のあと「元に戻す」を押せるあいだは送らない
-const pending = new Map(); // 「習慣の id|日付」→ { id, date, text, timer }（まだ送っていないチェック）
-const sending = new Set(); // いまくらぶボットに送っているチェック（「習慣の id|日付」。同じものを2回送らない）
-// まだ送っていないチェックを見分ける名前（「習慣の id|日付」）
-const pendKey = (id, date) => `${id}|${date}`;
 let lastRead = 0;
 // くらぶボットから読んだ、型のある習慣の日ごとの数字（{ 習慣の id: { unit, days: { "YYYY-MM-DD": 95 } } }）。
 // 時間・距離・充電の％など（くらぶボットの「3つの型」）。端末には残さない（開くたびに読む）
 let botValues = {};
 
-// 数字を出す字にする（95 分 → 1時間35分・12.4 km・+20%）
-function valueText(value, unit) {
-  const v = Number(value) || 0;
-  if (unit === "分") return v >= 60 ? `${Math.floor(v / 60)}時間${v % 60 ? `${Math.round(v % 60)}分` : ""}` : `${Math.round(v)}分`;
-  if (unit === "%") return `${v > 0 ? "+" : ""}${v}%`;
-  if (unit === "km") return `${v}km`;
-  return `${v}${unit || ""}`;
-}
-
-// チェックをくらぶボットに送る予約をする（「元に戻す」を押せる5秒のあとに送る）
-function queueSend(h, date) {
-  const key = pendKey(h.id, date);
-  cancelSend(key);
-  pending.set(key, { id: h.id, date, text: h.lineText, timer: setTimeout(() => sendNow(key), SEND_DELAY_MS) });
-}
-// 送る予約を取りやめる
-function cancelSend(key) {
-  const p = pending.get(key);
-  if (p) clearTimeout(p.timer);
-  pending.delete(key);
-}
-// 予約したチェックをいまくらぶボットに送り、結果を知らせる（keepalive は閉じるとき）
-async function sendNow(key, keepalive = false) {
-  const p = pending.get(key);
-  if (!p || !lineLog) return;
-  cancelSend(key);
-  const id = p.id;
-  // 送れたとわかるまで箱に入れておく（閉じるときに送った分・電波がなかった分は、次に開いたときに送りなおす）
-  outbox.put(key, { text: p.text, date: p.date });
-  if (sending.has(key)) return; // 箱から送りなおしている途中（それで入る）
-  sending.add(key);
-  const res = await lineLog.record(p.text, p.date, keepalive).catch(() => ({ ok: false, error: "net" }));
-  sending.delete(key);
-  if (res.ok || !RETRY_ERRORS.has(res.error)) outbox.drop(key);
+// 送れなかった○の箱（js/linelog.js の sendBox。Q キットの shared/botlink.js の outbox）
+const outbox = sendBox();
+// ○をくらぶボットに送る予約（「元に戻す」を押せる5秒のあとに送る。js/send-queue.js）
+const sends = sendQueue({
+  delayMs: SEND_DELAY_MS,
+  outbox,
+  ready: () => !!lineLog,
+  record: (text, date, keepalive) => lineLog.record(text, date, keepalive),
+  onDone: sendDone
+});
+// 送ったあと：うまくいったら○を確かめた日にして知らせる。電波がない・失敗なら「もう一度」
+function sendDone(key, p, res, keepalive) {
   showWaiting();
   if (keepalive) return; // 閉じるところ。次に開いたときに読みなおす
+  const id = p.id;
   const h = state.habits.find((x) => x.id === id);
   if (res.ok) {
     if (h) confirmBotDay(state, id, res.date || p.date);
@@ -142,17 +118,15 @@ async function sendNow(key, keepalive = false) {
   }
   const again = h && (res.error === "net" || res.error === "fail");
   if (again && window.LineShareUI?.toast) {
-    window.LineShareUI.toast(lineLogMessage(res.error), { actionLabel: "もう一度", onAction: () => (pending.set(key, { ...p, timer: 0 }), sendNow(key)), ms: 8000 });
+    window.LineShareUI.toast(lineLogMessage(res.error), { actionLabel: "もう一度", onAction: () => sends.retry(key, p), ms: 8000 });
   } else {
     say(lineLogMessage(res.error));
   }
 }
-// 送れなかった○の箱（js/linelog.js の sendBox。Q キットの shared/botlink.js の outbox）
-const outbox = sendBox();
 // 前に送れなかった○を送りなおす（つないだとき・電波がもどったとき。7日前までの分だけ。だめならまた次に）
 // 2つが重なっても1回だけ走らせ、いま送っている○はとばす（js/linelog.js の resendBox・oneAtATime）
 const resendOutbox = oneAtATime(async () => {
-  if (lineLog) await resendBox(outbox, lineLog.record, { today: ymd(), busy: sending });
+  if (lineLog) await resendBox(outbox, lineLog.record, { today: ymd(), busy: sends.sending });
   showWaiting();
 });
 // くらぶボットにつなぐ人とわかるときの URL（自分で入れたつなぎ先か、前につながったくらぶボット。js/linelog.js の botUrlKnown）
@@ -163,10 +137,6 @@ function showWaiting() {
   $("sendWait").textContent = waitText(n);
   $("sendWait").hidden = !n;
   me?.update();
-}
-// 閉じる・ほかのアプリに切りかえるときは、待っている○をすぐ送る
-function flushSends() {
-  [...pending.keys()].forEach((key) => sendNow(key, true));
 }
 
 // くらぶボットで記録した日を読む（開いたとき・戻ってきたとき。1分に1回まで）
@@ -659,8 +629,8 @@ function applyToggle(h, date) {
   persist();
   if (on) ui.justDone = `${h.id}:${date}`;
   if (!on) {
-    cancelSend(pendKey(h.id, date)); // 送る前に外したら、送らない
-    outbox.drop(pendKey(h.id, date)); // 電波がなくて箱に入れていた分も
+    sends.cancel(sendKey(h.id, date)); // 送る前に外したら、送らない
+    outbox.drop(sendKey(h.id, date)); // 電波がなくて箱に入れていた分も
     showWaiting();
   }
   render();
@@ -669,9 +639,9 @@ function applyToggle(h, date) {
   const text = date === today ? cheer(n >= 2 ? `🔥 「${h.name}」${n}日つづいています` : `✅ 「${h.name}」できました`) : `✅ 「${h.name}」${label(date)}にチェックしました`;
   if (lineLog && h.lineText) {
     if (!withinBotDays(date, today)) return say(`${text}（8日より前は、この端末だけに残ります）`);
-    queueSend(h, date);
+    sends.queue(h.id, date, h.lineText);
     say(`${text}（くらぶボットにも入れます）`, () => {
-      cancelSend(pendKey(h.id, date));
+      sends.cancel(sendKey(h.id, date));
       if ((state.done[h.id] || []).includes(date)) toggle(state, h.id, date);
       persist();
       render();
@@ -680,7 +650,7 @@ function applyToggle(h, date) {
   }
   // LINE 版で、くらぶボットにつなぐ人なのに、いまつながっていない（電波がない・起こしている途中）：箱に入れて、つながったら送る
   if (waitForBot({ inLine, gasUrl: botUrl(), lineText: h.lineText, date, today })) {
-    outbox.put(pendKey(h.id, date), { text: h.lineText, date });
+    outbox.put(sendKey(h.id, date), { text: h.lineText, date });
     showWaiting();
     return say(`${text}（つながったら、くらぶボットにも入れます）`);
   }
@@ -789,10 +759,10 @@ document.addEventListener("visibilitychange", () => {
     render();
     readBotDays();
   } else {
-    flushSends();
+    sends.flush();
   }
 });
-window.addEventListener("pagehide", flushSends);
+window.addEventListener("pagehide", sends.flush);
 setInterval(() => ymd() !== shownDay && render(), 30000);
 
 // 画面をまるごと描きなおす（つないだツールの日を覚えてから）

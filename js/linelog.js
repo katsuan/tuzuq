@@ -134,6 +134,16 @@ export function oneAtATime(fn) {
 // まだ送っていない○があるときの、小さな1行（0件なら ""）
 export const waitText = (n) => (n > 0 ? `📮 ${n}件 まだ送っていません（つながったら送ります）` : "");
 
+// くらぶボットで記録した、きょうの合計を出す字にする（95 分 → 1時間35分・12.4 km・+20%）
+// 型は、くらぶボットの「3つの型」（時間・距離・充電の％など）
+export function valueText(value, unit) {
+  const v = Number(value) || 0;
+  if (unit === "分") return v >= 60 ? `${Math.floor(v / 60)}時間${v % 60 ? `${Math.round(v % 60)}分` : ""}` : `${Math.round(v)}分`;
+  if (unit === "%") return `${v > 0 ? "+" : ""}${v}%`;
+  if (unit === "km") return `${v}km`;
+  return `${v}${unit || ""}`;
+}
+
 // 送れなかった○の箱（閉じるときに送ったもの・電波がなかったもの。次に開いたときに送りなおす。ID トークンは入れない）
 export const sendBox = (opts) => (Q() ? Q().outbox("tuzuq:outbox", opts) : { put() {}, drop() {}, all: () => [] });
 

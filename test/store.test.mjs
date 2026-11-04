@@ -350,3 +350,45 @@ test("kiloqNote：長くなって600字で切っても、絵文字が半分に�
     assert.equal(/[\uD800-\uDBFF]$/.test(note), false, `pad=${pad}`);
   }
 });
+
+test("この1週間の丸：きょうまでの7日を古い順に。曜日と「11/5（木）」の字", async () => {
+  const { lastDays, weekday, label } = await import("../js/stats.js");
+  assert.deepEqual(lastDays("2026-03-02", 7), ["2026-02-24", "2026-02-25", "2026-02-26", "2026-02-27", "2026-02-28", "2026-03-01", "2026-03-02"]);
+  assert.deepEqual(lastDays("2027-01-01", 2), ["2026-12-31", "2027-01-01"]);
+  assert.equal(weekday("2026-11-05"), "木");
+  assert.equal(weekday("2026-11-08"), "日");
+  assert.equal(label("2026-11-05"), "11/5（木）");
+});
+
+test("上へ・下へ：となりと入れかえる。端ではそのまま", async () => {
+  const { addHabit, moveHabit } = await import("../js/store.js");
+  const s = blank();
+  ["水", "本", "歩く"].forEach((name) => addHabit(s, { name, emoji: "✅" }));
+  const names = () => s.habits.map((h) => h.name);
+  moveHabit(s, s.habits[2].id, -1);
+  assert.deepEqual(names(), ["水", "歩く", "本"]);
+  moveHabit(s, s.habits[0].id, -1);
+  assert.deepEqual(names(), ["水", "歩く", "本"]);
+  moveHabit(s, s.habits[2].id, 1);
+  assert.deepEqual(names(), ["水", "歩く", "本"]);
+  moveHabit(s, "nothere1", 1);
+  assert.deepEqual(names(), ["水", "歩く", "本"]);
+});
+
+test("直す：名前・しるし・つなぎは変わり、id と○の日はそのまま。ない習慣は null", async () => {
+  const { addHabit, updateHabit, toggle } = await import("../js/store.js");
+  const s = blank();
+  addHabit(s, { name: "水", emoji: "💧" });
+  const { id, at } = s.habits[0];
+  toggle(s, id, "2026-11-05");
+  const h = updateHabit(s, id, { name: "  水を2L  ", emoji: "🥤", link: "shoquji", lineText: "# water" });
+  assert.equal(h.id, id);
+  assert.equal(h.at, at);
+  assert.equal(h.name, "水を2L");
+  assert.equal(h.emoji, "🥤");
+  assert.equal(h.link, "shoquji");
+  assert.equal(h.lineText, "# water");
+  assert.deepEqual(s.done[id], ["2026-11-05"]);
+  assert.equal(updateHabit(s, "nothere1", { name: "x" }), null);
+  assert.equal(updateHabit(s, id, { link: "other" }).link, null);
+});
