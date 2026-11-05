@@ -58,7 +58,7 @@
 | `js/drag-sort.js` | ⠿ を引っぱって並べ替える部品 |
 | `js/export-file.js` | ファイルの書き出し（共有メニューかダウンロード） |
 | `js/linelog.js`・`js/line-config.js` | LINE 版の、くらぶボットに頼むこと（record・days・status と、7日前までの決まり・数字の書き方）。つなぐ・送る・送れなかった○の送りなおし（`tuzuq:outbox`）・LINE 版の案内は、Q キットの共通の部品 `shared/botlink.js`（`window.QBotLink`。index.html で読む。テストは `test/_botlink.mjs` で q-oqrn から読む）。つなぎ先は、自分で入れた URL が先（前の形 `{ app: "tuzuq", op }` で送る）。なければ くらぶボット（`qlove:bot`）に「つづく」の機能があるときだけ（くらぶボットの形）。`line-config.js` に、つづくの LIFF の ID（画面に置いてよいもの。空なら使わない） |
-| `test/` | テスト（`node --test test/`） |
+| テスト | テストは、公開しない別の所に置いています（公開の前に GitHub Actions が読んで動かします） |
 | `docs/linelog-setup.html`・`privacy.html` | つなぎ方の手順・LINE の情報の使い方 |
 | `tools/icon.py` | アイコン・ロゴ・OGP |
 
