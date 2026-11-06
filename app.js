@@ -29,7 +29,7 @@ const IDEAS = [
   ["🏋️", "筋トレ", "kiloq"]
 ];
 
-// 週のはじまりは Q ツール共通の設定（line-share/shared/week-start.js）を先に見る。まだないときは、つづくに残した値
+// 週のはじまりは Q ツール共通の設定（oqrn/shared/week-start.js）を先に見る。まだないときは、つづくに残した値
 // （共通の部品が読めないときも、つづくの値で動く）
 const withSharedWeek = (s) => {
   if (window.QWeekStart) s.weekStart = window.QWeekStart.get(s.weekStart);

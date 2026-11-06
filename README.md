@@ -45,7 +45,7 @@
 
 | ファイル | 中身 |
 |---|---|
-| `index.html`・`style.css` | 画面と見た目（スマホ前提。入力欄は 16px 以上、ページにも背景色）。部品はおくるんの Q キット（`https://katsuan.github.io/line-share/shared/ui.css`・`ui.js`）。`style.css` には、つづくの色と、つづくにしかない見た目だけ |
+| `index.html`・`style.css` | 画面と見た目（スマホ前提。入力欄は 16px 以上、ページにも背景色）。部品はおくるんの Q キット（`https://katsuan.github.io/oqrn/shared/ui.css`・`ui.js`）。`style.css` には、つづくの色と、つづくにしかない見た目だけ |
 | `app.js` | 画面の入口（○をつける・習慣をふやす・直す・カレンダー・控え・くらぶボットとのやりとり）。部品は `js/` |
 | `js/view.js` | 画面の HTML の組み立て（習慣1つの行・この1週間の丸・しぼりこみ・いまの習慣の一覧。名前などの字は置きかえてから入れる） |
 | `js/send-queue.js` | ○をくらぶボットに送る予約（「元に戻す」を押せる5秒のあとに送る・外したら取りやめ・閉じるときはすぐ送る） |
@@ -72,8 +72,8 @@
 ## 公開まわり（すんだこと）
 
 - GitHub の `katsuan/tuzuq` の Pages で公開（noindex は外した）
-- おくるん（line-share）の `data/hub-links.json` に `key: "tuzuq"`（グループは「けいぞく部」＝ `habit`）、`backup/app.js` の一覧に `["tuzuq:", "つづく", "tuzuq"]`
+- おくるん（oqrn）の `data/hub-links.json` に `key: "tuzuq"`（グループは「けいぞく部」＝ `habit`）、`backup/app.js` の一覧に `["tuzuq:", "つづく", "tuzuq"]`
 
 ## 直したら（読みこみの印）
 
-公開は GitHub Actions（`.github/workflows/pages.yml`。中身は Q 共通の line-share の `q-pages.yml`）。push すると、テストと check-code が通ったときだけ Pages に出す。読みこむ JS・CSS の `?v=` は公開のときに付くので、手で付けなくてよい。`?v=` がファイルごとにちがうと、ブラウザが古い部品と新しい部品をまぜて読み、画面がまるごと出なくなるので、公開の写しでは全部同じ新しい番号にそろう（repo の中の番号は、そろっていれば古いままでよい。`test/version.test.mjs`）。
+公開は GitHub Actions（`.github/workflows/pages.yml`。中身は Q 共通の oqrn の `q-pages.yml`）。push すると、テストと check-code が通ったときだけ Pages に出す。読みこむ JS・CSS の `?v=` は公開のときに付くので、手で付けなくてよい。`?v=` がファイルごとにちがうと、ブラウザが古い部品と新しい部品をまぜて読み、画面がまるごと出なくなるので、公開の写しでは全部同じ新しい番号にそろう（repo の中の番号は、そろっていれば古いままでよい。`test/version.test.mjs`）。
