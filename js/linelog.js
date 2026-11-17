@@ -7,6 +7,7 @@
 // 読まれるところ：app.js・js/store.js・js/send-queue.js・js/view.js（テストは test/linelog.test.mjs・test/store.test.mjs・test/send-queue.test.mjs）
 import { LINE_LOG } from "./line-config.js?v=202611012034";
 import { addDays } from "./stats.js?v=202611012034";
+import { NAMES } from "./names.js?v=202611012034";
 
 // くらぶボットに入れられるのは、7日前まで（GAS の TUZUQ_BACK_DAYS_ と同じ）
 export const BOT_BACK_DAYS = 7;
@@ -149,12 +150,12 @@ export const sendBox = (opts) => (Q() ? Q().outbox("tuzuq:outbox", opts) : { put
 
 // 失敗したときに出す、やさしい言葉（E2：仕組みの言葉は出さない）
 export function lineLogMessage(error) {
-  if (error === "auth") return "くらぶボットに入れられませんでした。LINE で、つづくを開きなおしてね";
-  if (error === "day") return "くらぶボットに入れられるのは、きょうのチェックだけです（このチェックは、この端末に残っています）";
-  if (error === "off") return "くらぶボットは、まだ準備中です（チェックはこの端末に残っています）";
+  if (error === "auth") return `${NAMES.bot}に入れられませんでした。LINE で、${NAMES.app}を開きなおしてね`;
+  if (error === "day") return `${NAMES.bot}に入れられるのは、きょうのチェックだけです（このチェックは、この端末に残っています）`;
+  if (error === "off") return `${NAMES.bot}は、まだ準備中です（チェックはこの端末に残っています）`;
   if (error === "claim") return "つなぎ先の GAS に、持ち主の登録を受けつけました。10分以内に、GAS エディタで adoptTuzuqOwner を実行してね";
   if (error === "notyou") return "つなぎ先の GAS の持ち主ではありません。つなぎ先の URL を確かめてね";
-  return "くらぶボットに入れられませんでした。チェックはこの端末に残っています";
+  return `${NAMES.bot}に入れられませんでした。チェックはこの端末に残っています`;
 }
 
 // いまの設定の答えを、見出しと行の並びに（入口の GAS は sections、配布用シートの GAS は status だけ返す）
@@ -172,7 +173,7 @@ export function statusSections(res) {
   if (!st) return null;
   const habits = Array.isArray(st.habits) ? st.habits.slice(0, 12).map(str) : [];
   return [
-    { title: "✅ つづく", rows: [`持ち主：${st.tuzuqOwner ? "登録ずみ" : "まだ"}`, `送る文：${habits.length ? habits.join("・") : "まだ"}`] },
+    { title: `✅ ${NAMES.app}`, rows: [`持ち主：${st.tuzuqOwner ? "登録ずみ" : "まだ"}`, `送る文：${habits.length ? habits.join("・") : "まだ"}`] },
     { title: "🌱 GitHub", rows: [st.github ? "つながっています" : "つながっていません（つながなくても記録はできます）"] }
   ];
 }

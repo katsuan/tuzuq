@@ -3,6 +3,7 @@
 // 読まれるところ：app.js（テストは test/view.test.mjs）
 import { LINKS, MAX_HABITS } from "./store.js?v=202611012034";
 import { valueText } from "./linelog.js?v=202611012034";
+import { NAMES } from "./names.js?v=202611012034";
 import { label, streak, weekday } from "./stats.js?v=202611012034";
 
 // 文字を HTML に入れられる形にする（& < > " ' を置きかえる）
@@ -46,8 +47,8 @@ export function habitHtml(h, { d, today, week, tapHint = false, pop = null, focu
           <span class="habit-emoji" aria-hidden="true">${esc(h.emoji)}</span>
           <span class="habit-name"><b>${esc(h.name)}</b></span>
           <span class="habit-streak${n ? "" : " is-zero"}">${n ? `🔥${n}日` : "これから"}</span>
-          ${value && value.days[today] !== undefined ? `<small class="habit-value" title="くらぶボットで記録した、きょうの合計">きょう ${esc(valueText(value.days[today], value.unit))}</small>` : ""}
-          ${link || bot ? `<span class="habit-tags">${link ? `<a class="auto-tag is-link" href="${esc(link.url)}" aria-label="${esc(link.name)}（${esc(link.what)}）を開く。記録した日は自動でチェック">${esc(link.name)}連動 ›</a>` : ""}${bot ? '<small class="auto-tag bot-tag" title="チェックするとくらぶボットにも記録します">ボット連動</small>' : ""}</span>` : ""}
+          ${value && value.days[today] !== undefined ? `<small class="habit-value" title="${NAMES.bot}で記録した、きょうの合計">きょう ${esc(valueText(value.days[today], value.unit))}</small>` : ""}
+          ${link || bot ? `<span class="habit-tags">${link ? `<a class="auto-tag is-link" href="${esc(link.url)}" aria-label="${esc(link.name)}（${esc(link.what)}）を開く。記録した日は自動でチェック">${esc(link.name)}連動 ›</a>` : ""}${bot ? `<small class="auto-tag bot-tag" title="チェックすると${NAMES.bot}にも記録します">ボット連動</small>` : ""}</span>` : ""}
         </div>
         <div class="dots" aria-label="この1週間">${dots}</div>
       </div>`;

@@ -11,6 +11,7 @@ import { cardParams } from "./js/card.js?v=202611012034";
 import { dragSort } from "./js/drag-sort.js?v=202611012034";
 import { exportFile } from "./js/export-file.js?v=202611012034";
 import { LINE_LOG, OPEN_URL } from "./js/line-config.js?v=202611012034";
+import { NAMES } from "./js/names.js?v=202611012034";
 import { googleRemindUrl, remindIcs } from "./js/remind.js?v=202611012034";
 import { best, doneCount, fullStreak, label, lastDays, level, monthGrid, monthStats, streak, weekHeader, ymd } from "./js/stats.js?v=202611012034";
 
@@ -108,7 +109,7 @@ function sendDone(key, p, res, keepalive) {
     persist();
     render();
     const day = p.date === ymd() ? "" : `${label(p.date)}の分として`;
-    if (h) say(res.added ? `💬 「${h.name}」を${day}くらぶボットに入れました${res.github ? "（GitHub にも）" : ""}` : `💬 「${h.name}」は、もうくらぶボットに入っています`);
+    if (h) say(res.added ? `💬 「${h.name}」を${day}${NAMES.bot}に入れました${res.github ? "（GitHub にも）" : ""}` : `💬 「${h.name}」は、もう${NAMES.bot}に入っています`);
     return;
   }
   const again = h && (res.error === "net" || res.error === "fail");
@@ -142,9 +143,9 @@ async function readBotDays(force = false) {
   lastRead = Date.now();
   const res = await lineLog.days(habits.map((h) => h.lineText));
   if (!res.ok) {
-    if (res.error === "auth") say("くらぶボットのチェックを読めませんでした。LINE で、つづくを開きなおしてね");
+    if (res.error === "auth") say(`${NAMES.bot}のチェックを読めませんでした。LINE で、${NAMES.app}を開きなおしてね`);
     else if (res.error === "claim" || res.error === "notyou") say(lineLogMessage(res.error));
-    else if (res.error !== "off") say("くらぶボットのチェックを読めませんでした（電波のよい所で開きなおしてね）");
+    else if (res.error !== "off") say(`${NAMES.bot}のチェックを読めませんでした（電波のよい所で開きなおしてね）`);
     return;
   }
   const nextValues = {};
@@ -186,7 +187,7 @@ async function sendLinkedToBot(habits) {
       persist();
       render();
     }
-    if (added) say(`💬 ${h.name}：${LINKS[h.link].name}（${LINKS[h.link].what}）の ${added}日分をくらぶボットに入れました`);
+    if (added) say(`💬 ${h.name}：${LINKS[h.link].name}（${LINKS[h.link].what}）の ${added}日分を${NAMES.bot}に入れました`);
   }
 }
 
@@ -567,7 +568,7 @@ function applyToggle(h, date) {
   if (lineLog && h.lineText) {
     if (!withinBotDays(date, today)) return say(`${text}（8日より前は、この端末だけに残ります）`);
     sends.queue(h.id, date, h.lineText);
-    say(`${text}（くらぶボットにも入れます）`, () => {
+    say(`${text}（${NAMES.bot}にも入れます）`, () => {
       sends.cancel(sendKey(h.id, date));
       if ((state.done[h.id] || []).includes(date)) toggle(state, h.id, date);
       persist();
@@ -579,7 +580,7 @@ function applyToggle(h, date) {
   if (waitForBot({ inLine, gasUrl: botUrl(), lineText: h.lineText, date, today })) {
     outbox.put(sendKey(h.id, date), { text: h.lineText, date });
     showWaiting();
-    return say(`${text}（つながったら、くらぶボットにも入れます）`);
+    return say(`${text}（つながったら、${NAMES.bot}にも入れます）`);
   }
   if (date === today) say(text);
 }
@@ -636,34 +637,34 @@ $("remindAt").addEventListener("change", () => {
 });
 $("remindIcs").addEventListener("click", async () => {
   const file = new File([remindIcs(state.habits, state.remindAt, ymd())], "tuzuq-remind.ics", { type: "text/calendar" });
-  if (!(await exportFile(file, "つづくのお知らせ"))) say("📥 カレンダーのファイルを書き出しました。開くとカレンダーに入ります");
+  if (!(await exportFile(file, `${NAMES.app}のお知らせ`))) say("📥 カレンダーのファイルを書き出しました。開くとカレンダーに入ります");
 });
 
 // ---- 控え ----
 $("exportBtn").addEventListener("click", async () => {
   const file = new File([exportJson(state)], `tuzuq-${ymd()}.json`, { type: "application/json" });
-  if (!(await exportFile(file, "つづくの記録の控え"))) say("⬇️ 控えを書き出しました");
+  if (!(await exportFile(file, `${NAMES.app}の記録の控え`))) say("⬇️ 控えを書き出しました");
 });
 
 $("importFile").addEventListener("change", async (e) => {
   const file = e.target.files[0];
   e.target.value = "";
   if (!file) return;
-  if (file.size > MAX_IMPORT_BYTES) return say("ファイルが大きすぎます（つづくで書き出した控えか確かめてください）");
+  if (file.size > MAX_IMPORT_BYTES) return say(`ファイルが大きすぎます（${NAMES.app}で書き出した控えか確かめてください）`);
   try {
     const added = importJson(state, await file.text());
     persist();
     render();
     say(`⬆️ 控えを読みこみました（習慣が ${added} こふえました）`);
   } catch {
-    say("読みこめませんでした（つづくで書き出した控えか確かめてください）");
+    say(`読みこめませんでした（${NAMES.app}で書き出した控えか確かめてください）`);
   }
 });
 
 $("resetBtn").addEventListener("click", async () => {
   // 確かめの窓（Q キット）がまだ読みこめていなければ、消さない（ブラウザの小窓は使わない）
   if (!window.LineShareUI?.ask) return say("少し待ってから、もう一度押してください");
-  const ok = await LineShareUI.ask({ title: "記録をすべて消しますか？", text: "この端末のつづくの習慣とチェックを、すべて消します。もとに戻せません。", ok: "すべて消す", danger: true });
+  const ok = await LineShareUI.ask({ title: "記録をすべて消しますか？", text: `この端末の${NAMES.app}の習慣とチェックを、すべて消します。もとに戻せません。`, ok: "すべて消す", danger: true });
   if (!ok) return;
   state = reset(state.weekStart);
   ui.editing = null;
@@ -712,7 +713,7 @@ window.QBotLink?.guide({
   key: "tuzuq:lineBannerOff", // この端末で閉じたか（設定なので端末に残してよい）
   openUrl: OPEN_URL,
   say,
-  closedText: "使い方の案内を閉じました（「🔗 くらぶボットとつなぐ」からまた見られます）"
+  closedText: `使い方の案内を閉じました（「🔗 ${NAMES.bot}とつなぐ」からまた見られます）`
 });
 
 // 最初だけの使い方（Q キットの「💡 使い方」。「わかった」で消え、その端末では二度と出さない）
@@ -742,7 +743,7 @@ function connectLineLog() {
     // くらぶボット（自分で入れたつなぎ先ではない）につながったら、その URL を覚える（次に電波がないときも、○を箱に入れられるように）
     if (!state.gasUrl) rememberBot(window.QloveBotLink?.get?.() || "");
     $("statusBox").hidden = false;
-    $("whereNote").innerHTML = "📱 この版の記録は、ブラウザ版とは<b>別</b>です。<br>「ボット連動」の札がある習慣は、チェックするとくらぶボットにも届きます。"; // qcheck-ok: W1 決まった文字だけ
+    $("whereNote").innerHTML = `📱 この版の記録は、ブラウザ版とは<b>別</b>です。<br>「ボット連動」の札がある習慣は、チェックすると${NAMES.bot}にも届きます。`; // qcheck-ok: W1 決まった文字だけ
     $("whereNote").hidden = false;
     render();
     showWaiting();
@@ -756,7 +757,7 @@ function connectLineLog() {
 // ---- LINE 版の「わたし」：見出しの右に本人のアイコン。押すと、ログイン・くらぶボットとのつながり・まだ送っていない○（Q キットの shared/line-me.js） ----
 me = window.QLineMe?.mount({
   liffId: LINE_LOG.liffId,
-  botName: "くらぶボット",
+  botName: NAMES.bot,
   connected: () => !!lineLog,
   pending: () => outbox.all().length,
   // 電波がもどったとき・「いま送る」：つながっていれば箱の○を送り、まだならつなぎなおす（つなぐと箱の○も送る）
@@ -787,7 +788,7 @@ $("statusBtn").addEventListener("click", async () => {
   btn.textContent = "読みこみ中…";
   const sections = statusSections(await lineLog.status());
   btn.disabled = false;
-  btn.innerHTML = `${lsIcon("search")}くらぶボットのいまの設定を見る`; // qcheck-ok: W1 決まった文字とアイコンだけ
+  btn.innerHTML = `${lsIcon("search")}${NAMES.bot}のいまの設定を見る`; // qcheck-ok: W1 決まった文字とアイコンだけ
   const list = $("statusList");
   list.replaceChildren();
   if (!sections) {

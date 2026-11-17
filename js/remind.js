@@ -4,6 +4,7 @@
 // どちらも予定の中に、つづくを開くリンクを入れる。止めるときはカレンダーの予定を消す
 // 読まれるところ：app.js（テストは test/remind.test.mjs）
 import { habitUrl } from "./link.js?v=202611012034"; // 予定から開くリンク（?h=習慣の id）
+import { NAMES } from "./names.js?v=202611012034";
 const MINUTES = 15; // 予定の長さ
 
 // 2けたにそろえる（7 → "07"）
@@ -18,7 +19,7 @@ function at(day, time, plusMinutes = 0) {
 // 予定の題（しるし＋名前）
 const title = (h) => `${h.emoji} ${h.name}`;
 // 予定のメモ（ひとことと、その習慣を開くリンク）
-const details = (h) => `「${h.name}」ができたら、つづくでチェックしよう\n${habitUrl(h)}`;
+const details = (h) => `「${h.name}」ができたら、${NAMES.app}でチェックしよう\n${habitUrl(h)}`;
 
 // Google カレンダーで、毎日くり返す予定を作る画面のリンクを返す
 export function googleRemindUrl(habit, time, today, tz = "") {
@@ -38,7 +39,7 @@ export function remindIcs(habits, time, today) {
   // .ics に書けるよう、\ ; , 改行を書きかえる
   const esc = (t) => String(t).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\r?\n|\r/g, "\\n");
   const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+/, "");
-  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//katsuan//tuzuq//JA", "CALSCALE:GREGORIAN", "X-WR-CALNAME:つづく"];
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//katsuan//tuzuq//JA", "CALSCALE:GREGORIAN", `X-WR-CALNAME:${NAMES.app}`];
   for (const h of habits) {
     lines.push(
       "BEGIN:VEVENT",

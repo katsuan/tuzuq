@@ -3,6 +3,7 @@
 import { cut } from "./store.js?v=202611012034";
 import { label } from "./stats.js?v=202611012034";
 import { OPEN_URL } from "./line-config.js?v=202611012034";
+import { NAMES } from "./names.js?v=202611012034";
 
 export const CARD_COLOR = "#2F80D8"; // ロゴの青
 
@@ -27,7 +28,7 @@ export function cardParams(habits, dayOf, today) {
     theme: "custom",
     customColor: CARD_COLOR,
     showAction: "true",
-    actionLabel: "✅ つづくでチェックする",
+    actionLabel: `✅ ${NAMES.app}でチェックする`,
     actionUrl: OPEN_URL, // LINE 版のつづく（おくるんの config.js の trustedLiffIds に登録ずみ）
     from: "tuzuq"
   });

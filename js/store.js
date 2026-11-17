@@ -8,6 +8,7 @@
 
 import { isDate } from "./stats.js?v=202611012034";
 import { cleanGasUrl } from "./linelog.js?v=202611012034";
+import { NAMES } from "./names.js?v=202611012034";
 
 const KEY = "tuzuq:v1";
 const OLD_KEY = "tsuduq:v1"; // 前の名前
@@ -20,9 +21,9 @@ const ID = /^[a-z0-9]{4,24}$/;
 export const isHabitId = (v) => ID.test(String(v ?? ""));
 export const LINKS = {
   // url：自動の○のしるし（ピル）を押すと開く、そのツール（決まった自分のツールだけ。W5）
-  shoquji: { name: "しょくじ", what: "食事の記録", label: "🍚 しょくじ（食事の記録）で記録した日", key: "shoquji:v1", url: "https://katsuan.github.io/shoquji/" },
+  shoquji: { name: NAMES.shoquji, what: "食事の記録", label: `🍚 ${NAMES.shoquji}（食事の記録）で記録した日`, key: "shoquji:v1", url: "https://katsuan.github.io/shoquji/" },
   // キロっくは LINE の中で使う。この端末の同じブラウザ（LINE の中）で開いたときだけ読める。開くのも LINE の中で
-  kiloq: { name: "キロっく", what: "筋トレの記録", label: "🏋️ キロっく（筋トレの記録）で記録した日", key: "liff-workout-history", url: "https://liff.line.me/2012187502-SXNrASOl" }
+  kiloq: { name: NAMES.kiloq, what: "筋トレの記録", label: `🏋️ ${NAMES.kiloq}（筋トレの記録）で記録した日`, key: "liff-workout-history", url: "https://liff.line.me/2012187502-SXNrASOl" }
 };
 // 文字を n 字（UTF-16）までに切る。絵文字が半分に切れて残らないように
 export function cut(text, n) {
@@ -57,7 +58,7 @@ function blank() {
 
 // 前のよくある習慣の名前（ツールの名前入り）を、だれでも読める名前に（カードを受け取る人は、しょくじ・キロっくを知らない）
 // つないだ習慣で、名前が前の名前とまったく同じときだけ（自分で付けた名前は変えない）
-const OLD_IDEA_NAMES = { shoquji: { "しょくじを記録": "食事を記録" }, kiloq: { "筋トレ（キロっく）": "筋トレ" } };
+const OLD_IDEA_NAMES = { shoquji: { "しょくじを記録": "食事を記録" }, kiloq: { "筋トレ（キロっく）": "筋トレ" } }; // names-ok: 前に保存した名前と見くらべる（名前が変わっても、前の名前のまま）
 // 前のよくある習慣の名前なら、いまの名前にする（ほかは、そのまま）
 const friendlyName = (name, link) => (OLD_IDEA_NAMES[link] && OLD_IDEA_NAMES[link][name]) || name;
 
